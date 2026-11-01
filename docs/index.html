@@ -57,7 +57,7 @@ html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(
         <li><a href="#platform" data-i18n="nav.platform">平台</a></li>
         <li><a href="#download" data-i18n="nav.download">下载</a></li>
         <li><a href="guide.html" data-i18n="nav.guide">用户手册</a></li>
-        <li><a href="https://github.com/turinglambdaai/autarx">GitHub</a></li>
+        <li><a href="https://github.com/turlamai/autarx">GitHub</a></li>
         <li class="lang-dropdown-wrapper">
           <button class="lang-btn" type="button" aria-label="Switch language">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
@@ -81,7 +81,7 @@ html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(
 <p class="reader-en product-availability" lang="en">Engineering preview; the complete official workbench is planned as a purchase. No paid checkout is open.</p><p class="reader-zh product-availability" lang="zh">工程预览；完整官方工作台规划为买断，目前尚未开放付费购买。</p>
       <p class="lead" data-i18n="hero.lead">Autarx 是一个 AUTOSAR 集成工作台：直接打开 OEM 交付物——System Description、System Extract、ECU Extract、ECUC 与通信 ARXML——让集成工程师在进入 vendor 工具链之前，先完成检查、检索、引用追踪与结构校验。</p>
       <div class="hero-buttons">
-        <a href="https://github.com/turinglambdaai/autarx/releases/latest/download/autarx-macos-arm64.dmg" class="btn btn-primary" data-i18n="hero.download">下载最新版</a>
+        <a href="https://github.com/turlamai/autarx/releases/latest/download/autarx-macos-arm64.dmg" class="btn btn-primary" data-i18n="hero.download">下载最新版</a>
         <a href="guide.html" class="btn btn-secondary" data-i18n="hero.guide">用户手册</a>
       </div>
       <div class="hero-visual">
@@ -138,10 +138,8 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
         <tr><th data-i18n="pf.milestone">里程碑</th><td data-i18n="pf.milestone-v">分析栈已交付：语义引擎、语义 diff、ECU 影响分析、通信投影、厂商交接、受控编辑、MCP；三平台 GUI 宿主已上线；M9 商业化加固（授权、签名 / 公证、性能画像）进行中</td></tr>
       </table>
       <div class="hero-visual" style="margin-top:44px">
-        <div class="app-window">
-          <img src="assets/autarx-workbench-empty-state.png" alt="Autarx macOS 工作台：空态" data-i18n-alt="pf.shot-alt" style="width:100%;height:auto;display:block">
-        </div>
-        <p style="text-align:center;font-size:13px;color:var(--text-3);margin-top:12px" data-i18n="pf.caption">macOS 工作台截图（截图版本尚未与当前发布核实）：空态。⌘O 打开 OEM 交付包，开始索引。</p>
+        <div class="app-window" style="padding:28px;max-width:74ch;margin:auto;"><p data-i18n="pf.caption">先用合成 OEM 交付件试运行导入和索引；检查未解析引用、诊断与差异，再处理真实项目。遇到歧义结果应继续核查。</p></div>
+        
       </div>
     </div>
   </section>
@@ -152,41 +150,41 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
       <h2 class="section-title"><span data-i18n="dl.t1">一个工作台，</span> <span class="accent" data-i18n="dl.t2">三个桌面。</span></h2>
       <p class="lead" data-i18n="dl.lead">GUI 与 CLI 同一个引擎：macOS 以 dmg 交付，Windows 以 MSI 交付，Linux 以 deb / rpm / AppImage 交付；CLI 另有全平台自包含 zip。</p>
       <div class="platforms-grid four">
-        <a class="platform-card" data-dl="cli-mac" href="https://github.com/turinglambdaai/autarx/releases/latest/download/autarx-macos-arm64.zip">
+        <a class="platform-card" data-dl="cli-mac" href="https://github.com/turlamai/autarx/releases/latest/download/autarx-macos-arm64.zip">
           <div class="platform-icon">🍎</div>
           <div class="platform-name">CLI · macOS</div>
           <div class="platform-format">.zip · arm64 + x64</div>
         </a>
-        <a class="platform-card" data-dl="cli-linux" href="https://github.com/turinglambdaai/autarx/releases/latest/download/autarx-linux-x64.zip">
+        <a class="platform-card" data-dl="cli-linux" href="https://github.com/turlamai/autarx/releases/latest/download/autarx-linux-x64.zip">
           <div class="platform-icon">🐧</div>
           <div class="platform-name">CLI · Linux</div>
           <div class="platform-format">.zip · x64 + arm64</div>
         </a>
-        <a class="platform-card" data-dl="cli-win" href="https://github.com/turinglambdaai/autarx/releases/latest/download/autarx-windows-x64.zip">
+        <a class="platform-card" data-dl="cli-win" href="https://github.com/turlamai/autarx/releases/latest/download/autarx-windows-x64.zip">
           <div class="platform-icon">🪟</div>
           <div class="platform-name">CLI · Windows</div>
           <div class="platform-format">.zip · x64</div>
         </a>
       </div>
       <div class="platforms-grid four">
-        <a class="platform-card" data-dl="gui-mac" href="https://github.com/turinglambdaai/autarx/releases/latest/download/autarx-macos-arm64.dmg">
+        <a class="platform-card" data-dl="gui-mac" href="https://github.com/turlamai/autarx/releases/latest/download/autarx-macos-arm64.dmg">
           <div class="platform-icon">🖥️</div>
           <div class="platform-name" data-i18n="dl.mac-gui">GUI · macOS</div>
           <div class="platform-format">.dmg · arm64 + x64 · app.zip（应用内更新）</div>
         </a>
-        <a class="platform-card" data-dl="gui-win" href="https://github.com/turinglambdaai/autarx/releases/latest/download/autarx-windows-x64.msi">
+        <a class="platform-card" data-dl="gui-win" href="https://github.com/turlamai/autarx/releases/latest/download/autarx-windows-x64.msi">
           <div class="platform-icon">🪟</div>
           <div class="platform-name" data-i18n="dl.win-gui">GUI · Windows</div>
           <div class="platform-format">.msi · x64</div>
         </a>
-        <a class="platform-card" data-dl="gui-linux" href="https://github.com/turinglambdaai/autarx/releases/latest/download/autarx-linux-x64.AppImage">
+        <a class="platform-card" data-dl="gui-linux" href="https://github.com/turlamai/autarx/releases/latest/download/autarx-linux-x64.AppImage">
           <div class="platform-icon">🐧</div>
           <div class="platform-name" data-i18n="dl.linux-gui">GUI · Linux</div>
           <div class="platform-format">.deb / .rpm / .AppImage · x64 + arm64</div>
         </a>
       </div>
       <div class="callout"><span data-i18n="dl.callout">更新机制：CLI 用 autarx update 自更新；三平台 GUI 都内置「检查更新」（macOS ⌘U / Win Ctrl+U / Linux Help 菜单），走同一条 Ed25519 签名的 update feed。Linux 的 deb / rpm / AppImage 副本按安装形态引导更新。每个资产都带 .sha256 校验文件。</span></div>
-      <p style="margin-top:16px"><a href="https://github.com/turinglambdaai/autarx/releases" class="btn btn-secondary" data-i18n="dl.all-releases">全部版本</a></p>
+      <p style="margin-top:16px"><a href="https://github.com/turlamai/autarx/releases" class="btn btn-secondary" data-i18n="dl.all-releases">全部版本</a></p>
     </div>
   </section>
 
@@ -196,18 +194,18 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
       <h2 class="section-title"><span data-i18n="status.t1">分析优先，</span> <span class="accent" data-i18n="status.t2">一个里程碑一个里程碑。</span></h2>
       <p class="lead" data-i18n="status.lead">当前状态：完整分析栈已交付——工作区语义引擎、语义 diff、ECU 影响分析、通信投影、厂商交接、受控编辑与 MCP agent 接口；三平台 GUI 宿主（macOS / Windows / Linux）已上线。剩余为 M9 商业化加固——授权、性能画像与代码签名 / 公证。</p>
       <div class="hero-buttons">
-        <a href="https://github.com/turinglambdaai/autarx/releases/latest/download/autarx-macos-arm64.dmg" class="btn btn-primary" data-i18n="status.download">下载</a>
+        <a href="https://github.com/turlamai/autarx/releases/latest/download/autarx-macos-arm64.dmg" class="btn btn-primary" data-i18n="status.download">下载</a>
         <a href="guide.html" class="btn btn-secondary" data-i18n="status.guide">用户手册</a>
-        <a href="https://github.com/turinglambdaai/autarx/blob/main/docs/ROADMAP.md" class="btn btn-secondary" data-i18n="status.roadmap">路线图</a>
+        <a href="https://github.com/turlamai/autarx/blob/main/docs/ROADMAP.md" class="btn btn-secondary" data-i18n="status.roadmap">路线图</a>
       </div>
     </div>
   </section>
 
   <section id="start-here" class="product-start" aria-label="Get started / 开始使用">
-<h2 class="reader-en " lang="en">Start with one useful session.</h2><h2 class="reader-zh " lang="zh">从一次有效使用开始。</h2><p class="reader-en start-status" lang="en">Engineering preview; the complete official workbench is planned as a purchase. No paid checkout is open.</p><p class="reader-zh start-status" lang="zh">工程预览；完整官方工作台规划为买断，目前尚未开放付费购买。</p><p class="reader-en " lang="en">Rivet desktop previews for macOS, Windows and Linux; CLI and MCP use the same Racket domain. Supported AUTOSAR scope is defined by the product contract, not every possible ARXML file.</p><p class="reader-zh " lang="zh">提供 macOS、Windows、Linux Rivet 桌面预览；CLI 和 MCP 共用 Racket 领域核心。AUTOSAR 支持范围由产品契约规定，不代表支持所有 ARXML。</p><div class="product-start-grid"><article><h3 class="reader-en " lang="en">01</h3><h3 class="reader-zh " lang="zh">01</h3><p class="reader-en " lang="en">Open the synthetic OemDelivery fixture before opening a confidential delivery.</p><p class="reader-zh " lang="zh">先打开合成 OemDelivery 夹具，再处理机密交付件。</p></article><article><h3 class="reader-en " lang="en">02</h3><h3 class="reader-zh " lang="zh">02</h3><p class="reader-en " lang="en">Inspect unresolved references, compare two copies and review impact diagnostics. Treat unknown/ambiguous results as unresolved work.</p><p class="reader-zh " lang="zh">检查未解析引用，对比两个副本，阅读影响分析；unknown 和歧义结果需要继续核查。</p></article><article><h3 class="reader-en " lang="en">03</h3><h3 class="reader-zh " lang="zh">03</h3><p class="reader-en " lang="en">For changes, generate a patch plan and semantic diff, inspect them, and only then apply to a disposable workspace copy.</p><p class="reader-zh " lang="zh">需要修改时，先生成 patch plan 和语义差异，审阅后仅在可丢弃的工作区副本中应用。</p></article></div><p class="reader-en start-limits" lang="en">Large-delivery performance budgets and full supported-scope qualification remain open (<a href="https://github.com/turinglambdaai/autarx/issues/22">#22</a>). Historical .NET releases are not the current Rivet implementation.</p><p class="reader-zh start-limits" lang="zh">大型交付件性能预算和完整支持范围验收仍待完成（<a href="https://github.com/turinglambdaai/autarx/issues/22">#22</a>）。历史 .NET 发行版不是当前 Rivet 实现。</p><div class="start-links"><a class="reader-en" lang="en" href="https://github.com/turinglambdaai/autarx/blob/main/docs/USER-GUIDE.md">Installation, privacy &amp; recovery</a><a class="reader-zh" lang="zh" href="https://github.com/turinglambdaai/autarx/blob/main/docs/USER-GUIDE.zh-CN.md">安装、隐私与恢复</a><a href="https://github.com/turinglambdaai/autarx/issues"><span class="reader-en " lang="en">Get help</span><span class="reader-zh " lang="zh">反馈与帮助</span></a></div>
+<h2 class="reader-en " lang="en">Start with one useful session.</h2><h2 class="reader-zh " lang="zh">从一次有效使用开始。</h2><p class="reader-en start-status" lang="en">Engineering preview; the complete official workbench is planned as a purchase. No paid checkout is open.</p><p class="reader-zh start-status" lang="zh">工程预览；完整官方工作台规划为买断，目前尚未开放付费购买。</p><p class="reader-en " lang="en">Rivet desktop previews for macOS, Windows and Linux; CLI and MCP use the same Racket domain. Supported AUTOSAR scope is defined by the product contract, not every possible ARXML file.</p><p class="reader-zh " lang="zh">提供 macOS、Windows、Linux Rivet 桌面预览；CLI 和 MCP 共用 Racket 领域核心。AUTOSAR 支持范围由产品契约规定，不代表支持所有 ARXML。</p><div class="product-start-grid"><article><h3 class="reader-en " lang="en">01</h3><h3 class="reader-zh " lang="zh">01</h3><p class="reader-en " lang="en">Open the synthetic OemDelivery fixture before opening a confidential delivery.</p><p class="reader-zh " lang="zh">先打开合成 OemDelivery 夹具，再处理机密交付件。</p></article><article><h3 class="reader-en " lang="en">02</h3><h3 class="reader-zh " lang="zh">02</h3><p class="reader-en " lang="en">Inspect unresolved references, compare two copies and review impact diagnostics. Treat unknown/ambiguous results as unresolved work.</p><p class="reader-zh " lang="zh">检查未解析引用，对比两个副本，阅读影响分析；unknown 和歧义结果需要继续核查。</p></article><article><h3 class="reader-en " lang="en">03</h3><h3 class="reader-zh " lang="zh">03</h3><p class="reader-en " lang="en">For changes, generate a patch plan and semantic diff, inspect them, and only then apply to a disposable workspace copy.</p><p class="reader-zh " lang="zh">需要修改时，先生成 patch plan 和语义差异，审阅后仅在可丢弃的工作区副本中应用。</p></article></div><p class="reader-en start-limits" lang="en">Large-delivery performance budgets and full supported-scope qualification remain open (<a href="https://github.com/turlamai/autarx/issues/22">#22</a>). Historical .NET releases are not the current Rivet implementation.</p><p class="reader-zh start-limits" lang="zh">大型交付件性能预算和完整支持范围验收仍待完成（<a href="https://github.com/turlamai/autarx/issues/22">#22</a>）。历史 .NET 发行版不是当前 Rivet 实现。</p><div class="start-links"><a class="reader-en" lang="en" href="https://github.com/turlamai/autarx/blob/main/docs/USER-GUIDE.md">Installation, privacy &amp; recovery</a><a class="reader-zh" lang="zh" href="https://github.com/turlamai/autarx/blob/main/docs/USER-GUIDE.zh-CN.md">安装、隐私与恢复</a><a href="https://github.com/turlamai/autarx/issues"><span class="reader-en " lang="en">Get help</span><span class="reader-zh " lang="zh">反馈与帮助</span></a></div>
 </section>
 <footer><div class="container"><p data-i18n="footer">Autarx · AUTOSAR 集成工作台 · turinglambdaai</p></div></footer>
-<nav id="product-support" aria-label="Support / 支持"><a href="https://github.com/turinglambdaai/autarx/issues"><span class="support-zh">反馈</span><span class="support-en" lang="en">Feedback</span></a> <a href="https://github.com/turinglambdaai/autarx/releases"><span class="support-zh">发布与更新</span><span class="support-en" lang="en">Releases</span></a> <a href="https://github.com/turinglambdaai/autarx/blob/main/LICENSE"><span class="support-zh">源码许可</span><span class="support-en" lang="en">Source license</span></a> <a class="support-zh" href="https://github.com/turinglambdaai/autarx/blob/main/docs/USER-GUIDE.zh-CN.md">使用与帮助</a> <a class="support-en" lang="en" href="https://github.com/turinglambdaai/autarx/blob/main/docs/USER-GUIDE.md">Usage & help</a></nav>
+<nav id="product-support" aria-label="Support / 支持"><a href="https://github.com/turlamai/autarx/issues"><span class="support-zh">反馈</span><span class="support-en" lang="en">Feedback</span></a> <a href="https://github.com/turlamai/autarx/releases"><span class="support-zh">发布与更新</span><span class="support-en" lang="en">Releases</span></a> <a href="https://github.com/turlamai/autarx/blob/main/LICENSE"><span class="support-zh">源码许可</span><span class="support-en" lang="en">Source license</span></a> <a class="support-zh" href="https://github.com/turlamai/autarx/blob/main/docs/USER-GUIDE.zh-CN.md">使用与帮助</a> <a class="support-en" lang="en" href="https://github.com/turlamai/autarx/blob/main/docs/USER-GUIDE.md">Usage & help</a></nav>
 
   <script>
     // Platform-aware direct downloads: hero/status CTAs and the matching
@@ -217,7 +215,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     // one row below. Runs before the i18n block below so its language pass
     // applies the OS-specific label keys.
     (function () {
-      var BASE = 'https://github.com/turinglambdaai/autarx/releases/latest/download/';
+      var BASE = 'https://github.com/turlamai/autarx/releases/latest/download/';
       var ua = navigator.userAgent;
       var os = /Windows/i.test(ua) ? 'win' : (/Mac|iPhone|iPad/i.test(ua) ? 'mac' : (/Linux|X11/i.test(ua) ? 'linux' : 'mac'));
       var arch = os === 'linux' && /aarch64|arm/i.test(ua) ? 'arm64' : (os === 'linux' ? 'x64' : 'arm64');
@@ -289,8 +287,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
         'pf.automation': '自动化', 'pf.automation-v': 'CLI 稳定 JSON 输出（CI / AI agent 友好）+ MCP 服务器',
         'pf.license': '许可', 'pf.license-v': '源码可见，专有许可（source-available, proprietary）',
         'pf.milestone': '里程碑', 'pf.milestone-v': '分析栈已交付：语义引擎、语义 diff、ECU 影响分析、通信投影、厂商交接、受控编辑、MCP；三平台 GUI 宿主已上线；M9 商业化加固（授权、签名 / 公证、性能画像）进行中',
-        'pf.caption': 'macOS 工作台截图（截图版本尚未与当前发布核实）：空态。⌘O 打开 OEM 交付包，开始索引。',
-        'pf.shot-alt': 'Autarx macOS 工作台：空态',
+        'pf.caption': '先用合成 OEM 交付件试运行导入和索引；检查未解析引用、诊断与差异，再处理真实项目。遇到歧义结果应继续核查。',
         'dl.eyebrow': '下载', 'dl.t1': '一个工作台，', 'dl.t2': '三个桌面。',
         'dl.lead': 'GUI 与 CLI 同一个引擎：macOS 以 dmg 交付，Windows 以 MSI 交付，Linux 以 deb / rpm / AppImage 交付；CLI 另有全平台自包含 zip。',
         'dl.mac-gui': 'GUI · macOS', 'dl.win-gui': 'GUI · Windows', 'dl.linux-gui': 'GUI · Linux',
@@ -338,8 +335,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
         'pf.automation': 'Automation', 'pf.automation-v': 'CLI with stable JSON output (CI / AI-agent friendly) + MCP server',
         'pf.license': 'License', 'pf.license-v': 'Source-available, proprietary',
         'pf.milestone': 'Milestone', 'pf.milestone-v': 'Analysis stack shipped: semantic engine, semantic diff, ECU impact, communication projection, vendor hand-off, reviewed patching, MCP; native hosts on all three desktops; M9 commercial hardening (licensing, code signing / notarization, performance profiling) in progress',
-        'pf.caption': 'Mac workbench screenshot (capture version not yet reconciled to current release): empty state. Press ⌘O to open an OEM delivery and start indexing.',
-        'pf.shot-alt': 'Autarx macOS workbench: empty state',
+        'pf.caption': 'Start with a synthetic OEM delivery, review indexing, unresolved references, diagnostics and diffs, then consider real project data. Treat ambiguous results as requiring further review.',
         'dl.eyebrow': 'Download', 'dl.t1': 'One workbench,', 'dl.t2': 'three desktops.',
         'dl.lead': 'GUI and CLI share one engine: the macOS GUI ships as a dmg, the Windows GUI as an MSI, the Linux GUI as .deb / .rpm / .AppImage — plus self-contained CLI zips for every platform.',
         'dl.mac-gui': 'GUI · macOS', 'dl.win-gui': 'GUI · Windows', 'dl.linux-gui': 'GUI · Linux',
