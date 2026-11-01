@@ -91,7 +91,7 @@ cat > "$SCRIPT" <<RKT
          racket/file
          racket/format)
 (define version "$VERSION")
-(define base-url "${RELEASE_ASSET_BASE_URL:-https://github.com/turinglambdaai/autarx/releases/download/$TAG}")
+(define base-url "${RELEASE_ASSET_BASE_URL:-https://github.com/turlamai/autarx/releases/download/$TAG}")
 (define dist (path->complete-path "$DIST"))
 (define key-path (path->complete-path "$KEY_DER"))
 (define key-id "autarx-2026-10")
