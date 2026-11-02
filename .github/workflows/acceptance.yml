@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
-      - uses: Bogdanp/setup-racket@v1.15
+      - uses: Bogdanp/setup-racket@v1.16
         with:
           version: '9.3'
           architecture: x64
@@ -57,7 +57,7 @@ jobs:
             arch: x64
     steps:
       - uses: actions/checkout@v4
-      - uses: Bogdanp/setup-racket@v1.15
+      - uses: Bogdanp/setup-racket@v1.16
         with:
           version: '9.3'
           architecture: ${{ matrix.arch }}
@@ -82,7 +82,7 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
-      - uses: Bogdanp/setup-racket@v1.15
+      - uses: Bogdanp/setup-racket@v1.16
         with:
           version: '9.3'
           architecture: x64
