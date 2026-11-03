@@ -244,7 +244,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
         document.querySelectorAll('a[data-release-suffix]').forEach(function (a) {
           a.href = page;
           if (!release || release.draft || release.prerelease ||
-              !/^v[0-9]+\\.[0-9]+\\.[0-9]+$/.test(release.tag_name)) return;
+              !/^v[0-9]+\.[0-9]+\.[0-9]+$/.test(release.tag_name)) return;
           var name = 'autarx-' + release.tag_name.slice(1) + '-' + a.dataset.releaseSuffix;
           var exact = 'https://github.com/turlamai/autarx/releases/download/' + release.tag_name + '/' + name;
           if ((release.assets || []).some(function (x) {
