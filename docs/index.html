@@ -81,7 +81,7 @@ html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(
 <p class="reader-en product-availability" lang="en">Engineering preview; the complete official workbench is planned as a purchase. No paid checkout is open.</p><p class="reader-zh product-availability" lang="zh">工程预览；完整官方工作台规划为买断，目前尚未开放付费购买。</p>
       <p class="lead" data-i18n="hero.lead">Autarx 是一个 AUTOSAR 集成工作台：直接打开 OEM 交付物——System Description、System Extract、ECU Extract、ECUC 与通信 ARXML——让集成工程师在进入 vendor 工具链之前，先完成检查、检索、引用追踪与结构校验。</p>
       <div class="hero-buttons">
-        <a href="https://github.com/turlamai/autarx/releases/latest/download/autarx-macos-arm64.dmg" class="btn btn-primary" data-i18n="hero.download">下载最新版</a>
+        <a href="https://github.com/turlamai/autarx/releases/latest" data-release-suffix="macos-arm64.dmg" class="btn btn-primary" data-i18n="hero.download">下载最新版</a>
         <a href="guide.html" class="btn btn-secondary" data-i18n="hero.guide">用户手册</a>
       </div>
       <div class="hero-visual">
@@ -150,34 +150,34 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
       <h2 class="section-title"><span data-i18n="dl.t1">一个工作台，</span> <span class="accent" data-i18n="dl.t2">三个桌面。</span></h2>
       <p class="lead" data-i18n="dl.lead">GUI 与 CLI 同一个引擎：macOS 以 dmg 交付，Windows 以 MSI 交付，Linux 以 deb / rpm / AppImage 交付；CLI 另有全平台自包含 zip。</p>
       <div class="platforms-grid four">
-        <a class="platform-card" data-dl="cli-mac" href="https://github.com/turlamai/autarx/releases/latest/download/autarx-macos-arm64.zip">
+        <a class="platform-card" data-dl="cli-mac" href="https://github.com/turlamai/autarx/releases/latest" data-release-suffix="macos-arm64.zip">
           <div class="platform-icon">🍎</div>
           <div class="platform-name">CLI · macOS</div>
           <div class="platform-format">.zip · arm64 + x64</div>
         </a>
-        <a class="platform-card" data-dl="cli-linux" href="https://github.com/turlamai/autarx/releases/latest/download/autarx-linux-x64.zip">
+        <a class="platform-card" data-dl="cli-linux" href="https://github.com/turlamai/autarx/releases/latest" data-release-suffix="linux-x64.zip">
           <div class="platform-icon">🐧</div>
           <div class="platform-name">CLI · Linux</div>
           <div class="platform-format">.zip · x64 + arm64</div>
         </a>
-        <a class="platform-card" data-dl="cli-win" href="https://github.com/turlamai/autarx/releases/latest/download/autarx-windows-x64.zip">
+        <a class="platform-card" data-dl="cli-win" href="https://github.com/turlamai/autarx/releases/latest" data-release-suffix="windows-x64.zip">
           <div class="platform-icon">🪟</div>
           <div class="platform-name">CLI · Windows</div>
           <div class="platform-format">.zip · x64</div>
         </a>
       </div>
       <div class="platforms-grid four">
-        <a class="platform-card" data-dl="gui-mac" href="https://github.com/turlamai/autarx/releases/latest/download/autarx-macos-arm64.dmg">
+        <a class="platform-card" data-dl="gui-mac" href="https://github.com/turlamai/autarx/releases/latest" data-release-suffix="macos-arm64.dmg">
           <div class="platform-icon">🖥️</div>
           <div class="platform-name" data-i18n="dl.mac-gui">GUI · macOS</div>
           <div class="platform-format">.dmg · arm64 + x64 · app.zip（应用内更新）</div>
         </a>
-        <a class="platform-card" data-dl="gui-win" href="https://github.com/turlamai/autarx/releases/latest/download/autarx-windows-x64.msi">
+        <a class="platform-card" data-dl="gui-win" href="https://github.com/turlamai/autarx/releases/latest" data-release-suffix="windows-x64.msi">
           <div class="platform-icon">🪟</div>
           <div class="platform-name" data-i18n="dl.win-gui">GUI · Windows</div>
           <div class="platform-format">.msi · x64</div>
         </a>
-        <a class="platform-card" data-dl="gui-linux" href="https://github.com/turlamai/autarx/releases/latest/download/autarx-linux-x64.AppImage">
+        <a class="platform-card" data-dl="gui-linux" href="https://github.com/turlamai/autarx/releases/latest" data-release-suffix="linux-x86_64.AppImage">
           <div class="platform-icon">🐧</div>
           <div class="platform-name" data-i18n="dl.linux-gui">GUI · Linux</div>
           <div class="platform-format">.deb / .rpm / .AppImage · x64 + arm64</div>
@@ -194,7 +194,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
       <h2 class="section-title"><span data-i18n="status.t1">分析优先，</span> <span class="accent" data-i18n="status.t2">一个里程碑一个里程碑。</span></h2>
       <p class="lead" data-i18n="status.lead">当前状态：完整分析栈已交付——工作区语义引擎、语义 diff、ECU 影响分析、通信投影、厂商交接、受控编辑与 MCP agent 接口；三平台 GUI 宿主（macOS / Windows / Linux）已上线。剩余为 M9 商业化加固——授权、性能画像与代码签名 / 公证。</p>
       <div class="hero-buttons">
-        <a href="https://github.com/turlamai/autarx/releases/latest/download/autarx-macos-arm64.dmg" class="btn btn-primary" data-i18n="status.download">下载</a>
+        <a href="https://github.com/turlamai/autarx/releases/latest" data-release-suffix="macos-arm64.dmg" class="btn btn-primary" data-i18n="status.download">下载</a>
         <a href="guide.html" class="btn btn-secondary" data-i18n="status.guide">用户手册</a>
         <a href="https://github.com/turlamai/autarx/blob/main/docs/ROADMAP.md" class="btn btn-secondary" data-i18n="status.roadmap">路线图</a>
       </div>
@@ -208,44 +208,63 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
 <nav id="product-support" aria-label="Support / 支持"><a href="https://github.com/turlamai/autarx/issues"><span class="support-zh">反馈</span><span class="support-en" lang="en">Feedback</span></a> <a href="https://github.com/turlamai/autarx/releases"><span class="support-zh">发布与更新</span><span class="support-en" lang="en">Releases</span></a> <a href="https://github.com/turlamai/autarx/blob/main/LICENSE"><span class="support-zh">源码许可</span><span class="support-en" lang="en">Source license</span></a> <a class="support-zh" href="https://github.com/turlamai/autarx/blob/main/docs/USER-GUIDE.zh-CN.md">使用与帮助</a> <a class="support-en" lang="en" href="https://github.com/turlamai/autarx/blob/main/docs/USER-GUIDE.md">Usage & help</a></nav>
 
   <script>
-    // Platform-aware direct downloads: hero/status CTAs and the matching
-    // platform cards point at the versionless alias for the visitor's OS
-    // (mac/linux arch refined via userAgentData). mac visitors get the GUI
-    // dmg; win gets the MSI; linux gets the AppImage — the CLI zips stay
-    // one row below. Runs before the i18n block below so its language pass
-    // applies the OS-specific label keys.
+    // CLI and GUI installers have distinct versioned asset identities.
+    // Never substitute an app-update payload for the CLI or vice versa.
     (function () {
-      var BASE = 'https://github.com/turlamai/autarx/releases/latest/download/';
+      var page = 'https://github.com/turlamai/autarx/releases/latest';
       var ua = navigator.userAgent;
       var os = /Windows/i.test(ua) ? 'win' : (/Mac|iPhone|iPad/i.test(ua) ? 'mac' : (/Linux|X11/i.test(ua) ? 'linux' : 'mac'));
       var arch = os === 'linux' && /aarch64|arm/i.test(ua) ? 'arm64' : (os === 'linux' ? 'x64' : 'arm64');
+      var release = null;
       var style = document.createElement('style');
       style.textContent = '.platform-card.current{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}';
       document.head.appendChild(style);
-      var heroFile = { mac: 'autarx-macos-' + arch + '.dmg', win: 'autarx-windows-x64.msi', linux: 'autarx-linux-' + arch + '.AppImage' }[os];
-      var heroUrl = BASE + heroFile;
-      document.querySelectorAll('a[data-i18n="hero.download"], a[data-i18n="status.download"]').forEach(function (a) {
-        a.href = heroUrl;
+      var mainLinks = document.querySelectorAll('a[data-i18n="hero.download"], a[data-i18n="status.download"]');
+      mainLinks.forEach(function (a) {
         a.setAttribute('data-i18n', (a.getAttribute('data-i18n') === 'hero.download' ? 'hero.' : 'status.') + 'download-' + os);
       });
-      var currentForOs = { mac: ['cli-mac', 'gui-mac'], win: ['cli-win', 'gui-win'], linux: ['cli-linux', 'gui-linux'] }[os];
+      var currentForOs = {mac: ['cli-mac', 'gui-mac'], win: ['cli-win', 'gui-win'], linux: ['cli-linux', 'gui-linux']}[os];
       document.querySelectorAll('a.platform-card[data-dl]').forEach(function (card) {
-        var kind = card.getAttribute('data-dl');
-        if (kind === 'cli-mac' || kind === 'gui-mac') card.setAttribute('href', BASE + 'autarx-macos-' + arch + (kind === 'gui-mac' ? '.dmg' : '.zip') );
-        if (kind === 'cli-linux') card.setAttribute('href', BASE + 'autarx-linux-' + arch + '.zip');
-        if (kind === 'gui-linux') card.setAttribute('href', BASE + 'autarx-linux-' + arch + '.AppImage');
-        if (currentForOs.indexOf(kind) >= 0) card.classList.add('current');
+        if (currentForOs.indexOf(card.getAttribute('data-dl')) >= 0) card.classList.add('current');
       });
+      function resolve() {
+        var appSuffix = {
+          mac: 'macos-' + arch + '.dmg',
+          win: 'windows-x64.msi',
+          linux: 'linux-' + (arch === 'x64' ? 'x86_64' : 'aarch64') + '.AppImage'
+        }[os];
+        mainLinks.forEach(function (a) { a.dataset.releaseSuffix = appSuffix; });
+        document.querySelectorAll('a.platform-card[data-dl]').forEach(function (card) {
+          var kind = card.getAttribute('data-dl');
+          if (kind === 'cli-mac') card.dataset.releaseSuffix = 'macos-' + arch + '.zip';
+          if (kind === 'gui-mac') card.dataset.releaseSuffix = 'macos-' + arch + '.dmg';
+          if (kind === 'cli-linux') card.dataset.releaseSuffix = 'linux-' + arch + '.zip';
+          if (kind === 'gui-linux') card.dataset.releaseSuffix = 'linux-' + (arch === 'x64' ? 'x86_64' : 'aarch64') + '.AppImage';
+        });
+        document.querySelectorAll('a[data-release-suffix]').forEach(function (a) {
+          a.href = page;
+          if (!release || release.draft || release.prerelease ||
+              !/^v[0-9]+\\.[0-9]+\\.[0-9]+$/.test(release.tag_name)) return;
+          var name = 'autarx-' + release.tag_name.slice(1) + '-' + a.dataset.releaseSuffix;
+          var exact = 'https://github.com/turlamai/autarx/releases/download/' + release.tag_name + '/' + name;
+          if ((release.assets || []).some(function (x) {
+            return x.name === name && x.size > 0 && x.browser_download_url === exact;
+          })) a.href = exact;
+        });
+      }
+      resolve();
       if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
         navigator.userAgentData.getHighEntropyValues(['architecture', 'platform']).then(function (h) {
-          if (!h || /Windows/i.test(h.platform || '')) return; // windows ships x64-only
+          if (!h || /Windows/i.test(h.platform || '')) return;
           var a = h.architecture === 'arm' ? 'arm64' : (h.architecture === 'x86' ? 'x64' : null);
-          if (!a || a === arch) return;
-          document.querySelectorAll('a[href^="' + BASE + '"]').forEach(function (x) {
-            x.setAttribute('href', x.getAttribute('href').replace('-' + arch + '.(dmg|zip|AppImage)$', '-' + a + '.$1'));
-          });
+          if (a && a !== arch) { arch = a; resolve(); }
         }).catch(function () {});
       }
+      fetch('https://api.github.com/repos/turlamai/autarx/releases/latest',
+            {headers: {'Accept': 'application/vnd.github+json'}})
+        .then(function (r) { if (!r.ok) throw new Error('release lookup'); return r.json(); })
+        .then(function (data) { release = data; resolve(); })
+        .catch(function () { /* Keep Releases page usable. */ });
     })();
   </script>
   <script>
