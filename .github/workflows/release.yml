@@ -306,55 +306,71 @@ jobs:
           printf '%s' "$UPDATE_ED25519_PRIVATE_KEY_B64" | base64 -d > "$keyder"
           bash scripts/make-update-manifest.sh "${{ github.ref_name }}" dist "$keyder"
           rm -f "$keyder"
-      - name: Ensure SHA256SUMS
+      - name: Validate and stage CLI and workbench release contracts
         run: |
-          cd dist
-          [ -f SHA256SUMS ] || {
-            find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 shasum -a 256 > SHA256SUMS
-          }
+          set -euo pipefail
+          VERSION="$(printf '%s' "$GITHUB_REF_NAME" | cut -c2-)"
+          mkdir -p public
+          # CLI archives and native workbench installers have intentionally
+          # distinct roles. *-app.* is a signed-feed update payload.
+          for suffix in \
+            macos-arm64.dmg macos-arm64.zip macos-arm64-app.zip \
+            macos-x64.dmg macos-x64.zip macos-x64-app.zip \
+            windows-x64.msi windows-x64.zip windows-x64-app.zip \
+            linux-arm64.zip linux-arm64-app.tar.gz \
+            linux-x64.zip linux-x64-app.tar.gz \
+            linux-amd64.deb linux-arm64.deb \
+            linux-aarch64.AppImage linux-x86_64.AppImage; do
+            name="autarx-$VERSION-$suffix"
+            test -s "dist/$name" || { echo "::error::Missing or empty $name"; exit 1; }
+            cp "dist/$name" "public/$name"
+          done
+          for arch in aarch64 x86_64; do
+            rpm="$(find dist -maxdepth 1 -type f -name "autarx-$VERSION-*-linux-$arch.rpm" -print -quit)"
+            test -s "$rpm" || { echo "::error::Missing $arch RPM"; exit 1; }
+            cp "$rpm" public/
+          done
+          cp dist/update-app-manifest.json dist/update-manifest.json public/
+          test -s public/update-app-manifest.json && test -s public/update-manifest.json
+          cd public
+          shasum -a 256 autarx-* | LC_ALL=C sort -k2 > SHA256SUMS
           shasum -a 256 --check SHA256SUMS
+          test "$(grep -c '^' SHA256SUMS)" -eq 19
+      - name: Release notes from this version's changelog
+        run: |
+          set -euo pipefail
+          VERSION="$(printf '%s' "$GITHUB_REF_NAME" | cut -c2-)"
+          awk -v v="$VERSION" '
+            index($0, "## [" v "]") == 1 {on=1; next}
+            on && /^## / {exit}
+            on {print}
+          ' CHANGELOG.md > release-notes.md
+          test -s release-notes.md || { echo "::error::Missing changelog section $VERSION"; exit 1; }
+          printf '\n### Distribution and trust\n\n' >> release-notes.md
+          printf '%s\n' 'Choose the versioned installer for your OS and architecture. The CLI ZIP and workbench *-app payloads are separate update targets. Verify downloads with SHA256SUMS.' >> release-notes.md
+          printf '%s\n' 'macOS development builds use ad-hoc signing; Windows installers have no publisher signature. Gatekeeper or SmartScreen may warn. Update manifests are independently Ed25519-signed.' >> release-notes.md
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          ver="${GITHUB_REF_NAME#v}"
-          notes="Autarx ${ver}. The workbench ships on all three desktops: macOS (Apple silicon and Intel) as autarx-<version>-macos-<arch>.dmg, Windows as autarx-<version>-windows-x64.msi, Linux as .deb/.rpm/.AppImage for the common architectures. Every host updates in place through the Ed25519-signed feed (update-app-manifest.json); Linux tarball hand-offs stay manual — extract the -app.tar.gz over the install directory. The CLI ships as self-contained zips — autarx-<version>-{macos-arm64,macos-x64,linux-x64,linux-arm64,windows-x64}.zip — and updates itself through \`autarx update\`. Every asset carries a .sha256 sidecar. Ad-hoc signed — on first macOS launch, right-click the app and choose Open."
-          if gh release view "${{ github.ref_name }}" -R turlamai/autarx >/dev/null 2>&1; then
-            gh release upload "${{ github.ref_name }}" dist/* --clobber -R turlamai/autarx
+          set -euo pipefail
+          VERSION="$(printf '%s' "$GITHUB_REF_NAME" | cut -c2-)"
+          if gh release view "$GITHUB_REF_NAME" -R turlamai/autarx >/dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" -R turlamai/autarx --notes-file release-notes.md
+            gh release upload "$GITHUB_REF_NAME" public/* --clobber -R turlamai/autarx
           else
-            gh release create "${{ github.ref_name }}" dist/* \
+            gh release create "$GITHUB_REF_NAME" public/* \
               -R turlamai/autarx \
-              --title "Autarx ${{ github.ref_name }}" \
-              --notes "$notes"
+              --title "Autarx $VERSION" \
+              --notes-file release-notes.md
           fi
-      - name: Attest build provenance
+          gh release view "$GITHUB_REF_NAME" -R turlamai/autarx --json assets --jq '.assets[].name' |
+            while IFS= read -r name; do
+              if [ ! -f "public/$name" ]; then
+                gh release delete-asset "$GITHUB_REF_NAME" "$name" --yes -R turlamai/autarx
+              fi
+            done
+      - name: Attest public build provenance
         uses: actions/attest-build-provenance@v4
         with:
-          subject-path: dist/*
-      - name: Stable alias copies (versionless direct-download links)
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          VERSION="${GITHUB_REF_NAME#v}"
-          # Family rule: download buttons point at
-          # releases/latest/download/<alias>, so every release also ships
-          # versionless copies of the primary installers. Aliases are
-          # overwritten on each release; the versioned assets stay
-          # canonical. The *-app.zip / *-app.tar.gz payloads are
-          # update-feed internals and get no alias. Deliberately after the
-          # provenance attestation so dist/* there stays versioned-only.
-          mkdir -p stable-alias
-          cp "dist/autarx-${VERSION}-macos-arm64.dmg" stable-alias/autarx-macos-arm64.dmg
-          cp "dist/autarx-${VERSION}-macos-x64.dmg" stable-alias/autarx-macos-x64.dmg
-          cp "dist/autarx-${VERSION}-windows-x64.msi" stable-alias/autarx-windows-x64.msi
-          cp "dist/autarx-${VERSION}-linux-amd64.deb" stable-alias/autarx-linux-x64.deb
-          cp "dist/autarx-${VERSION}-linux-arm64.deb" stable-alias/autarx-linux-arm64.deb
-          cp "dist/autarx-${VERSION}-linux-x86_64.AppImage" stable-alias/autarx-linux-x64.AppImage
-          cp "dist/autarx-${VERSION}-linux-aarch64.AppImage" stable-alias/autarx-linux-arm64.AppImage
-          cp "dist/autarx-${VERSION}-macos-arm64.zip" stable-alias/autarx-macos-arm64.zip
-          cp "dist/autarx-${VERSION}-macos-x64.zip" stable-alias/autarx-macos-x64.zip
-          cp "dist/autarx-${VERSION}-windows-x64.zip" stable-alias/autarx-windows-x64.zip
-          cp "dist/autarx-${VERSION}-linux-x64.zip" stable-alias/autarx-linux-x64.zip
-          cp "dist/autarx-${VERSION}-linux-arm64.zip" stable-alias/autarx-linux-arm64.zip
-          gh release upload "${{ github.ref_name }}" stable-alias/* --clobber -R turlamai/autarx
+          subject-path: public/*
