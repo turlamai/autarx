@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Keep each `main` commit's CI run independent, including while GitHub-hosted
+  runners are queued; cancel only superseded PR attempts. Test matrix and
+  release trust-root checks remain unchanged.
 - "Check for Updates…" moved into the App menu directly below About on
   macOS (About itself moves out of the Help menu to join it), per the
   family menu convention. Windows and Linux already had the Help-menu
