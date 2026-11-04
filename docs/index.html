@@ -47,7 +47,44 @@ var _hmt = _hmt || [];
 html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(max-width:700px){.product-start{margin:40px auto;padding:24px 20px}.product-start-grid{grid-template-columns:1fr;gap:18px}}
 </style>
 <style>.lang-menu li.lang-choice{padding:0}.lang-menu .lang-choice button{display:block;width:100%;padding:8px 12px;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}.lang-menu .lang-choice button:focus-visible{outline:2px solid currentColor;outline-offset:-2px;border-radius:4px}</style>
-</head>
+<style id="visual-showcase-css">
+/* Visual Showcase: process illustration, intentionally not an app screenshot. */
+.vs-showcase{padding:clamp(48px,7vw,88px) 24px;background:var(--bg,var(--surface,#faf7f2));color:var(--text,var(--ink,#24211d))}
+.vs-showcase *{box-sizing:border-box}
+.vs-showcase .vs-wrap{max-width:1080px;margin:0 auto}
+.vs-showcase .vs-intro{text-align:center;max-width:680px;margin:0 auto 28px}
+.vs-showcase .vs-label{text-transform:uppercase;letter-spacing:.14em;font-size:.7rem;font-weight:700;color:var(--accent,#b85d3f)}
+.vs-showcase h2{font:inherit;font-size:clamp(1.65rem,3.3vw,2.5rem);font-weight:700;line-height:1.2;letter-spacing:-.04em;margin:12px 0}
+.vs-showcase .vs-lead,.vs-showcase .vs-caption{color:var(--text-2,var(--muted,#6b6660));line-height:1.7}
+.vs-showcase .vs-frame{padding:clamp(18px,3vw,34px);border:1px solid var(--border,var(--line,#e8e2d9));background:var(--bg-card,var(--surface,#fff));border-radius:24px;box-shadow:0 20px 60px rgba(36,29,18,.07);overflow:hidden}
+.vs-showcase .vs-stage{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.vs-showcase .vs-step{position:relative;min-height:170px;padding:22px 18px;border-radius:16px;background:var(--bg,var(--surface,#faf7f2));border:1px solid var(--border,var(--line,#e8e2d9))}
+.vs-showcase .vs-step:not(:last-child):after{content:"→";position:absolute;z-index:1;right:-15px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:var(--bg-card,var(--surface,#fff));color:var(--accent,#b85d3f);border:1px solid var(--border,var(--line,#e8e2d9))}
+.vs-showcase .vs-glyph{font-size:1.75rem;display:block;margin-bottom:24px;color:var(--accent,#b85d3f)}
+.vs-showcase .vs-step b{display:block;font-size:1.03rem;margin-bottom:7px}
+.vs-showcase .vs-step small{display:block;color:var(--text-2,var(--muted,#6b6660));font-size:.84rem;line-height:1.5}
+.vs-showcase .vs-caption{font-size:.79rem;text-align:center;margin:16px 0 0}
+.vs-showcase .vs-art{margin-bottom:22px;background:var(--bg,var(--surface,#f6f3ed));border:1px solid var(--border,var(--line,#e8e2d9));border-radius:18px;padding:22px;overflow:hidden;min-height:185px}
+.vs-showcase .vs-task-art{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.vs-showcase .vs-mini-board{background:var(--bg-card,var(--surface,#fff));border-radius:14px;border:1px solid var(--border,var(--line,#e8e2d9));padding:15px;box-shadow:0 6px 24px rgba(10,10,10,.04)}
+.vs-showcase .vs-mini-title{font-size:.76rem;color:var(--text-2,var(--muted,#6b6660));font-weight:700;margin-bottom:12px}
+.vs-showcase .vs-mini-task{display:flex;align-items:center;gap:10px;padding:9px 3px;border-top:1px solid var(--border,var(--line,#e8e2d9));font-size:.9rem}
+.vs-showcase .vs-ring{flex:none;height:17px;width:17px;border:2px solid var(--accent,#b85d3f);border-radius:50%}
+.vs-showcase .vs-ring.done{background:var(--accent,#b85d3f);position:relative}.vs-showcase .vs-ring.done:after{content:"✓";color:#fff;font-size:12px;position:absolute;left:2px;top:-3px}
+.vs-showcase .vs-mini-tag{margin-left:auto;color:var(--accent,#b85d3f);background:var(--accent-soft,#f7e5dd);font-size:.7rem;padding:3px 6px;border-radius:6px}
+.vs-showcase .vs-reader-art{display:grid;grid-template-columns:1.5fr 1fr;gap:18px}
+.vs-showcase .vs-paper,.vs-showcase .vs-annotation{border-radius:14px;background:var(--bg-card,var(--surface,#fff));border:1px solid var(--border,var(--line,#e8e2d9));padding:18px}
+.vs-showcase .vs-paper-title{font-size:.75rem;letter-spacing:.1em;color:var(--text-2,var(--muted,#6b6660));margin-bottom:22px}
+.vs-showcase .vs-line{height:9px;background:var(--border,var(--line,#e8e2d9));border-radius:8px;margin:12px 0;max-width:100%}
+.vs-showcase .vs-line.short{width:57%}.vs-showcase .vs-line.mid{width:82%}
+.vs-showcase .vs-highlight{height:15px;border-radius:3px;width:72%;background:color-mix(in srgb,var(--accent,#d97757) 32%,transparent)}
+.vs-showcase .vs-note-label{font-size:.72rem;letter-spacing:.09em;color:var(--accent,#b85d3f);font-weight:800}
+.vs-showcase .vs-note-body{font-size:.93rem;line-height:1.7;margin:18px 0}
+.vs-showcase .vs-note-foot{font-size:.75rem;color:var(--text-2,var(--muted,#6b6660))}
+html:lang(en) .vs-zh,html:lang(zh) .vs-en{display:none!important}
+@media(max-width:700px){.vs-showcase .vs-stage{grid-template-columns:1fr}.vs-showcase .vs-step{min-height:120px}.vs-showcase .vs-step:not(:last-child):after{right:calc(50% - 14px);top:auto;bottom:-15px;transform:rotate(90deg)}.vs-showcase .vs-glyph{margin-bottom:12px}.vs-showcase .vs-reader-art{grid-template-columns:1fr 1fr}.vs-showcase .vs-art{padding:14px}}
+@media(prefers-reduced-motion:reduce){.vs-showcase *, .vs-showcase *:before,.vs-showcase *:after{animation:none!important;transition:none!important}}
+</style></head>
 <body>
   <nav class="nav-container">
     <div class="nav-wrapper">
@@ -104,7 +141,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
         </div>
       </div>
     </div>
-  </section>
+  </section><section class="vs-showcase" id="visual-showcase" aria-label="Product workflow"><div class="vs-wrap"><div class="vs-intro"><span class="vs-label">WORKFLOW · 工作流</span><h2><span class="vs-zh" lang="zh-CN">先看清交付物，再开展 AUTOSAR 集成。</span><span class="vs-en" lang="en">Understand the delivery before AUTOSAR integration.</span></h2><p class="vs-lead"><span class="vs-zh" lang="zh-CN">文件、引用、差异与报告如何关联？用工作流程说明，而非陈旧的原生窗口截图。</span><span class="vs-en" lang="en">Files, references, differences and reports in one workflow—not a dated native window screenshot.</span></p></div><div class="vs-frame"><div class="vs-art vs-task-art"><div class="vs-mini-board"><div class="vs-mini-title">SOURCE · INPUT</div><div class="vs-mini-task"><span class="vs-ring"></span>System / ECU Extract</div><div class="vs-mini-task"><span class="vs-ring"></span>Communication ARXML</div><div class="vs-mini-task"><span class="vs-ring"></span>ECUC</div></div><div class="vs-mini-board"><div class="vs-mini-title">RESULT · OUTPUT</div><div class="vs-mini-task"><span class="vs-ring"></span>Reference trace</div><div class="vs-mini-task"><span class="vs-ring"></span>Impact / differences</div><div class="vs-mini-task"><span class="vs-ring"></span>Auditable results</div></div></div><div class="vs-stage"><div class="vs-step"><span class="vs-glyph" aria-hidden="true">▤</span><b><span class="vs-zh" lang="zh-CN">检查包</span><span class="vs-en" lang="en">Inspect</span></b><small><span class="vs-zh" lang="zh-CN">清点交付文件</span><span class="vs-en" lang="en">Inventory delivery files</span></small></div><div class="vs-step"><span class="vs-glyph" aria-hidden="true">⌘</span><b><span class="vs-zh" lang="zh-CN">追踪关联</span><span class="vs-en" lang="en">Trace</span></b><small><span class="vs-zh" lang="zh-CN">发现引用问题</span><span class="vs-en" lang="en">Find reference issues</span></small></div><div class="vs-step"><span class="vs-glyph" aria-hidden="true">✓</span><b><span class="vs-zh" lang="zh-CN">评估变更</span><span class="vs-en" lang="en">Audit</span></b><small><span class="vs-zh" lang="zh-CN">查看变化和证据</span><span class="vs-en" lang="en">Review impact evidence</span></small></div></div><p class="vs-caption"><span class="vs-zh" lang="zh-CN">架构与工作流程概念图，非软件截图；具体能力以已验收版本为准。</span><span class="vs-en" lang="en">Conceptual workflow, not a UI screenshot. Capabilities depend on the accepted build.</span></p></div></div></section>
 
   <section id="features">
     <div class="container">
