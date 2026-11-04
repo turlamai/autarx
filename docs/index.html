@@ -84,6 +84,13 @@ html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(
 html:lang(en) .vs-zh,html:lang(zh) .vs-en{display:none!important}
 @media(max-width:700px){.vs-showcase .vs-stage{grid-template-columns:1fr}.vs-showcase .vs-step{min-height:120px}.vs-showcase .vs-step:not(:last-child):after{right:calc(50% - 14px);top:auto;bottom:-15px;transform:rotate(90deg)}.vs-showcase .vs-glyph{margin-bottom:12px}.vs-showcase .vs-reader-art{grid-template-columns:1fr 1fr}.vs-showcase .vs-art{padding:14px}}
 @media(prefers-reduced-motion:reduce){.vs-showcase *, .vs-showcase *:before,.vs-showcase *:after{animation:none!important;transition:none!important}}
+
+/* The architecture comparison must show both panels on narrow phones. */
+@media (max-width: 600px) {
+  .vs-showcase .vs-task-art { grid-template-columns: minmax(0, 1fr); }
+  .vs-showcase .vs-mini-board { min-width: 0; overflow-wrap: anywhere; }
+  .platforms-grid.four { grid-template-columns: minmax(0, 1fr); }
+}
 </style></head>
 <body>
   <nav class="nav-container">
