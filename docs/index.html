@@ -532,6 +532,32 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
   }
 }</script>
 
+    <!-- Parity sentinel for scripts/check_site_copy.py (site-content-parity.yml):
+         the six high-risk public claims must keep a zh no-JS HTML fallback and
+         zh+en entries in this single-quoted form. zh first — the checker compares
+         the first entry against the inline HTML fallback. Keep all three copies
+         (HTML fallback, kit-i18n, this block) in sync. -->
+    <script type="text/plain" id="kit-i18n-parity">
+    {
+        zh: {
+            'pf.desktop-v': '三平台原生宿主（macOS Swift / Windows WinUI / Linux GTK）+ Racket 语义引擎',
+            'pf.platforms-v': 'GUI：macOS 14+（Apple silicon / Intel）· Windows 10+（x64）· Linux（x64 / arm64）· CLI：macOS / Linux / Windows',
+            'pf.milestone-v': '分析栈已交付：语义引擎、语义 diff、ECU 影响分析、通信投影、厂商交接、受控编辑、MCP；三平台 GUI 宿主已上线；M9 商业化加固（授权、签名 / 公证、性能画像）进行中',
+            'pf.caption': '先用合成 OEM 交付件试运行导入和索引；检查未解析引用、诊断与差异，再处理真实项目。遇到歧义结果应继续核查。',
+            'dl.lead': 'GUI 与 CLI 同一个引擎：macOS 以 dmg 交付，Windows 以 MSI 交付，Linux 以 deb / rpm / AppImage 交付；CLI 另有全平台自包含 zip。',
+            'status.lead': '当前状态：完整分析栈已交付——工作区语义引擎、语义 diff、ECU 影响分析、通信投影、厂商交接、受控编辑与 MCP agent 接口；三平台 GUI 宿主（macOS / Windows / Linux）已上线。剩余为 M9 商业化加固——授权、性能画像与代码签名 / 公证。'
+        },
+        en: {
+            'pf.desktop-v': 'Native hosts on all three desktops (macOS Swift / Windows WinUI / Linux GTK) + Racket semantic engine',
+            'pf.platforms-v': 'GUI: macOS 14+ (Apple silicon / Intel) · Windows 10+ (x64) · Linux (x64 / arm64) · CLI: macOS / Linux / Windows',
+            'pf.milestone-v': 'Analysis stack shipped: semantic engine, semantic diff, ECU impact, communication projection, vendor hand-off, reviewed patching, MCP; native hosts on all three desktops; M9 commercial hardening (licensing, code signing / notarization, performance profiling) in progress',
+            'pf.caption': 'Start with a synthetic OEM delivery, review indexing, unresolved references, diagnostics and diffs, then consider real project data. Treat ambiguous results as requiring further review.',
+            'dl.lead': 'GUI and CLI share one engine: the macOS GUI ships as a dmg, the Windows GUI as an MSI, the Linux GUI as .deb / .rpm / .AppImage — plus self-contained CLI zips for every platform.',
+            'status.lead': 'Where things stand: the full analysis stack is shipped — workspace semantic engine, semantic diff, ECU impact analysis, communication projection, vendor hand-off, reviewed editing and the MCP agent surface — and the native hosts run on all three desktops (macOS / Windows / Linux). What remains of M9 commercial hardening: licensing, performance profiling, code signing / notarization.'
+        }
+    }
+    </script>
+
     <!-- Download config: stable releases ship GUI dmg/msi/AppImage plus CLI zips.
          The resolver owns the GUI asset patterns; CLI zips link to the Releases page. -->
     <script type="application/json" id="kit-download">
