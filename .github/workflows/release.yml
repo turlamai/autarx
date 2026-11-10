@@ -244,6 +244,45 @@ jobs:
           mv "autarx-${VERSION}-linux-${ARCH}.tar.gz" \
              "autarx-${VERSION}-linux-${ARCH}-app.tar.gz"
           rm -f "autarx-${VERSION}-linux-${ARCH}.zip"
+      # Wraps the -app.tar.gz workbench payload into a Flatpak bundle from
+      # the flatpak/ manifest template (family contract:
+      # deb+rpm+AppImage+Flatpak+tar.gz). The manifest's module closure
+      # covers the two NEEDED entries outside the GNOME Platform runtime
+      # (liblz4.so.1, libtinfo.so.6). Like deb/rpm/AppImage, the flatpak
+      # install shape is manual-by-design and stays out of the signed
+      # update feed.
+      - name: Flatpak bundle
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          ARCH="${{ matrix.arch }}"
+          case "$ARCH" in x64) FPARCH=x86_64 ;; arm64) FPARCH=aarch64 ;; esac
+          sudo apt-get install --yes flatpak flatpak-builder
+          # User-level everything: runner accounts install runtimes and
+          # build without root. GNOME 50 is the oldest supported platform
+          # runtime (48 went EOL 2026-03-24); its glibc 2.42 covers the
+          # ubuntu-built payload.
+          flatpak --user remote-add --if-not-exists flathub \
+            https://flathub.org/repo/flathub.flatpakrepo
+          flatpak --user install -y --noninteractive flathub \
+            "org.gnome.Platform/${FPARCH}/50" "org.gnome.Sdk/${FPARCH}/50"
+          # The manifest template carries version/arch/sha placeholders so
+          # the archive source's checksum is exact per release. The payload
+          # is the renamed -app.tar.gz workbench bundle.
+          cp "dist/autarx-${VERSION}-linux-${ARCH}-app.tar.gz" .
+          SHA="$(sha256sum "autarx-${VERSION}-linux-${ARCH}-app.tar.gz" | cut -d' ' -f1)"
+          sed -e "s/__VERSION__/${VERSION}/" -e "s/__ARCH__/${ARCH}/" \
+              -e "s/__SHA256__/${SHA}/" \
+              flatpak/site.jrtx.autarx.Autarx.yml > site.jrtx.autarx.Autarx.gen.yml
+          # --disable-rofiles-fuse: runners have no /dev/fuse.
+          flatpak-builder --user --force-clean --disable-rofiles-fuse \
+            --repo=flatpak-repo flatpak-build site.jrtx.autarx.Autarx.gen.yml
+          flatpak build-bundle flatpak-repo \
+            "autarx-${VERSION}-linux-${ARCH}.flatpak" site.jrtx.autarx.Autarx stable
+          mv "autarx-${VERSION}-linux-${ARCH}.flatpak" dist/
+          rm -rf flatpak-build flatpak-repo \
+            "autarx-${VERSION}-linux-${ARCH}-app.tar.gz" site.jrtx.autarx.Autarx.gen.yml
+          test -f "dist/autarx-${VERSION}-linux-${ARCH}.flatpak"
       - uses: actions/upload-artifact@v7
         with:
           name: linux-${{ matrix.arch }}
@@ -323,7 +362,8 @@ jobs:
             linux-arm64.zip linux-arm64-app.tar.gz \
             linux-x64.zip linux-x64-app.tar.gz \
             linux-amd64.deb linux-arm64.deb \
-            linux-aarch64.AppImage linux-x86_64.AppImage; do
+            linux-aarch64.AppImage linux-x86_64.AppImage \
+            linux-arm64.flatpak linux-x64.flatpak; do
             name="autarx-$VERSION-$suffix"
             test -s "dist/$name" || { echo "::error::Missing or empty $name"; exit 1; }
             cp "dist/$name" "public/$name"
@@ -338,7 +378,8 @@ jobs:
           cd public
           shasum -a 256 autarx-* | LC_ALL=C sort -k2 > SHA256SUMS
           shasum -a 256 --check SHA256SUMS
-          test "$(grep -c '^' SHA256SUMS)" -eq 19
+          # 17 versioned installers/archives + 2 RPMs + 2 Flatpak bundles.
+          test "$(grep -c '^' SHA256SUMS)" -eq 21
       - name: Release notes from this version's changelog
         run: |
           set -euo pipefail

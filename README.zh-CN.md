@@ -131,6 +131,7 @@ autarx validate Mcu.arxml
 | `autarx-<version>-linux-amd64.deb` / `-arm64.deb` | Linux（x64 / arm64） | GUI 工作台 |
 | `autarx-<version>-linux-*.rpm` | Linux（x64 / arm64） | GUI 工作台 |
 | `autarx-<version>-linux-x86_64.AppImage` / `-aarch64.AppImage` | Linux（x64 / arm64） | GUI 工作台 |
+| `autarx-<version>-linux-x64.flatpak` / `-arm64.flatpak` | Linux（x64 / arm64） | GUI 工作台（Flatpak bundle，app id `site.jrtx.autarx.Autarx`；`flatpak --user install ./autarx-<version>-linux-<arch>.flatpak` 安装） |
 | `autarx-<version>-macos-arm64.zip` / `-x64.zip` | macOS（arm64 / x64） | CLI（自包含） |
 | `autarx-<version>-linux-x64.zip` / `-arm64.zip` | Linux（x64 / arm64） | CLI（自包含） |
 | `autarx-<version>-windows-x64.zip` | Windows（x64） | CLI（自包含） |

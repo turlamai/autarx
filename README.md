@@ -131,6 +131,7 @@ Releases follow `autarx-<version>-<os>-<arch>.<ext>` and ship from
 | `autarx-<version>-linux-amd64.deb` / `-arm64.deb` | Linux (x64 / arm64) | GUI workbench |
 | `autarx-<version>-linux-*.rpm` | Linux (x64 / arm64) | GUI workbench |
 | `autarx-<version>-linux-x86_64.AppImage` / `-aarch64.AppImage` | Linux (x64 / arm64) | GUI workbench |
+| `autarx-<version>-linux-x64.flatpak` / `-arm64.flatpak` | Linux (x64 / arm64) | GUI workbench (Flatpak bundle, app id `site.jrtx.autarx.Autarx`; install with `flatpak --user install ./autarx-<version>-linux-<arch>.flatpak`) |
 | `autarx-<version>-macos-arm64.zip` / `-x64.zip` | macOS (arm64 / x64) | CLI (self-contained) |
 | `autarx-<version>-linux-x64.zip` / `-arm64.zip` | Linux (x64 / arm64) | CLI (self-contained) |
 | `autarx-<version>-windows-x64.zip` | Windows (x64) | CLI (self-contained) |
