@@ -138,8 +138,15 @@ Releases follow `autarx-<version>-<os>-<arch>.<ext>` and ship from
 The CLI zips are the self-update payload: once installed, `autarx update`
 pulls newer builds from the signature-verified feed. The GUIs update
 in place through the signed workbench feed (`*-app.zip` / `*-app.tar.gz`
-payloads ship with every release). The DMG is ad-hoc signed — on first
-launch, right-click the app and choose Open.
+payloads ship with every release).
+
+> Release binaries carry no publisher code signature. The macOS DMG is
+> ad-hoc signed (not notarized), and the Windows MSI and the Linux
+> deb / rpm / AppImage artifacts are unsigned, so Gatekeeper may require
+> an explicit first-launch approval (right-click the app, choose Open)
+> and Windows SmartScreen may warn on the first MSI run. Paid code
+> signing / notarization is the remaining distribution roadmap item (see
+> [docs/ROADMAP.md](docs/ROADMAP.md)).
 
 To build from source instead:
 

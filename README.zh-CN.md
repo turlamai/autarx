@@ -135,7 +135,9 @@ autarx validate Mcu.arxml
 | `autarx-<version>-linux-x64.zip` / `-arm64.zip` | Linux（x64 / arm64） | CLI（自包含） |
 | `autarx-<version>-windows-x64.zip` | Windows（x64） | CLI（自包含） |
 
-CLI zip 就是自更新的载荷：装好后 `autarx update` 会从签名验证的更新源拉取新版本。GUI 走签名的工作台 feed（`*-app.zip` / `*-app.tar.gz` 载荷随每个版本发布）就地更新。DMG 为 ad-hoc 签名——首次启动请右键应用并选「打开」。
+CLI zip 就是自更新的载荷：装好后 `autarx update` 会从签名验证的更新源拉取新版本。GUI 走签名的工作台 feed（`*-app.zip` / `*-app.tar.gz` 载荷随每个版本发布）就地更新。
+
+> 发布二进制不带发行方代码签名：macOS DMG 为 ad-hoc 签名（未公证），Windows MSI 与 Linux deb / rpm / AppImage 未签名，因此 Gatekeeper 可能要求首次启动时显式放行（右键应用选「打开」），Windows SmartScreen 可能在首次运行 MSI 时告警。付费代码签名 / 公证仍是分发路线图上的剩余项（见 [docs/ROADMAP.md](docs/ROADMAP.md)）。
 
 也可以从源码构建：
 
