@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autarx — Settings 原型</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* ==== settings 页面专属 ==== */
+  .stack { max-width: 720px; display: flex; flex-direction: column; gap: 12px; }
+  .rowline { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .rowline:last-child { border-bottom: none; }
+  .rowline .label { width: 210px; flex: none; font-weight: 600; }
+  .rowline .value { flex: 1; min-width: 0; color: var(--mute); font-size: 12.5px; }
+  .rowline .value .path { font-family: var(--mono); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+  .rowline .end { flex: none; }
+  .seg { display: inline-flex; background: var(--raised); border-radius: 8px; padding: 2px; gap: 2px; }
+  .seg span { padding: 4px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--mute); }
+  .seg span.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(32,27,22,.12); }
+  .vendor { display: flex; align-items: center; gap: 10px; }
+  .vendor .name { font-weight: 600; width: 190px; flex: none; }
+  .vendor .path { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+  .note { font-size: 11.5px; color: var(--faint); line-height: 1.55; margin-top: 10px; }
+  .note b { color: var(--mute); font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="window" id="app">
+    <div class="titlebar">
+      <div class="lights"><i></i><i></i><i></i></div>
+      <div class="t">Autarx — <span class="path">Settings</span></div>
+      <div class="sp"></div>
+      <button class="iconbtn" id="themeBtn" title="Toggle light/dark (prototype only)">◐</button>
+    </div>
+    <div class="body">
+      <aside class="sidebar">
+        <div class="brand"><div class="mark">Ax</div><div class="name">Autarx</div></div>
+        <div class="sect">INSPECT</div>
+        <nav class="nav">
+          <div class="item"><span class="kb">1</span>Workspace</div>
+          <div class="item"><span class="kb">2</span>Objects</div>
+          <div class="item"><span class="kb">3</span>ECUs</div>
+        </nav>
+        <div class="sect">CHECK</div>
+        <nav class="nav">
+          <div class="item"><span class="kb">4</span>Diff</div>
+          <div class="item"><span class="kb">5</span>Unresolved<span class="pill">1</span></div>
+          <div class="item"><span class="kb">6</span>Communication<span class="pill warn">1</span></div>
+        </nav>
+        <div class="sect">CHANGE</div>
+        <nav class="nav">
+          <div class="item"><span class="kb">7</span>Patch</div>
+        </nav>
+        <div class="foot">
+          <span class="dot"></span><span class="st">Engine ready</span>
+          <span class="sp"></span><span class="st" style="color:var(--accent-strong);font-weight:600">⚙ Settings</span>
+        </div>
+      </aside>
+      <section class="main">
+        <div class="head">
+          <h1>Settings</h1>
+          <div class="sp"></div>
+          <button class="btn">About Autarx</button>
+        </div>
+        <div class="view">
+          <div class="stack">
+            <div class="card">
+              <h2>Appearance</h2>
+              <div class="rowline">
+                <span class="label">Theme</span>
+                <span class="value">Follows the system; workbench redraws instantly.</span>
+                <span class="end seg"><span>Light</span><span>Dark</span><span class="on">System</span></span>
+              </div>
+              <div class="rowline">
+                <span class="label">Monospaced paths</span>
+                <span class="value">Absolute paths always render in the mono face — off is not offered.</span>
+                <span class="end"><span class="chip ok">always on</span></span>
+              </div>
+            </div>
+            <div class="card">
+              <h2>Vendor tools</h2>
+              <div class="rowline">
+                <span class="vendor"><span class="name">DaVinci Configurator</span><span class="chip ok">detected</span></span>
+                <span class="value"><span class="path">/Applications/DaVinci/…/dvcfg — v5.2</span></span>
+                <span class="end"><span class="btn">Relay validate…</span></span>
+              </div>
+              <div class="rowline">
+                <span class="vendor"><span class="name">EB tresos</span><span class="chip">not found</span></span>
+                <span class="value"><span class="path">scanned default install locations — none found</span></span>
+                <span class="end"><span class="btn">Rescan</span></span>
+              </div>
+              <div class="rowline">
+                <span class="vendor"><span class="name">ISOLAR</span><span class="chip ok">detected</span></span>
+                <span class="value"><span class="path">/opt/etas/isolar — v9</span></span>
+                <span class="end"><span class="btn">Relay validate…</span></span>
+              </div>
+              <div class="note"><b>Hand-off only:</b> vendor validate relays the vendor tool's own run and normalizes its diagnostics — the verdict is always the vendor's, never Autarx's. Raw output is preserved verbatim.</div>
+            </div>
+            <div class="card">
+              <h2>Updates</h2>
+              <div class="rowline">
+                <span class="label">Current version</span>
+                <span class="value">0.5.0 · engineering preview</span>
+                <span class="end"><span class="chip ok">up to date</span></span>
+              </div>
+              <div class="rowline">
+                <span class="label">Check for updates</span>
+                <span class="value">Silent launch check throttled to once every 4 hours; failures never nag.</span>
+                <span class="end"><span class="btn primary">Check now <kbd>⌘U</kbd></span></span>
+              </div>
+              <div class="note"><b>Fail-closed by design:</b> every update is verified (Ed25519 wrapper signature, then artifact SHA-256) before it is swapped in; any verification failure rejects the update.</div>
+            </div>
+            <div class="card">
+              <h2>MCP &amp; agents</h2>
+              <div class="rowline">
+                <span class="label">Tool surface</span>
+                <span class="value">12 tools exposed on stdio (JSON-RPC 2.0). No raw-write tool exists — an agent cannot bypass the plan / diff / review boundary.</span>
+                <span class="end"><span class="chip ok">audit-logged</span></span>
+              </div>
+              <div class="rowline">
+                <span class="label">Audit log</span>
+                <span class="value"><span class="path">shared/fixtures/OemDelivery/.autarx/audit.jsonl</span></span>
+                <span class="end"><span class="btn">Reveal</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="statusbar">
+          <span><kbd>⌘,</kbd> open settings</span>
+          <span><kbd>⌘U</kbd> check for updates</span>
+          <span class="sp"></span>
+          <span>Autarx 0.5.0 · engine backend 0.5.0</span>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script>
+    const app = document.getElementById('app');
+    if (new URLSearchParams(location.search).has('dark')) app.classList.add('dark');
+    document.getElementById('themeBtn').addEventListener('click', () => app.classList.toggle('dark'));
+  </script>
+</body>
+</html>
