@@ -102,8 +102,11 @@ jobs:
             libgtk-4-dev libadwaita-1-dev libglib2.0-dev
       # Builds and caches the embeddable Racket CS runtime and exports
       # RIVET_RACKET_* (rivet's own composite action).
+      # Keep the action ref in lockstep with RIVET_PIN above (and with
+      # release.yml's copy of this step) — it ships the runtime the pinned
+      # rivet expects.
       - name: Set up embeddable Racket CS
-        uses: turlamai/rivet/.github/actions/setup-embed-racket@v0.13.0
+        uses: turlamai/rivet/.github/actions/setup-embed-racket@v0.12.0
       # Installed after the embeddable runtime so the catalog dependency
       # closure (cext-lib, crypto-lib, keel) resolves against the minimal
       # build — it ships no packages of its own. crypto backs the updater.

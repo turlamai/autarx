@@ -101,8 +101,10 @@ jobs:
           raco pkg install --auto --no-docs --name autarx-core --link racket
       - name: Remember full Racket command path
         run: echo "FULL_RACKET_BIN=$(dirname "$(command -v raco)")" >> "$GITHUB_ENV"
+      # Keep the action ref in lockstep with RIVET_PIN above — it ships the
+      # runtime the pinned rivet expects.
       - name: Set up embeddable Racket CS
-        uses: turlamai/rivet/.github/actions/setup-embed-racket@v0.13.0
+        uses: turlamai/rivet/.github/actions/setup-embed-racket@v0.12.0
       - name: Run executable product acceptance
         run: PATH="$FULL_RACKET_BIN:$PATH" dbus-run-session -- raco rivet acceptance --json
       - uses: actions/upload-artifact@v7
