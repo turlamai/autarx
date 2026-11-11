@@ -60,3 +60,19 @@ Tokens 提取自 `docs/family.css`（site-kit v1.0.3，家族设计系统单一�
 4. 亮暗主题成对设计，不存在只有暗态的界面；状态色（ok/warn/danger）两态都必须达 AA 对比。
 5. 键盘可达：1–7 切节、/ 聚焦检索、⌘O 打开交付、⌘U 检查更新、R 重建/重校验；所有提示用统一 `kbd` 样式（raised 底、mute 字、6px 圆角）。
 6. 破坏性操作（patch apply、close workspace）三件套同屏：明说改什么 + 自动备份位置 + Undo 入口；确认按钮一律 danger 色。
+
+
+## 平台映射与差异声明（预钉 · 宿主实现时升级为落点表）
+
+统一层（三平台必须一致，`design/prototype/` 原型已锁定）：信息架构、核心流程、快捷键语义、
+语义色与层级词汇。因地制宜层（按平台惯例落地，不预画像素）：
+
+| 维度 | macOS | Windows | Linux |
+|---|---|---|---|
+| 修饰键 | ⌘ | Ctrl | Ctrl |
+| 命令入口 | 原生菜单栏 | 菜单栏/命令行内 | 菜单栏 |
+| 字体 | 系统栈 + PingFang SC | 系统栈 + Microsoft YaHei | 系统栈 + Noto Sans CJK |
+| 原生控件 | SwiftUI 控件 | WinUI 3 控件 | GTK4 控件 |
+
+差异声明纪律：宿主特例必须先写进本节才能实现；未声明的宿主差异按违约处理
+（案例：taskly 漂移台账 D8）。
