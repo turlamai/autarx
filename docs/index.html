@@ -5,17 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Autarx — AUTOSAR 集成工作台</title>
-    <meta name="description" content="AUTOSAR 集成工作台：直接打开 OEM 交付物，在进入 vendor 工具链之前完成检查、检索、引用追踪与 ARXML 校验。">
+    <meta name="description" content="AUTOSAR 集成工作台：直接打开 OEM 交付物，在进入 vendor 工具链之前完成检查、检索、引用追踪、ARXML 结构校验、语义 diff 与 ECU 影响分析。">
     <link rel="canonical" href="https://autarx.jrtx.site/">
     <meta name="theme-color" content="#D97757">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Autarx">
     <meta property="og:title" content="Autarx — AUTOSAR Integration Workbench">
-    <meta property="og:description" content="An AUTOSAR Integration Workbench that opens OEM deliveries directly — inspect, search, trace references and validate ARXML before entering the vendor toolchain.">
+    <meta property="og:description" content="An AUTOSAR Integration Workbench that opens OEM deliveries directly — inspect, search, trace references, structurally validate ARXML and review semantic diffs with ECU impact analysis before entering the vendor toolchain.">
     <meta property="og:url" content="https://autarx.jrtx.site/">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Autarx — AUTOSAR Integration Workbench">
-    <meta name="twitter:description" content="An AUTOSAR Integration Workbench that opens OEM deliveries directly — inspect, search, trace references and validate ARXML before entering the vendor toolchain.">
+    <meta name="twitter:description" content="An AUTOSAR Integration Workbench that opens OEM deliveries directly — inspect, search, trace references, structurally validate ARXML and review semantic diffs with ECU impact analysis before entering the vendor toolchain.">
 
     <!-- Theme pre-paint: apply before the stylesheet paints, no flash. -->
     <script>
@@ -81,7 +81,7 @@
                 <p class="status-pill"><span class="status-dot" aria-hidden="true"></span><span data-i18n="hero.pill">分析栈已交付 · M9 商业化进行中</span></p>
                 <span class="kit-eyebrow" data-i18n="hero.eyebrow">OEM–供应商 AUTOSAR 工作流</span>
                 <h1><span data-i18n="hero.h1a">一个工作台，</span> <span class="kit-accent-word" data-i18n="hero.h1b">看清整套交付。</span></h1>
-                <p class="kit-lead" data-i18n="hero.lead">Autarx 是一个 AUTOSAR 集成工作台：直接打开 OEM 交付物——System Description、System Extract、ECU Extract、ECUC 与通信 ARXML——让集成工程师在进入 vendor 工具链之前，先完成检查、检索、引用追踪与结构校验。</p>
+                <p class="kit-lead" data-i18n="hero.lead">Autarx 是一个 AUTOSAR 集成工作台：直接打开 OEM 交付物——System Description、System Extract、ECU Extract、ECUC 与通信 ARXML——让集成工程师在进入 vendor 工具链之前，先完成检查、检索、引用追踪与结构校验，再用语义 diff 与 ECU 影响分析看清每个变化，每条发现都带证据与修复路径。</p>
                 <div class="kit-btn-row">
                     <div class="kit-dl">
                         <a class="kit-btn kit-btn--primary" data-kit-dl-primary href="https://github.com/turlamai/autarx/releases/latest">
@@ -166,12 +166,12 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
                     <div class="kit-card"><h3 data-i18n="f1.title">直接打开 ARXML</h3><p data-i18n="f1.body">System Description、System Extract、ECU Extract、ECUC 与通信 ARXML——流式解析器直接读多文件交付包，无需 vendor 配置器。</p></div>
                     <div class="kit-card"><h3 data-i18n="f2.title">工作区语义索引</h3><p data-i18n="f2.body">每个 SHORT-NAME 都是可索引对象，带来源文件信息与跨文件引用图（*-REF / *-TREF）。</p></div>
                     <div class="kit-card"><h3 data-i18n="f3.title">交付检查</h3><p data-i18n="f3.body">一条 inspect 命令回答「这次 OEM 给了什么」：包清单、ECU 列表、网络与集群清单、SWC 与通信计数。</p></div>
-                    <div class="kit-card"><h3 data-i18n="f4.title">检索、引用、追踪</h3><p data-i18n="f4.body">定位任意 signal、PDU、SWC 或 ECU 元素，跨文件追踪其引用——断链引用会被报告，不会被藏起来。</p></div>
+                    <div class="kit-card"><h3 data-i18n="f4.title">检索、引用、追踪</h3><p data-i18n="f4.body">定位任意 signal、PDU、SWC 或 ECU 元素，跨文件追踪其引用。断链引用就地报告、不会被藏起来，每条发现附修复路径：追踪引用链、在 Objects 中打开、复制绝对路径。</p></div>
                     <div class="kit-card"><h3 data-i18n="f5.title">语义 diff 与 ECU 影响分析</h3><p data-i18n="f5.body">按路径身份对比两版交付——参数变化以 DEFINITION-REF 表述，绝非行号。影响分析把每个变化归类为「与本 ECU 相关/无关」，并给出可进 CI 的 breaking 发现。</p></div>
                     <div class="kit-card"><h3 data-i18n="f6.title">通信链路投影</h3><p data-i18n="f6.body">从引用图推导 Cluster → Frame → PDU → Signal 链路，并报告未挂接的孤儿对象——只陈述结构，不虚构收发方向。</p></div>
-                    <div class="kit-card"><h3 data-i18n="f7.title">厂商交接与受控编辑</h3><p data-i18n="f7.body">校验中继给 DaVinci/tresos/ISOLAR 并归一化诊断。编辑遵循 plan → 语义 diff → apply → undo：diff 未审阅前不落盘。</p></div>
-                    <div class="kit-card"><h3 data-i18n="f8.title">AI agent 的 MCP 接口</h3><p data-i18n="f8.body">autarx mcp 通过 Model Context Protocol 暴露完整工具 API。不存在裸写工具——agent 无法绕过审阅边界，每次调用都进审计日志。</p></div>
-                    <div class="kit-card"><h3 data-i18n="f9.title">对 AI 友好的 CLI</h3><p data-i18n="f9.body">同一套工作流可从 CLI/CI 运行，输出稳定 JSON——为自动化与 AI agent 准备。</p></div>
+                    <div class="kit-card"><h3 data-i18n="f7.title">厂商交接与受控编辑</h3><p data-i18n="f7.body">校验中继给 DaVinci/tresos/ISOLAR，只归一化 vendor 自己的结论。编辑走 plan → review → apply → undo 步进：diff 未审阅前不落盘；apply 确认同屏说明改动范围、自动备份位置与 Undo 入口。</p></div>
+                    <div class="kit-card"><h3 data-i18n="f8.title">三平台原生工作台</h3><p data-i18n="f8.body">macOS（SwiftUI）、Windows（WinUI 3）与 Linux（GTK4）原生宿主共用同一 Racket 语义引擎，已在三平台发布；界面样式当前为系统默认，品牌化界面已按设计契约定稿，随后续版本落地。</p></div>
+                    <div class="kit-card"><h3 data-i18n="f9.title">AI 与自动化的同一入口</h3><p data-i18n="f9.body">autarx mcp 通过 Model Context Protocol 暴露完整工具 API——不存在裸写工具，agent 无法绕过审阅边界，每次调用都进审计日志；同一工作流也能在 CLI/CI 以稳定 JSON 运行。</p></div>
                 </div>
             </div>
         </section>
@@ -183,7 +183,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
                 <h2 class="kit-h2"><span data-i18n="platform.t1">不是配置器，</span> <span class="kit-accent-word" data-i18n="platform.t2">是工作台。</span></h2>
                 <p class="kit-lead" data-i18n="platform.lead">Autarx 不替代 DaVinci Configurator、EB tresos 或 ETAS ISOLAR。它补上的是收到 OEM 交付到打开 vendor 工具链之间的工程缺口——vendor 侧的校验与代码生成仍是权威路径。</p>
                 <table class="support-table" style="margin-top: 34px;">
-                    <tr><th data-i18n="pf.desktop">桌面端</th><td data-i18n="pf.desktop-v">三平台原生宿主（macOS Swift / Windows WinUI / Linux GTK）+ Racket 语义引擎</td></tr>
+                    <tr><th data-i18n="pf.desktop">桌面端</th><td data-i18n="pf.desktop-v">三平台原生宿主（macOS SwiftUI / Windows WinUI 3 / Linux GTK4）+ Racket 语义引擎</td></tr>
                     <tr><th data-i18n="pf.platforms">平台</th><td data-i18n="pf.platforms-v">GUI：macOS 14+（Apple silicon / Intel）· Windows 10+（x64）· Linux（x64 / arm64）· CLI：macOS / Linux / Windows</td></tr>
                     <tr><th data-i18n="pf.input">输入</th><td data-i18n="pf.input-v">ARXML — System Description / System Extract / ECU Extract / ECUC / 通信，多文件交付包</td></tr>
                     <tr><th data-i18n="pf.automation">自动化</th><td data-i18n="pf.automation-v">CLI 稳定 JSON 输出（CI / AI agent 友好）+ MCP 服务器</td></tr>
@@ -325,7 +325,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
             </div>
             <div class="kit-footer-bottom">
                 <span>© 2026 TuringLambda AI</span>
-                <span class="kit-mono">site-kit v1.0.2</span>
+                <span class="kit-mono">site-kit v1.0.3</span>
             </div>
         </div>
     </footer>
@@ -342,7 +342,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     "hero.eyebrow": "OEM–供应商 AUTOSAR 工作流",
     "hero.h1a": "一个工作台，",
     "hero.h1b": "看清整套交付。",
-    "hero.lead": "Autarx 是一个 AUTOSAR 集成工作台：直接打开 OEM 交付物——System Description、System Extract、ECU Extract、ECUC 与通信 ARXML——让集成工程师在进入 vendor 工具链之前，先完成检查、检索、引用追踪与结构校验。",
+    "hero.lead": "Autarx 是一个 AUTOSAR 集成工作台：直接打开 OEM 交付物——System Description、System Extract、ECU Extract、ECUC 与通信 ARXML——让集成工程师在进入 vendor 工具链之前，先完成检查、检索、引用追踪与结构校验，再用语义 diff 与 ECU 影响分析看清每个变化，每条发现都带证据与修复路径。",
     "hero.availability": "工程预览；完整官方工作台规划为买断，目前尚未开放付费购买。",
     "hero.cta-guide": "用户手册",
     "hero.term-title": "autarx — 真实命令与输出",
@@ -370,23 +370,23 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     "f3.title": "交付检查",
     "f3.body": "一条 inspect 命令回答「这次 OEM 给了什么」：包清单、ECU 列表、网络与集群清单、SWC 与通信计数。",
     "f4.title": "检索、引用、追踪",
-    "f4.body": "定位任意 signal、PDU、SWC 或 ECU 元素，跨文件追踪其引用——断链引用会被报告，不会被藏起来。",
+    "f4.body": "定位任意 signal、PDU、SWC 或 ECU 元素，跨文件追踪其引用。断链引用就地报告、不会被藏起来，每条发现附修复路径：追踪引用链、在 Objects 中打开、复制绝对路径。",
     "f5.title": "语义 diff 与 ECU 影响分析",
     "f5.body": "按路径身份对比两版交付——参数变化以 DEFINITION-REF 表述，绝非行号。影响分析把每个变化归类为「与本 ECU 相关/无关」，并给出可进 CI 的 breaking 发现。",
     "f6.title": "通信链路投影",
     "f6.body": "从引用图推导 Cluster → Frame → PDU → Signal 链路，并报告未挂接的孤儿对象——只陈述结构，不虚构收发方向。",
     "f7.title": "厂商交接与受控编辑",
-    "f7.body": "校验中继给 DaVinci/tresos/ISOLAR 并归一化诊断。编辑遵循 plan → 语义 diff → apply → undo：diff 未审阅前不落盘。",
-    "f8.title": "AI agent 的 MCP 接口",
-    "f8.body": "autarx mcp 通过 Model Context Protocol 暴露完整工具 API。不存在裸写工具——agent 无法绕过审阅边界，每次调用都进审计日志。",
-    "f9.title": "对 AI 友好的 CLI",
-    "f9.body": "同一套工作流可从 CLI/CI 运行，输出稳定 JSON——为自动化与 AI agent 准备。",
+    "f7.body": "校验中继给 DaVinci/tresos/ISOLAR，只归一化 vendor 自己的结论。编辑走 plan → review → apply → undo 步进：diff 未审阅前不落盘；apply 确认同屏说明改动范围、自动备份位置与 Undo 入口。",
+    "f8.title": "三平台原生工作台",
+    "f8.body": "macOS（SwiftUI）、Windows（WinUI 3）与 Linux（GTK4）原生宿主共用同一 Racket 语义引擎，已在三平台发布；界面样式当前为系统默认，品牌化界面已按设计契约定稿，随后续版本落地。",
+    "f9.title": "AI 与自动化的同一入口",
+    "f9.body": "autarx mcp 通过 Model Context Protocol 暴露完整工具 API——不存在裸写工具，agent 无法绕过审阅边界，每次调用都进审计日志；同一工作流也能在 CLI/CI 以稳定 JSON 运行。",
     "platform.eyebrow": "平台契约",
     "platform.t1": "不是配置器，",
     "platform.t2": "是工作台。",
     "platform.lead": "Autarx 不替代 DaVinci Configurator、EB tresos 或 ETAS ISOLAR。它补上的是收到 OEM 交付到打开 vendor 工具链之间的工程缺口——vendor 侧的校验与代码生成仍是权威路径。",
     "pf.desktop": "桌面端",
-    "pf.desktop-v": "三平台原生宿主（macOS Swift / Windows WinUI / Linux GTK）+ Racket 语义引擎",
+    "pf.desktop-v": "三平台原生宿主（macOS SwiftUI / Windows WinUI 3 / Linux GTK4）+ Racket 语义引擎",
     "pf.platforms": "平台",
     "pf.platforms-v": "GUI：macOS 14+（Apple silicon / Intel）· Windows 10+（x64）· Linux（x64 / arm64）· CLI：macOS / Linux / Windows",
     "pf.input": "输入",
@@ -441,7 +441,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     "hero.eyebrow": "OEM-to-supplier AUTOSAR workflows",
     "hero.h1a": "One workspace.",
     "hero.h1b": "Full delivery visibility.",
-    "hero.lead": "Autarx is an AUTOSAR Integration Workbench that opens OEM deliveries directly — System Description, System Extract, ECU Extract, ECUC and communication ARXML — so integration engineers can inspect, search, trace references and validate structure before entering the vendor toolchain.",
+    "hero.lead": "Autarx is an AUTOSAR Integration Workbench that opens OEM deliveries directly — System Description, System Extract, ECU Extract, ECUC and communication ARXML — so integration engineers can inspect, search, trace references and validate structure before entering the vendor toolchain, then review every change through semantic diff and ECU impact analysis, with evidence and a fix path on each finding.",
     "hero.availability": "Engineering preview; the complete official workbench is planned as a purchase. No paid checkout is open.",
     "hero.cta-guide": "User guide",
     "hero.term-title": "autarx — real commands, real output",
@@ -469,23 +469,23 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     "f3.title": "Delivery inspection",
     "f3.body": "One inspect command answers the first question of every delivery: package inventory, ECU list, network and cluster inventory, SWC and communication counts.",
     "f4.title": "Find, refs, trace",
-    "f4.body": "Locate any signal, PDU, SWC or ECU element and follow its references across files — with broken references reported, not hidden.",
+    "f4.body": "Locate any signal, PDU, SWC or ECU element and follow its references across files. Broken references are reported in place, never hidden — and every finding carries a fix path: trace the chain, open it in Objects, copy the absolute path.",
     "f5.title": "Semantic diff & ECU impact",
     "f5.body": "Diff two deliveries by path identity — parameter changes reported by DEFINITION-REF, never line numbers. Impact classifies every change relevant or unrelated to your ECU, with breaking-change findings for CI.",
     "f6.title": "Communication projection",
     "f6.body": "Cluster → frame → PDU → signal chains derived from the reference graph, with orphan frames, PDUs and signals reported — structural only, no invented sender/receiver claims.",
     "f7.title": "Vendor hand-off & reviewed patching",
-    "f7.body": "Relay validation to DaVinci/tresos/ISOLAR with normalized diagnostics. Patching is plan → semantic diff → apply → undo: nothing is written before the diff is reviewed.",
-    "f8.title": "MCP for AI agents",
-    "f8.body": "autarx mcp serves the full tool API over Model Context Protocol. No raw-write tool exists — agents cannot bypass the review boundary, and every call is audit-logged.",
-    "f9.title": "Agent-friendly CLI",
-    "f9.body": "The same workflows run from CLI and CI with stable JSON output — ready for automation and AI agents.",
+    "f7.body": "Relay validation to DaVinci/tresos/ISOLAR — normalized from the vendor's own verdicts, never Autarx's. Patching follows a plan → review → apply → undo flow: nothing is written before the diff is reviewed, and the apply confirmation states the change scope, the backup location and the Undo entry on one screen.",
+    "f8.title": "The native workbench, on three desktops",
+    "f8.body": "Native hosts on macOS (SwiftUI), Windows (WinUI 3) and Linux (GTK4) share one Racket semantic engine and already ship on all three. The UI currently uses system-default styling; the branded design contract is locked and lands in an upcoming release.",
+    "f9.title": "One surface for AI and automation",
+    "f9.body": "autarx mcp serves the full tool API over Model Context Protocol — no raw-write tool exists, agents cannot bypass the review boundary, and every call is audit-logged. The same workflows also run from CLI and CI with stable JSON output.",
     "platform.eyebrow": "Platform contract",
     "platform.t1": "Not a configurator.",
     "platform.t2": "A workbench.",
     "platform.lead": "Autarx does not replace DaVinci Configurator, EB tresos or ETAS ISOLAR. It closes the engineering gap between receiving an OEM delivery and opening the vendor toolchain — vendor validation and code generation remain authoritative.",
     "pf.desktop": "Desktop",
-    "pf.desktop-v": "Native hosts on all three desktops (macOS Swift / Windows WinUI / Linux GTK) + Racket semantic engine",
+    "pf.desktop-v": "Native hosts on all three desktops (macOS SwiftUI / Windows WinUI 3 / Linux GTK4) + Racket semantic engine",
     "pf.platforms": "Platforms",
     "pf.platforms-v": "GUI: macOS 14+ (Apple silicon / Intel) · Windows 10+ (x64) · Linux (x64 / arm64) · CLI: macOS / Linux / Windows",
     "pf.input": "Input",
@@ -540,7 +540,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     <script type="text/plain" id="kit-i18n-parity">
     {
         zh: {
-            'pf.desktop-v': '三平台原生宿主（macOS Swift / Windows WinUI / Linux GTK）+ Racket 语义引擎',
+            'pf.desktop-v': '三平台原生宿主（macOS SwiftUI / Windows WinUI 3 / Linux GTK4）+ Racket 语义引擎',
             'pf.platforms-v': 'GUI：macOS 14+（Apple silicon / Intel）· Windows 10+（x64）· Linux（x64 / arm64）· CLI：macOS / Linux / Windows',
             'pf.milestone-v': '分析栈已交付：语义引擎、语义 diff、ECU 影响分析、通信投影、厂商交接、受控编辑、MCP；三平台 GUI 宿主已上线；M9 商业化加固（授权、签名 / 公证、性能画像）进行中',
             'pf.caption': '先用合成 OEM 交付件试运行导入和索引；检查未解析引用、诊断与差异，再处理真实项目。遇到歧义结果应继续核查。',
@@ -548,7 +548,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
             'status.lead': '当前状态：完整分析栈已交付——工作区语义引擎、语义 diff、ECU 影响分析、通信投影、厂商交接、受控编辑与 MCP agent 接口；三平台 GUI 宿主（macOS / Windows / Linux）已上线。剩余为 M9 商业化加固——授权、性能画像与代码签名 / 公证。'
         },
         en: {
-            'pf.desktop-v': 'Native hosts on all three desktops (macOS Swift / Windows WinUI / Linux GTK) + Racket semantic engine',
+            'pf.desktop-v': 'Native hosts on all three desktops (macOS SwiftUI / Windows WinUI 3 / Linux GTK4) + Racket semantic engine',
             'pf.platforms-v': 'GUI: macOS 14+ (Apple silicon / Intel) · Windows 10+ (x64) · Linux (x64 / arm64) · CLI: macOS / Linux / Windows',
             'pf.milestone-v': 'Analysis stack shipped: semantic engine, semantic diff, ECU impact, communication projection, vendor hand-off, reviewed patching, MCP; native hosts on all three desktops; M9 commercial hardening (licensing, code signing / notarization, performance profiling) in progress',
             'pf.caption': 'Start with a synthetic OEM delivery, review indexing, unresolved references, diagnostics and diffs, then consider real project data. Treat ambiguous results as requiring further review.',
