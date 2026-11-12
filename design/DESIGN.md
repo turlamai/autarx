@@ -1,7 +1,7 @@
 # Autarx DESIGN.md — 视觉与交互契约（单一真源）
 
 原型（`design/prototype/`）与三平台原生实现（`macos-host/`、`windows/`、`linux/`）都遵循本文件；改视觉先改这里，再同步实现。
-Tokens 提取自 `docs/family.css`（site-kit v1.0.3，家族设计系统单一真源）现行值；三平台宿主当前用系统默认样式，本契约是品牌层首次落进工作台——原型到实现零翻译成本，平台 chrome（窗口/菜单/文件选择器）保持原生。
+Tokens 提取自 `site/family.css`（site-kit v1.0.3，家族设计系统单一真源）现行值；三平台宿主当前用系统默认样式，本契约是品牌层首次落进工作台——原型到实现零翻译成本，平台 chrome（窗口/菜单/文件选择器）保持原生。
 
 ## Brief（2026-11-11）
 
@@ -20,7 +20,7 @@ Tokens 提取自 `docs/family.css`（site-kit v1.0.3，家族设计系统单一�
 
 ## Tokens（与实现 1:1）
 
-来源：`docs/family.css`（site-kit v1.0.3）逐值提取；`--ok / --warn / --danger` 为推导值——家族 kit 尚无状态色，依据 = 与 terracotta accent 可区分 + 亮暗两态对白底/深底均达 WCAG AA。
+来源：`site/family.css`（site-kit v1.0.3）逐值提取；`--ok / --warn / --danger` 为推导值——家族 kit 尚无状态色，依据 = 与 terracotta accent 可区分 + 亮暗两态对白底/深底均达 WCAG AA。
 
 | Token | Light | Dark | 用途 |
 |---|---|---|---|

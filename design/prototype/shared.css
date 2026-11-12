@@ -1,5 +1,5 @@
 /* ==== Autarx 原型共享壳层 — tokens 与组件，见 design/DESIGN.md ==== */
-/* Tokens extracted from docs/family.css (site-kit v1.0.3); ok/warn/danger derived (see DESIGN.md). */
+/* Tokens extracted from site/family.css (site-kit v1.0.3); ok/warn/danger derived (see DESIGN.md). */
 :root {
   --bg: #faf8f5; --surface: #ffffff; --raised: #f3efe9; --raised-2: #ece6dd;
   --line: rgba(32,27,22,.12); --line-strong: rgba(32,27,22,.24);
