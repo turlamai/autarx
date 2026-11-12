@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Autarx
+Comment=Semantic workbench for AUTOSAR ARXML deliveries
+Exec=RivetHost
+Icon=site.jrtx.autarx.Autarx
+Terminal=false
+Categories=Development;
+StartupWMClass=Autarx

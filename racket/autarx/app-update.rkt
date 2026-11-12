@@ -82,6 +82,7 @@
          update-state-snapshot
          reset-update-state!
          set-update-error!
+         make-updater-config
          perform-check!
          start-download!)
 
@@ -332,6 +333,29 @@
 
 ;; ---------- check ----------
 
+;; rivet moved updater-config to 10 fields (component) after the v0.11.0
+;; pin; the feed's artifacts carry no component at all (#f) and
+;; select-update matches config component against artifact component, so
+;; construct through this shim: plain on old rivets, #f component on new —
+;; never 'app (racket/tests/app-update-test.rkt pins it against a
+;; feed-shaped manifest).
+(define (make-updater-config)
+  (define args
+    (list app-identifier
+          (workbench-version)
+          app-channel
+          (platform-symbol)
+          (architecture-symbol)
+          (embedded-public-key)
+          update-key-id
+          (rollout-bucket)
+          maximum-download-bytes))
+  (with-handlers
+      ([exn:fail:contract:arity?
+        (lambda (_)
+          (apply updater-config (append args (list #f))))])
+    (apply updater-config args)))
+
 ;; Returns a plain hasheq describing the outcome; backend.rkt maps it onto
 ;; the typed UpdateCheck record. Throttling is the host's job. Never raises.
 (define (perform-check!)
@@ -347,16 +371,7 @@
       (fetch-update-manifest (manifest-url)
                              (embedded-public-key)
                              #:key-id update-key-id))
-    (define config
-      (updater-config app-identifier
-                      (workbench-version)
-                      app-channel
-                      (platform-symbol)
-                      (architecture-symbol)
-                      (embedded-public-key)
-                      update-key-id
-                      (rollout-bucket)
-                      maximum-download-bytes))
+    (define config (make-updater-config))
     (define candidate (select-update config manifest))
     (cond
       [candidate
@@ -560,16 +575,7 @@
   (state-set! 'phase "downloading")
   (state-set! 'percent 0)
   (state-set! 'message #f)
-  (define config
-    (updater-config app-identifier
-                    (workbench-version)
-                    app-channel
-                    (platform-symbol)
-                    (architecture-symbol)
-                    (embedded-public-key)
-                    update-key-id
-                    (rollout-bucket)
-                    maximum-download-bytes))
+  (define config (make-updater-config))
   (set-box! last-progress-seconds (current-seconds))
   (define worker-thread
     (thread

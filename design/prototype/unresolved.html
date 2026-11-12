@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autarx — Unresolved 原型（校验结果 + 修复路径）</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* ==== unresolved 页面专属 ==== */
+  .fcard { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--danger); border-radius: 12px; padding: 12px 16px; margin-bottom: 10px; }
+  .fcard .top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .fcard .flow { font-family: var(--mono); font-size: 12.5px; margin: 8px 0 2px; line-height: 1.6; user-select: text; }
+  .fcard .flow .arrow { color: var(--danger); font-weight: 700; }
+  .fcard .src { font-family: var(--mono); font-size: 11px; color: var(--faint); user-select: text; }
+  .fixrow { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+  .fixrow .hint { font-size: 12px; color: var(--mute); flex: 1; min-width: 0; }
+  .fixrow .hint b { color: var(--ink); font-weight: 600; }
+  .okrow {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px;
+    background: var(--ok-soft); font-size: 12.5px; font-weight: 600; color: var(--ok);
+  }
+  .variant { margin-top: 18px; border: 1px dashed var(--line-strong); border-radius: 12px; padding: 14px 16px; }
+  .variant .tag { font-size: 10px; font-weight: 700; letter-spacing: .8px; color: var(--faint); margin-bottom: 8px; }
+  .clean { display: flex; align-items: center; gap: 12px; justify-content: center; padding: 18px 0 6px; flex-direction: column; }
+  .clean .seal { width: 34px; height: 34px; border-radius: 50%; background: var(--ok-soft); color: var(--ok); display: grid; place-items: center; font-size: 16px; }
+  .clean .t { font-size: 13.5px; font-weight: 700; }
+  .clean .d { font-size: 12px; color: var(--mute); }
+</style>
+</head>
+<body>
+  <div class="window" id="app">
+    <div class="titlebar">
+      <div class="lights"><i></i><i></i><i></i></div>
+      <div class="t">Autarx — <span class="path">OemDelivery</span></div>
+      <div class="sp"></div>
+      <button class="iconbtn" id="themeBtn" title="Toggle light/dark (prototype only)">◐</button>
+    </div>
+    <div class="body">
+      <aside class="sidebar">
+        <div class="brand"><div class="mark">Ax</div><div class="name">Autarx</div></div>
+        <div class="sect">INSPECT</div>
+        <nav class="nav">
+          <div class="item"><span class="kb">1</span>Workspace</div>
+          <div class="item"><span class="kb">2</span>Objects</div>
+          <div class="item"><span class="kb">3</span>ECUs</div>
+        </nav>
+        <div class="sect">CHECK</div>
+        <nav class="nav">
+          <div class="item"><span class="kb">4</span>Diff</div>
+          <div class="item active"><span class="kb">5</span>Unresolved<span class="pill">1</span></div>
+          <div class="item"><span class="kb">6</span>Communication<span class="pill warn">1</span></div>
+        </nav>
+        <div class="sect">CHANGE</div>
+        <nav class="nav">
+          <div class="item"><span class="kb">7</span>Patch</div>
+        </nav>
+        <div class="foot">
+          <span class="dot"></span><span class="st">Engine ready</span>
+          <span class="sp"></span><span class="st">⚙ ⌘,</span>
+        </div>
+      </aside>
+      <section class="main">
+        <div class="head">
+          <div>
+            <h1>Unresolved references</h1>
+            <div class="sub">1 finding · first thing to check when taking over a delivery</div>
+          </div>
+          <div class="sp"></div>
+          <button class="btn">⟳ Re-validate <kbd>R</kbd></button>
+          <button class="btn">Export JSON</button>
+        </div>
+        <div class="banner danger">⚠ 1 unresolved reference — resolve or accept explicitly before vendor hand-off <span class="go">Trace each →</span></div>
+        <div class="banner" style="background:var(--raised);color:var(--mute)">Structural check only — not a substitute for vendor validation. Run <b style="margin:0 4px">vendor validate</b> for the vendor tool's own verdict.</div>
+        <div class="view">
+          <div class="fcard">
+            <div class="top">
+              <span class="chip danger">REQUIRED-INTERFACE-TREF</span>
+              <span class="chip kind">unresolved</span>
+              <span class="sp" style="flex:1"></span>
+              <span class="src">communication.arxml</span>
+            </div>
+            <div class="flow">/Vehicle/SwCs/SpeedSensor/CalibrationIn <span class="arrow">-[…]-&gt;</span> /Vehicle/Interfaces/IF_Calibration</div>
+            <div class="src">source element /Vehicle/SwCs/SpeedSensor/CalibrationIn · target does not exist in this workspace</div>
+            <div class="fixrow">
+              <span class="hint">Likely causes: the interface is delivered in a file missing from this drop, or the target was renamed upstream. <b>IF_VehicleSpeed</b> is the only port-interface present.</span>
+              <span class="btn">⌖ Trace source</span>
+              <span class="btn">Open in Objects</span>
+              <span class="btn">Copy paths</span>
+            </div>
+          </div>
+          <div class="okrow" style="margin-top:12px">✓ Duplicate paths — 0 (ambiguity would be reported here, never silently resolved)</div>
+          <div class="variant">
+            <div class="tag">EMPTY-STATE VARIANT · unresolvedReferenceCount = 0</div>
+            <div class="clean">
+              <div class="seal">✓</div>
+              <div class="t">No unresolved references</div>
+              <div class="d">Every *-REF / *-TREF in this workspace resolves. Exit code 0 — CI gate passes.</div>
+            </div>
+          </div>
+        </div>
+        <div class="statusbar">
+          <span><kbd>R</kbd> re-validate</span>
+          <span><kbd>⏎</kbd> trace selected finding</span>
+          <span><kbd>⌘C</kbd> copy paths</span>
+          <span class="sp"></span>
+          <span>exit code 1 when findings exist · CI gate ready</span>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script>
+    const app = document.getElementById('app');
+    if (new URLSearchParams(location.search).has('dark')) app.classList.add('dark');
+    document.getElementById('themeBtn').addEventListener('click', () => app.classList.toggle('dark'));
+  </script>
+</body>
+</html>

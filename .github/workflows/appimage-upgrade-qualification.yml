@@ -1,0 +1,387 @@
+name: Published upgrade qualification (N -> N+1)
+
+# Real-feed upgrade qualification (owner mandate #14 evidence ladder) for
+# the WORKBENCH half of autarx's two feeds (update-app-manifest.json; the
+# CLI keeps update-manifest.json): install the previous *published*
+# release, drive the workbench updater through the live signed feed, verify
+# the downloaded -app.tar.gz hand-off payload byte for byte, boot the N+1
+# workbench headlessly, execute the rollback, and refuse a one-byte-
+# tampered live feed. Green offline tests never prove an upgrade; the
+# evidence artifact this workflow uploads does.
+#
+# History note (recorded honestly in the evidence): v0.4.3 — the previous
+# published release — shipped no Linux workbench artifacts at all (no
+# AppImage, no -app.tar.gz, no workbench updater module; its feed carried
+# macOS entries only). The Linux workbench path and its updater first
+# shipped in v0.5.0. The workflow therefore installs v0.4.3 from its
+# published Linux zip (the only Linux asset), overlays the workbench
+# updater from main (which is exactly what the next release will ship, and
+# which is version-correct on either rivet pin through the #f-component
+# shim), and drives it against the live feed: v0.4.3 -> v0.5.0 across the
+# feed's first Linux workbench entry. Once v0.6.0 ships, the same workflow
+# qualifies a true v0.5.0 -> v0.6.0 pair with no overlay at all.
+#
+# Throttle note: the 4-hour silent-check throttle lives in the hosts; the
+# driver calls the updater entry points directly, which never consult it.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    name: ${{ matrix.arch }} published upgrade (workbench tarball hand-off)
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-24.04
+            racket-arch: x64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    steps:
+      - name: Find the two newest published releases
+        id: releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tags="$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=30" \
+            --jq '[.[] | select(.draft == false and .prerelease == false)][0:2] | .[].tag_name')"
+          test "$(echo "$tags" | wc -l)" -eq 2 || { echo "need two published releases" >&2; exit 1; }
+          to_tag="$(echo "$tags" | sed -n 1p)"
+          from_tag="$(echo "$tags" | sed -n 2p)"
+          echo "from-tag=$from_tag" >> "$GITHUB_OUTPUT"
+          echo "to-tag=$to_tag" >> "$GITHUB_OUTPUT"
+          echo "from-version=${from_tag#v}" >> "$GITHUB_OUTPUT"
+          echo "to-version=${to_tag#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Check out the updater under test (N)
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.releases.outputs.from-tag }}
+
+      - name: Overlay the workbench updater and the driver from main
+        run: |
+          set -euo pipefail
+          git fetch origin main --depth 1
+          git checkout FETCH_HEAD -- racket/autarx/app-update.rkt scripts/acceptance/upgrade-qualification.rkt
+          echo "OVERLAY_SHA=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_ENV"
+
+      - name: Read the rivet pin the N release was built against
+        run: |
+          set -euo pipefail
+          spec="$(grep -ohE "https://[^']+rivet\.git#[^']+" .github/workflows/ci.yml | head -1)"
+          test -n "$spec"
+          # the N workflows may pin through the env indirection (a
+          # "RIVET_PIN:" env block at the top) rather than a literal ref
+          if echo "$spec" | grep -qF 'env.RIVET_PIN'; then
+            pin="$(grep -m1 -E '^ *RIVET_PIN:' .github/workflows/ci.yml | sed -E 's/.*RIVET_PIN:[[:space:]]*//')"
+            test -n "$pin"
+            spec="$(echo "$spec" | cut -d'#' -f1)#$pin"
+          fi
+          echo "RIVET_SPEC=$spec" >> "$GITHUB_ENV"
+
+      - name: Install headless GUI runtime + accessibility tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y -o Acquire::Retries=5 --no-install-recommends \
+            libgtk-4-1 libadwaita-1-0 libjson-glib-1.0-0 libsecret-1-0 \
+            liblz4-1 zlib1g libncurses6 libx11-6 libxtst6 unzip \
+            weston at-spi2-core dbus python3-pyatspi libglib2.0-bin
+
+      - uses: Bogdanp/setup-racket@v1.16
+        with:
+          version: '9.3'
+          architecture: ${{ matrix.racket-arch }}
+          distribution: full
+          variant: CS
+
+      - name: Install the rivet release N was built against
+        run: |
+          raco pkg install --auto --no-docs "$RIVET_SPEC" crypto
+
+      - name: Fetch published N, N+1 and the live signed feed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          FROM_VERSION="${{ steps.releases.outputs.from-version }}"
+          TO_VERSION="${{ steps.releases.outputs.to-version }}"
+          # asset arch spellings: the zip family uses x64, the workbench
+          # tarball the same feed spelling (x64); AppImage builds alone use
+          # x86_64, and v0.4.3 shipped no Linux AppImage at all
+          FROM_ASSET="autarx-${FROM_VERSION}-linux-x64.zip"
+          TO_ASSET="autarx-${TO_VERSION}-linux-x64-app.tar.gz"
+          mkdir -p /tmp/qual/from /tmp/qual/to
+          gh release download "${{ steps.releases.outputs.from-tag }}" -p "$FROM_ASSET" -D /tmp/qual/from
+          gh release download "${{ steps.releases.outputs.to-tag }}" \
+            -p "$TO_ASSET" -p "$TO_ASSET.sha256" -p SHA256SUMS -D /tmp/qual/to
+          FROM_ZIP="/tmp/qual/from/$FROM_ASSET"
+          TO_TAR="/tmp/qual/to/$TO_ASSET"
+          test -s "$FROM_ZIP" && test -s "$TO_TAR"
+          # the published sidecar must agree with the downloaded N+1 bytes
+          grep -q "$(sha256sum "$TO_TAR" | cut -d' ' -f1)" "/tmp/qual/to/$TO_ASSET.sha256"
+          # the live feed we exercise is the moving latest, and it must offer N+1
+          LIVE_FEED_URL="https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/update-app-manifest.json"
+          curl -fsSL -o /tmp/qual/update-manifest.json "$LIVE_FEED_URL"
+          FEED_VERSION="$(jq -r .payload /tmp/qual/update-manifest.json | base64 -d | jq -r .version)"
+          test "$FEED_VERSION" = "$TO_VERSION"
+          echo "FROM_ZIP=$FROM_ZIP" >> "$GITHUB_ENV"
+          echo "TO_TAR=$TO_TAR" >> "$GITHUB_ENV"
+          echo "TO_ASSET=$TO_ASSET" >> "$GITHUB_ENV"
+          echo "LIVE_FEED_URL=$LIVE_FEED_URL" >> "$GITHUB_ENV"
+          echo "FROM_SHA=$(sha256sum "$FROM_ZIP" | cut -d' ' -f1)" >> "$GITHUB_ENV"
+          echo "TO_SHA=$(sha256sum "$TO_TAR" | cut -d' ' -f1)" >> "$GITHUB_ENV"
+          echo "FEED_KEY_ID=$(jq -r '.signature.key_id' /tmp/qual/update-manifest.json)" >> "$GITHUB_ENV"
+
+      - name: Write the headless GUI boot verifier
+        run: |
+          cat > /tmp/qual/boot-probe.py <<'EOF'
+          #!/usr/bin/env python3
+          # Boot proof: the "Autarx" frame maps — the first assertion
+          # scripts/e2e/linux-atspi.py makes, without the journey.
+          import argparse, json, time
+          from pathlib import Path
+          import pyatspi
+
+          def children(node):
+              if node is None:
+                  return
+              for index in range(node.childCount):
+                  try:
+                      child = node.getChildAtIndex(index)
+                      if child is not None:
+                          yield child
+                  except Exception:
+                      continue
+
+          def walk(node):
+              yield node
+              for child in children(node):
+                  yield from walk(child)
+
+          def role(n):
+              try:
+                  return n.getRoleName()
+              except Exception:
+                  return "unknown"
+
+          def find_app():
+              for a in children(pyatspi.Registry.getDesktop(0)):
+                  for n in walk(a):
+                      if role(n) == "frame" and (n.name or "") == "Autarx":
+                          return a
+              return None
+
+          def wait_for(desc, probe, timeout=90.0):
+              deadline = time.monotonic() + timeout
+              while time.monotonic() < deadline:
+                  value = probe()
+                  if value:
+                      return value
+                  time.sleep(0.05)
+              raise AssertionError("timed out waiting for " + desc)
+
+          parser = argparse.ArgumentParser()
+          parser.add_argument("--output", type=Path, required=True)
+          args = parser.parse_args()
+          app = wait_for("Autarx application", find_app)
+          wait_for(
+              "Autarx frame",
+              lambda: next((n for n in walk(app) if role(n) == "frame"), None))
+          args.output.mkdir(parents=True, exist_ok=True)
+          (args.output / "boot-proof.json").write_text(
+              json.dumps({"boot": True, "frame": "Autarx"}))
+          EOF
+          cat > /tmp/qual/boot-verify.sh <<'EOF'
+          #!/usr/bin/env bash
+          # Boot a workbench tree headlessly (weston + at-spi, the
+          # scripts/e2e/e2e-linux.sh pattern) and run the boot probe.
+          set -euo pipefail
+          app_dir="$1"; out="$2"
+          exe="$app_dir/RivetHost"
+          test -x "$exe"
+          mkdir -p "$out"
+          export HOME=/tmp/qual/home
+          export XDG_DATA_HOME=/tmp/qual/data-home
+          export XDG_CONFIG_HOME=/tmp/qual/config
+          export XDG_CACHE_HOME=/tmp/qual/cache
+          export XDG_RUNTIME_DIR=/tmp/qual/runtime
+          export WAYLAND_DISPLAY=wayland-autarx-qual GDK_BACKEND=wayland GTK_A11Y=atspi NO_AT_BRIDGE=0 LANG=C.UTF-8
+          unset DISPLAY
+          mkdir -p "$HOME" "$XDG_DATA_HOME" "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME" "$XDG_RUNTIME_DIR"
+          chmod 700 "$XDG_RUNTIME_DIR"
+          rm -f "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"
+          weston --backend=headless-backend.so --socket="$WAYLAND_DISPLAY" --idle-time=0 --log="$out/weston.log" &
+          weston_pid=$!
+          for _ in $(seq 1 100); do
+            [[ -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]] && break
+            sleep 0.05
+          done
+          [[ -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]]
+          launcher="$(command -v at-spi-bus-launcher || true)"
+          [[ -n "$launcher" ]] || launcher=/usr/libexec/at-spi-bus-launcher
+          "$launcher" --launch-immediately >"$out/at-spi-bus.log" 2>&1 &
+          atspi_pid=$!
+          for _ in $(seq 1 100); do
+            gdbus call --session --dest org.a11y.Bus --object-path /org/a11y/bus --method org.a11y.Bus.GetAddress >/dev/null 2>&1 && break
+            sleep 0.05
+          done
+          export AT_SPI_BUS_ADDRESS="$(gdbus call --session --dest org.a11y.Bus --object-path /org/a11y/bus --method org.a11y.Bus.GetAddress | sed -E "s/^\('([^']+)',\)$/\1/")"
+          "$exe" >"$out/application.log" 2>&1 &
+          app_pid=$!
+          stop_bounded() {
+            local pid="$1"
+            kill -TERM "$pid" 2>/dev/null || true
+            for _ in $(seq 1 200); do
+              kill -0 "$pid" 2>/dev/null || return 0
+              sleep 0.05
+            done
+            kill -KILL "$pid" 2>/dev/null || true
+            return 0
+          }
+          status=0
+          python3 /tmp/qual/boot-probe.py --output "$out" || status=$?
+          stop_bounded "$app_pid"
+          kill -TERM "$atspi_pid" 2>/dev/null || true
+          stop_bounded "$weston_pid"
+          exit "$status"
+          EOF
+          chmod +x /tmp/qual/boot-verify.sh /tmp/qual/boot-probe.py
+
+      - name: Install N (published zip) and boot the CLI
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/qual/install
+          unzip -q "$FROM_ZIP" -d /tmp/qual/install
+          test -x /tmp/qual/install/bin/autarx
+          # retain N beside the install for the executed rollback
+          cp -a /tmp/qual/install /tmp/qual/install.previous
+          # CLI boot proof for N
+          VERSION_OUT="$(/tmp/qual/install/bin/autarx --version)"
+          echo "$VERSION_OUT" | grep -q "${{ steps.releases.outputs.from-version }}"
+          touch /tmp/qual/boot-n.ok
+
+      - name: Refuse a one-byte-tampered live feed (bad signature)
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/qual/tamper
+          python3 - <<'PY'
+          import base64, json
+          raw = open('/tmp/qual/update-manifest.json', 'rb').read()
+          env = json.loads(raw)
+          payload = bytearray(base64.b64decode(env['payload']))
+          i = payload.index(b'"version"')
+          payload[i + 1] ^= 0x01  # "version" -> "wersion": valid JSON, dead signature
+          env['payload'] = base64.b64encode(bytes(payload)).decode()
+          open('/tmp/qual/tamper/update-app-manifest.json', 'w').write(json.dumps(env))
+          PY
+          PRISTINE_BYTES_PATH=/tmp/qual/update-manifest.json \
+          TAMPER_BYTES_PATH=/tmp/qual/tamper/update-app-manifest.json \
+          OUTPUT_JSON=/tmp/qual/bad-signature.json \
+          racket scripts/acceptance/upgrade-qualification.rkt
+          # a refused manifest must never reach disk as an artifact
+          test -z "$(ls -A /tmp/autarx/updates 2>/dev/null || true)"
+          touch /tmp/qual/bad-signature.ok
+
+      - name: Drive the workbench updater through the live feed
+        run: |
+          set -euo pipefail
+          EXPECTED_VERSION="${{ steps.releases.outputs.to-version }}" \
+          OUTPUT_JSON=/tmp/qual/upgrade.json \
+          racket scripts/acceptance/upgrade-qualification.rkt
+          # the updater already size- and SHA-verified against the signed
+          # manifest; the bytes must also equal the independently published
+          # release asset sidecar
+          test "$(jq -r .downloadedSha256 /tmp/qual/upgrade.json)" = "$TO_SHA"
+          grep -q "$TO_SHA" "/tmp/qual/to/$TO_ASSET.sha256"
+          touch /tmp/qual/upgrade.ok
+
+      - name: Install the N+1 hand-off payload and boot the workbench
+        run: |
+          set -euo pipefail
+          # the hand-off install: extract the verified -app.tar.gz beside the
+          # N install (the payload carries the autarx-linux-x64 workbench tree)
+          tar -xzf "$(jq -r .downloadedPath /tmp/qual/upgrade.json)" -C /tmp/qual/install
+          test -x /tmp/qual/install/autarx-linux-x64/RivetHost
+          # the payload tree must equal the published N+1 tree (no stale files)
+          mkdir -p /tmp/qual/reference
+          tar -xzf "$TO_TAR" -C /tmp/qual/reference
+          diff -r --brief /tmp/qual/install/autarx-linux-x64 /tmp/qual/reference/autarx-linux-x64
+          # the retained N tree must still be byte-identical to the published zip
+          mkdir -p /tmp/qual/from-reference
+          unzip -q "$FROM_ZIP" -d /tmp/qual/from-reference
+          diff -r --brief /tmp/qual/install.previous /tmp/qual/from-reference
+          # GUI boot proof for N+1
+          dbus-run-session -- bash /tmp/qual/boot-verify.sh \
+            /tmp/qual/install/autarx-linux-x64 /tmp/qual/boot-n1
+          touch /tmp/qual/boot-n1.ok
+
+      - name: Execute the documented rollback and boot N again
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/qual/install
+          cp -a /tmp/qual/install.previous /tmp/qual/install
+          diff -r --brief /tmp/qual/install /tmp/qual/from-reference
+          VERSION_OUT="$(/tmp/qual/install/bin/autarx --version)"
+          echo "$VERSION_OUT" | grep -q "${{ steps.releases.outputs.from-version }}"
+          touch /tmp/qual/rollback.ok
+
+      - name: Write evidence
+        if: always()
+        run: |
+          set -euo pipefail
+          mkdir -p .rivet/qualification
+          jq -n \
+            --arg arch "${{ matrix.arch }}" \
+            --arg fromTag "${{ steps.releases.outputs.from-tag }}" \
+            --arg toTag "${{ steps.releases.outputs.to-tag }}" \
+            --arg fromVersion "${{ steps.releases.outputs.from-version }}" \
+            --arg toVersion "${{ steps.releases.outputs.to-version }}" \
+            --arg fromSha256 "${FROM_SHA:-unknown}" \
+            --arg toSha256 "${TO_SHA:-unknown}" \
+            --arg feedUrl "${LIVE_FEED_URL:-unknown}" \
+            --arg manifestKeyId "${FEED_KEY_ID:-unknown}" \
+            --arg updaterSource "${OVERLAY_SHA:-unknown}" \
+            --arg runUrl "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --argjson bootN "$([[ -f /tmp/qual/boot-n.ok ]] && echo true || echo false)" \
+            --argjson badSignature "$([[ -f /tmp/qual/bad-signature.ok ]] && echo true || echo false)" \
+            --argjson upgradeDone "$([[ -f /tmp/qual/upgrade.ok ]] && echo true || echo false)" \
+            --argjson bootNplus1 "$([[ -f /tmp/qual/boot-n1.ok ]] && echo true || echo false)" \
+            --argjson rollback "$([[ -f /tmp/qual/rollback.ok ]] && echo true || echo false)" \
+            --argjson upgrade "$(cat /tmp/qual/upgrade.json 2>/dev/null || echo null)" \
+            --argjson badSignatureDetail "$(cat /tmp/qual/bad-signature.json 2>/dev/null || echo null)" \
+            '{
+              format: "autarx-published-upgrade-qualification",
+              formatVersion: 1,
+              arch: $arch,
+              feedTarget: "workbench (update-app-manifest.json); the CLI feed update-manifest.json is a separate payload",
+              installShape: "N installed from its published Linux zip (CLI generation - the only Linux asset v0.4.3 ships); the verified -app.tar.gz hand-off payload extracts the v0.5.0 workbench tree beside it (the Linux workbench and its updater first shipped in v0.5.0; the updater is overlaid from main)",
+              throttleBypass: "direct updater entry points; the 4h silent-check throttle lives in the hosts and is never consulted",
+              updaterSource: $updaterSource,
+              feedUrl: $feedUrl,
+              manifestKeyId: $manifestKeyId,
+              from: {tag: $fromTag, version: $fromVersion, sha256: $fromSha256},
+              to: {tag: $toTag, version: $toVersion, sha256: $toSha256},
+              bootN: $bootN,
+              badSignature: $badSignature,
+              upgrade: $upgrade,
+              upgradeDone: $upgradeDone,
+              bootNplus1: $bootNplus1,
+              rollback: $rollback,
+              badSignatureDetail: $badSignatureDetail,
+              dataPersistence: "stateless product: the retained N tree stays byte-identical across the update (diff-verified) and the verified v0.5.0 workbench boots from the hand-off payload",
+              runUrl: $runUrl
+            }' > .rivet/qualification/evidence.json
+          cat .rivet/qualification/evidence.json
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: published-upgrade-${{ matrix.arch }}
+          path: .rivet/qualification/evidence.json
+          if-no-files-found: warn

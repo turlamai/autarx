@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autarx — Workspace 原型（英雄屏）</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* ==== workspace 页面专属 ==== */
+  .grid2 { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 12px; align-items: start; }
+  .health { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .finding {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px;
+    background: var(--danger-soft); border: 1px solid transparent; flex-wrap: wrap;
+  }
+  .finding .p { font-family: var(--mono); font-size: 12px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .finding .sp { flex: 1; }
+  .finding .fix { display: flex; gap: 6px; }
+  .fixbtn {
+    height: 24px; padding: 0 9px; border-radius: 7px; border: 1px solid var(--line); background: var(--surface);
+    font-size: 11px; font-weight: 600; color: var(--ink); display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+  }
+  .kindnote { font-size: 11.5px; color: var(--faint); margin-top: 8px; line-height: 1.5; }
+  .theme-note { font-size: 11px; }
+</style>
+</head>
+<body>
+  <div class="window" id="app">
+    <div class="titlebar">
+      <div class="lights"><i></i><i></i><i></i></div>
+      <div class="t">Autarx — <span class="path">OemDelivery</span></div>
+      <div class="sp"></div>
+      <button class="iconbtn" id="themeBtn" title="Toggle light/dark (prototype only)">◐</button>
+    </div>
+    <div class="body">
+      <aside class="sidebar">
+        <div class="brand"><div class="mark">Ax</div><div class="name">Autarx</div></div>
+        <div class="sect">INSPECT</div>
+        <nav class="nav">
+          <div class="item active"><span class="kb">1</span>Workspace</div>
+          <div class="item"><span class="kb">2</span>Objects</div>
+          <div class="item"><span class="kb">3</span>ECUs</div>
+        </nav>
+        <div class="sect">CHECK</div>
+        <nav class="nav">
+          <div class="item"><span class="kb">4</span>Diff</div>
+          <div class="item"><span class="kb">5</span>Unresolved<span class="pill">1</span></div>
+          <div class="item"><span class="kb">6</span>Communication<span class="pill warn">1</span></div>
+        </nav>
+        <div class="sect">CHANGE</div>
+        <nav class="nav">
+          <div class="item"><span class="kb">7</span>Patch</div>
+        </nav>
+        <div class="foot">
+          <span class="dot"></span><span class="st">Engine ready</span>
+          <span class="sp"></span><span class="st">⚙ ⌘,</span>
+        </div>
+      </aside>
+      <section class="main">
+        <div class="head">
+          <div>
+            <h1>Workspace</h1>
+            <div class="sub"><span class="path">shared/fixtures/OemDelivery</span> · indexed 2 min ago · AUTOSAR 4.3.0</div>
+          </div>
+          <div class="sp"></div>
+          <button class="btn">⟳ Re-index <kbd>R</kbd></button>
+          <button class="btn primary">Open Delivery… <kbd>⌘O</kbd></button>
+        </div>
+        <div class="banner ok">✓ Re-index complete — 8 references checked, 1 unresolved <span class="go">Review findings →</span></div>
+        <div class="view">
+          <div class="stats">
+            <div class="stat"><div class="n">2</div><div class="l">files · 5,218 B</div></div>
+            <div class="stat"><div class="n">86</div><div class="l">elements</div></div>
+            <div class="stat"><div class="n">11</div><div class="l">identifiables · 11 packages</div></div>
+            <div class="stat"><div class="n">8 <small>+1</small></div><div class="l">references · <b>1 unresolved</b></div></div>
+          </div>
+          <div class="grid2">
+            <div class="card">
+              <h2>Summary</h2>
+              <div class="kv"><span class="k">Source</span><span class="v path">shared/fixtures/OemDelivery</span></div>
+              <div class="kv"><span class="k">AUTOSAR release</span><span class="v">4.3.0</span></div>
+              <div class="kv"><span class="k">Schema</span><span class="v"><span class="chip ok">uniform</span></span></div>
+              <div class="kv"><span class="k">Namespaces</span><span class="v">1 distinct</span></div>
+              <div class="kv"><span class="k">Duplicate paths</span><span class="v">0</span></div>
+              <div class="kv"><span class="k">File errors</span><span class="v">0</span></div>
+              <div class="kv"><span class="k">Unknown elements</span><span class="v"><span class="chip warn">5 indexed as unknown</span></span></div>
+            </div>
+            <div class="card">
+              <h2>Semantic inventory</h2>
+              <div class="invrow"><span class="k">system</span><span class="bar"><i style="width:20%"></i></span><span class="n">1</span></div>
+              <div class="invrow"><span class="k">ecu</span><span class="bar"><i style="width:60%"></i></span><span class="n">3</span></div>
+              <div class="invrow"><span class="k">communication-cluster</span><span class="bar"><i style="width:20%"></i></span><span class="n">1</span></div>
+              <div class="invrow"><span class="k">frame</span><span class="bar"><i style="width:20%"></i></span><span class="n">1</span></div>
+              <div class="invrow"><span class="k">pdu</span><span class="bar"><i style="width:20%"></i></span><span class="n">1</span></div>
+              <div class="invrow"><span class="k">signal</span><span class="bar"><i style="width:20%"></i></span><span class="n">1</span></div>
+              <div class="invrow"><span class="k">software-component</span><span class="bar"><i style="width:20%"></i></span><span class="n">1</span></div>
+              <div class="invrow"><span class="k">port</span><span class="bar"><i style="width:40%"></i></span><span class="n">2</span></div>
+              <div class="invrow"><span class="k">port-interface</span><span class="bar"><i style="width:20%"></i></span><span class="n">1</span></div>
+              <div class="invrow"><span class="k" style="color:var(--warn)">unknown</span><span class="bar"><i style="width:100%;background:var(--warn);opacity:.55"></i></span><span class="n">5</span></div>
+              <div class="kindnote">Unknown element types are indexed, referenceable and reported honestly as unknown — never a parse failure. Empty kinds (ecuc-module, constant…) are omitted from this view.</div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:12px">
+            <h2>Needs review</h2>
+            <div class="health">
+              <div class="finding">
+                <span class="chip danger">REQUIRED-INTERFACE-TREF</span>
+                <span class="p">/Vehicle/SwCs/SpeedSensor/CalibrationIn → IF_Calibration</span>
+                <span class="sp"></span>
+                <span class="fix">
+                  <span class="fixbtn">⌖ Trace</span>
+                  <span class="fixbtn">Open in Objects</span>
+                </span>
+              </div>
+              <div class="finding" style="background:var(--warn-soft)">
+                <span class="chip warn">ORPHAN FRAME</span>
+                <span class="p">/Vehicle/Frames/Frame_VehicleSpeed — not attached to any cluster</span>
+                <span class="sp"></span>
+                <span class="fix"><span class="fixbtn">Open in Communication</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="statusbar">
+          <span><kbd>1</kbd>–<kbd>7</kbd> sections</span>
+          <span><kbd>⌘O</kbd> open delivery</span>
+          <span><kbd>R</kbd> re-index</span>
+          <span><kbd>/</kbd> find</span>
+          <span class="sp"></span>
+          <span>Engine ready · backend 0.5.0</span>
+          <span class="theme-note">prototype v0.1 · ◐ toggles dark</span>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script>
+    const app = document.getElementById('app');
+    if (new URLSearchParams(location.search).has('dark')) app.classList.add('dark');
+    document.getElementById('themeBtn').addEventListener('click', () => app.classList.toggle('dark'));
+  </script>
+</body>
+</html>

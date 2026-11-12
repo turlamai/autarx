@@ -10,6 +10,11 @@
 (require rackunit
          racket/file
          racket/string
+         (only-in rivet/distribution
+                  select-update
+                  update-artifact
+                  update-candidate?
+                  update-manifest)
          (prefix-in a: "../autarx/app-update.rkt"))
 
 ;; The repo manifest, resolved from this file's location (racket/tests/ →
@@ -160,3 +165,32 @@
   (check-equal? (hash-ref failed 'message) "boom")
   (a:reset-update-state!)
   (check-equal? (hash-ref (a:update-state-snapshot) 'phase) "idle"))
+
+(test-case "make-updater-config selects the feed's component-less artifact"
+  ;; Regression: the two live config sites kept the nine-argument
+  ;; updater-config shape after rivet #271 grew the struct a required
+  ;; component field, while the published feed's artifacts carry no
+  ;; component at all (#f) — on a new rivet the check died with an arity
+  ;; error that the check's own handler masked as a generic error state.
+  ;; The shim must fall back to #f, never 'app, or selection would
+  ;; silently never match the real feed. Build the config exactly the way
+  ;; the live check builds it and select against a manifest shaped like
+  ;; the published feed.
+  (define (feed-shape-artifact platform architecture url sha256 size installer arguments)
+    (with-handlers
+        ([exn:fail:contract:arity?
+          (lambda (_)
+            (apply update-artifact
+                   (append (list platform architecture url sha256 size installer arguments)
+                           (list #f))))])
+      (update-artifact platform architecture url sha256 size installer arguments)))
+  (define manifest
+    (update-manifest "site.jrtx.autarx.Autarx" "9.9.9" 99 'stable
+                     "2026-11-01T00:00:00Z" "0.0.0" #f #t 100
+                     (list (feed-shape-artifact (a:platform-symbol)
+                                                (a:architecture-symbol)
+                                                "https://downloads.example.com/autarx-9.9.9-linux-x64-app.tar.gz"
+                                                (make-string 64 #\a)
+                                                123456 'targz '()))))
+  (check-true (update-candidate? (select-update (a:make-updater-config) manifest))
+              "the shipped config must select the feed's component-less artifact"))

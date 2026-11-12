@@ -287,7 +287,11 @@
                       (embedded-public-key)
                       update-key-id
                       (rollout-bucket)
-                      maximum-download-bytes))
+                      maximum-download-bytes
+                      ;; rivet #271: component #f = the plain whole-app
+                      ;; artifact (legacy manifests carry no component) —
+                      ;; the same argument download-candidate! passes
+                      #f))
     (define candidate (select-update config manifest))
     (set-box! candidate-box candidate)
     (set-box! current-version-box current-version)

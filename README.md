@@ -131,6 +131,7 @@ Releases follow `autarx-<version>-<os>-<arch>.<ext>` and ship from
 | `autarx-<version>-linux-amd64.deb` / `-arm64.deb` | Linux (x64 / arm64) | GUI workbench |
 | `autarx-<version>-linux-*.rpm` | Linux (x64 / arm64) | GUI workbench |
 | `autarx-<version>-linux-x86_64.AppImage` / `-aarch64.AppImage` | Linux (x64 / arm64) | GUI workbench |
+| `autarx-<version>-linux-x64.flatpak` / `-arm64.flatpak` | Linux (x64 / arm64) | GUI workbench (Flatpak bundle, app id `site.jrtx.autarx.Autarx`; install with `flatpak --user install ./autarx-<version>-linux-<arch>.flatpak`) |
 | `autarx-<version>-macos-arm64.zip` / `-x64.zip` | macOS (arm64 / x64) | CLI (self-contained) |
 | `autarx-<version>-linux-x64.zip` / `-arm64.zip` | Linux (x64 / arm64) | CLI (self-contained) |
 | `autarx-<version>-windows-x64.zip` | Windows (x64) | CLI (self-contained) |
@@ -138,8 +139,15 @@ Releases follow `autarx-<version>-<os>-<arch>.<ext>` and ship from
 The CLI zips are the self-update payload: once installed, `autarx update`
 pulls newer builds from the signature-verified feed. The GUIs update
 in place through the signed workbench feed (`*-app.zip` / `*-app.tar.gz`
-payloads ship with every release). The DMG is ad-hoc signed — on first
-launch, right-click the app and choose Open.
+payloads ship with every release).
+
+> Release binaries carry no publisher code signature. The macOS DMG is
+> ad-hoc signed (not notarized), and the Windows MSI and the Linux
+> deb / rpm / AppImage artifacts are unsigned, so Gatekeeper may require
+> an explicit first-launch approval (right-click the app, choose Open)
+> and Windows SmartScreen may warn on the first MSI run. Paid code
+> signing / notarization is the remaining distribution roadmap item (see
+> [docs/ROADMAP.md](docs/ROADMAP.md)).
 
 To build from source instead:
 

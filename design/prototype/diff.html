@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autarx — Diff 原型（语义对比 + ECU 影响分析）</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* ==== diff 页面专属 ==== */
+  .pickers { display: flex; align-items: center; gap: 8px; }
+  .sel {
+    height: 30px; display: inline-flex; align-items: center; gap: 8px; padding: 0 10px; border-radius: 8px;
+    border: 1px solid var(--line-strong); background: var(--surface); font-size: 12.5px; font-family: var(--mono);
+  }
+  .sel b { font-weight: 600; }
+  .sel .car { color: var(--faint); }
+  .cmp { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px; align-items: start; }
+  .sumline { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--mute); margin-bottom: 12px; font-variant-numeric: tabular-nums; }
+  .sumline > span { white-space: nowrap; }
+  .sumline .path { font-family: var(--mono); font-size: 11.5px; }
+  .sumline .sp { flex: 1; }
+  .dsec { margin-bottom: 12px; }
+  .dsec > h2 { font-size: 12px; font-weight: 700; letter-spacing: .5px; color: var(--mute); text-transform: uppercase; margin: 0 0 6px; }
+  .drow {
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px;
+    background: var(--surface); border: 1px solid var(--line); margin-bottom: 6px; font-size: 13px;
+  }
+  .drow .sig { flex: none; width: 14px; text-align: center; font-weight: 700; font-size: 14px; }
+  .drow.add .sig { color: var(--ok); } .drow.rem .sig { color: var(--danger); } .drow.mod .sig { color: var(--warn); }
+  .drow .obj { font-family: var(--mono); font-size: 12px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; user-select: text; }
+  .drow .sp { flex: 1; }
+  .props { margin: 4px 0 10px 24px; display: flex; flex-direction: column; gap: 5px; }
+  .prop {
+    display: flex; align-items: baseline; gap: 8px; padding: 6px 10px; border-radius: 8px;
+    background: var(--surface); border: 1px solid var(--line); font-family: var(--mono); font-size: 11.5px;
+  }
+  .prop .def { color: var(--faint); flex: none; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prop .old { color: var(--danger); text-decoration: line-through; text-decoration-thickness: 1px; }
+  .prop .arr { color: var(--faint); }
+  .prop .new { color: var(--ok); font-weight: 600; }
+  .impact h2 { font-size: 12px; font-weight: 700; letter-spacing: .5px; color: var(--mute); text-transform: uppercase; margin-bottom: 8px; }
+  .impact .ecu { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .impact .closure { font-size: 12px; color: var(--mute); line-height: 1.6; margin-bottom: 10px; font-variant-numeric: tabular-nums; }
+  .impact .closure b { color: var(--ink); }
+  .finding { display: flex; gap: 8px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
+  .finding:last-child { border-bottom: none; }
+  .finding .code { font-family: var(--mono); font-size: 11px; flex: none; }
+  .finding .obj { font-family: var(--mono); font-size: 11px; color: var(--mute); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .comm-line { font-size: 11.5px; color: var(--faint); margin-top: 10px; }
+  .exit { font-size: 11px; font-family: var(--mono); }
+</style>
+</head>
+<body>
+  <div class="window" id="app">
+    <div class="titlebar">
+      <div class="lights"><i></i><i></i><i></i></div>
+      <div class="t">Autarx — <span class="path">Diff · DiffBefore → DiffAfter</span></div>
+      <div class="sp"></div>
+      <button class="iconbtn" id="themeBtn" title="Toggle light/dark (prototype only)">◐</button>
+    </div>
+    <div class="body">
+      <aside class="sidebar">
+        <div class="brand"><div class="mark">Ax</div><div class="name">Autarx</div></div>
+        <div class="sect">INSPECT</div>
+        <nav class="nav">
+          <div class="item"><span class="kb">1</span>Workspace</div>
+          <div class="item"><span class="kb">2</span>Objects</div>
+          <div class="item"><span class="kb">3</span>ECUs</div>
+        </nav>
+        <div class="sect">CHECK</div>
+        <nav class="nav">
+          <div class="item active"><span class="kb">4</span>Diff</div>
+          <div class="item"><span class="kb">5</span>Unresolved<span class="pill">1</span></div>
+          <div class="item"><span class="kb">6</span>Communication<span class="pill warn">1</span></div>
+        </nav>
+        <div class="sect">CHANGE</div>
+        <nav class="nav">
+          <div class="item"><span class="kb">7</span>Patch</div>
+        </nav>
+        <div class="foot">
+          <span class="dot"></span><span class="st">Engine ready</span>
+          <span class="sp"></span><span class="st">⚙ ⌘,</span>
+        </div>
+      </aside>
+      <section class="main">
+        <div class="head">
+          <h1>Diff</h1>
+          <div class="sp"></div>
+          <div class="pickers">
+            <span class="sel">before <b>DiffBefore</b> <span class="car">▾</span></span>
+            <button class="btn quiet">⇄</button>
+            <span class="sel">after <b>DiffAfter</b> <span class="car">▾</span></span>
+          </div>
+          <button class="btn primary">Compare ⏎</button>
+        </div>
+        <div class="banner accent">Semantic diff by path identity — property values explained by DEFINITION-REF, never line numbers <span class="exit">exit 1 · deliveries differ</span></div>
+        <div class="view">
+          <div class="sumline">
+            <span class="path">before: 2 files · 10 objects · 4 references</span>
+            <span>→</span>
+            <span class="path">after: 2 files · 9 objects · 4 references</span>
+            <span class="sp"></span>
+            <span>1 added · 2 removed · 3 modified · 2 reference pairs rewired</span>
+          </div>
+          <div class="cmp">
+            <div>
+              <div class="dsec">
+                <h2>Added · 1</h2>
+                <div class="drow add"><span class="sig">+</span><span class="obj">ECU-INSTANCE /Vehicle/Ecus/Display</span><span class="sp"></span><span class="chip kind">ecu</span></div>
+              </div>
+              <div class="dsec">
+                <h2>Removed · 2</h2>
+                <div class="drow rem"><span class="sig">−</span><span class="obj">CAN-CLUSTER /Vehicle/Clusters/SpareCan</span><span class="sp"></span><span class="chip kind">communication-cluster</span></div>
+                <div class="drow rem"><span class="sig">−</span><span class="obj">ECU-INSTANCE /Vehicle/Ecus/Legacy</span><span class="sp"></span><span class="chip kind">ecu</span></div>
+              </div>
+              <div class="dsec">
+                <h2>Modified · 3</h2>
+                <div class="drow mod"><span class="sig">~</span><span class="obj">ECUC-MODULE-CONFIGURATION-VALUES /Config/Diag</span><span class="sp"></span><span class="chip kind">ecuc-module</span></div>
+                <div class="props">
+                  <div class="prop"><span class="def">DiagGeneral / DiagParamA / VALUE</span><span class="old">1</span><span class="arr">→</span><span class="new">2</span></div>
+                  <div class="prop"><span class="def">DiagGeneral / DiagTesterRef / VALUE-REF</span><span class="old">/Vehicle/Ecus/Legacy</span><span class="arr">→</span><span class="new">/Vehicle/Ecus/RadarFL</span></div>
+                </div>
+                <div class="drow mod"><span class="sig">~</span><span class="obj">ECUC-CONTAINER-VALUE /Config/Diag/DiagGeneral</span><span class="sp"></span><span class="chip kind">ecuc-container</span></div>
+                <div class="drow mod"><span class="sig">~</span><span class="obj">/SwCs/AdaptiveApp</span><span class="sp"></span><span class="chip danger">type change</span><span class="obj" style="color:var(--mute)">APPLICATION-SW-COMPONENT-TYPE → COMPOSITION-SW-COMPONENT-TYPE</span></div>
+              </div>
+              <div class="dsec">
+                <h2>References · 2 added / 2 removed</h2>
+                <div class="drow add"><span class="sig">+</span><span class="obj">VALUE-REF /Config/Diag/DiagGeneral → /Vehicle/Ecus/RadarFL</span></div>
+                <div class="drow add"><span class="sig">+</span><span class="obj">CHANNEL-REF /Vehicle/Ecus/Display → /Vehicle/Clusters/VehicleCan</span></div>
+                <div class="drow rem"><span class="sig">−</span><span class="obj">VALUE-REF /Config/Diag/DiagGeneral → /Vehicle/Ecus/Legacy</span></div>
+                <div class="drow rem"><span class="sig">−</span><span class="obj">CHANNEL-REF /Vehicle/Ecus/Legacy → /Vehicle/Clusters/SpareCan</span></div>
+              </div>
+            </div>
+            <aside class="card impact">
+              <h2>Impact for ECU</h2>
+              <div class="ecu">
+                <span class="sel">Gateway <span class="car">▾</span></span>
+                <span class="chip ok">present in after</span>
+              </div>
+              <div class="closure">closure: <b>7</b> objects in scope<br>relevant <b>4</b> · unrelated <b>2</b> · breaking <b style="color:var(--danger)">2</b></div>
+              <div class="finding"><span class="chip danger">breaking</span><span class="code">ARX-IMP-REMOVED-REFERENCED</span></div>
+              <div class="finding"><span class="obj">/Vehicle/Clusters/SpareCan</span></div>
+              <div class="finding"><span class="chip danger">breaking</span><span class="code">ARX-IMP-REMOVED-REFERENCED</span></div>
+              <div class="finding"><span class="obj">/Vehicle/Ecus/Legacy</span></div>
+              <div class="finding"><span class="chip kind">info</span><span class="code">ARX-IMP-OBJECT-MODIFIED</span></div>
+              <div class="finding"><span class="obj">/Config/Diag/DiagGeneral</span></div>
+              <div class="finding"><span class="chip kind">info</span><span class="code">ARX-IMP-OBJECT-ADDED</span></div>
+              <div class="finding"><span class="obj">/Vehicle/Ecus/Display</span></div>
+              <div class="comm-line">communication impact: 1 cluster · 0 frames · 0 PDUs · 0 signals</div>
+              <div class="actions" style="display:flex;gap:6px;margin-top:12px">
+                <span class="btn">Export findings JSON</span>
+              </div>
+            </aside>
+          </div>
+        </div>
+        <div class="statusbar">
+          <span><kbd>⏎</kbd> compare</span>
+          <span><kbd>⇄S</kbd> swap sides</span>
+          <span><kbd>E</kbd> export JSON</span>
+          <span class="sp"></span>
+          <span>exit code 1 when deliveries differ · CI gate ready</span>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script>
+    const app = document.getElementById('app');
+    if (new URLSearchParams(location.search).has('dark')) app.classList.add('dark');
+    document.getElementById('themeBtn').addEventListener('click', () => app.classList.toggle('dark'));
+  </script>
+</body>
+</html>

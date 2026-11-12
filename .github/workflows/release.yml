@@ -52,6 +52,16 @@ jobs:
             os: macos-15-intel
             racket-arch: x64
     runs-on: ${{ matrix.os }}
+    env:
+      # Production signing lights up as soon as the account-level secrets
+      # exist (Developer ID p12 + App Store Connect API key) and applies to
+      # every workflow run that has them. Credential contract:
+      # DEVELOPER_ID_P12_B64 / DEVELOPER_ID_P12_PASSWORD / ASC_KEY_ID /
+      # ASC_ISSUER_ID / ASC_KEY_P8_B64; see rivet docs/production-signing.md.
+      MACOS_SIGNING_CONFIGURED: ${{ secrets.DEVELOPER_ID_P12_B64 != '' && secrets.ASC_KEY_P8_B64 != '' }}
+      # A tag push is a release: without credentials it must fail closed
+      # instead of silently shipping ad-hoc signed artifacts.
+      IS_TAG_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
     steps:
       - uses: actions/checkout@v7
       - name: Install Racket
@@ -66,8 +76,60 @@ jobs:
         run: raco pkg install --auto --no-docs 'https://github.com/turlamai/rivet.git#${{ env.RIVET_PIN }}'
       - name: Link autarx core
         run: raco pkg install --auto --no-docs --name autarx-core --link "file://$GITHUB_WORKSPACE/racket"
-      - name: Package
+      - name: Provision Developer ID certificate
+        if: env.MACOS_SIGNING_CONFIGURED == 'true'
+        env:
+          DEVELOPER_ID_P12_B64: ${{ secrets.DEVELOPER_ID_P12_B64 }}
+          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+        run: |
+          set -euo pipefail
+          P12="$RUNNER_TEMP/developer-id.p12"
+          KEYCHAIN="$RUNNER_TEMP/build.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 24)"
+          printf '%s' "$DEVELOPER_ID_P12_B64" | base64 --decode > "$P12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$P12" -k "$KEYCHAIN" -P "$DEVELOPER_ID_P12_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
+          security list-keychains -s "$KEYCHAIN" $(security list-keychains | tr -d '"')
+          rm -f "$P12"
+          IDENTITY_NAME="$(security find-identity -v -p codesigning "$KEYCHAIN" | grep 'Developer ID Application' | head -1 | sed -E 's/^[^"]*"(.*)"$/\1/')"
+          test -n "$IDENTITY_NAME"
+          # rivet reads exactly these two (rivet docs/production-signing.md);
+          # unlike `raco rivet release`, `raco rivet package` stays ad-hoc
+          # until the explicit --production flag below turns them on.
+          {
+            echo "RIVET_MACOS_SIGN_IDENTITY=$IDENTITY_NAME"
+            echo "RIVET_MACOS_NOTARY_PROFILE=ASC_NOTARY"
+          } >> "$GITHUB_ENV"
+      - name: Store notarytool keychain profile
+        if: env.MACOS_SIGNING_CONFIGURED == 'true'
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8_B64: ${{ secrets.ASC_KEY_P8_B64 }}
+        run: |
+          set -euo pipefail
+          P8="$RUNNER_TEMP/asc-api-key.p8"
+          printf '%s' "$ASC_KEY_P8_B64" | base64 --decode > "$P8"
+          xcrun notarytool store-credentials ASC_NOTARY \
+            --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" --key "$P8"
+          rm -f "$P8"
+      # `raco rivet package --production` Developer ID-signs, notarizes,
+      # staples, and re-verifies inside rivet itself using the credentials
+      # exported above; the bare call stays ad-hoc (docs/production-signing.md).
+      - name: Package (app bundle, Developer ID + notarized)
+        if: env.MACOS_SIGNING_CONFIGURED == 'true'
+        run: raco rivet package --production
+      - name: Package (app bundle, ad-hoc dispatch smoke)
+        if: env.MACOS_SIGNING_CONFIGURED != 'true' && env.IS_TAG_RELEASE != 'true'
         run: raco rivet package
+      - name: Package requires signing credentials
+        if: env.MACOS_SIGNING_CONFIGURED != 'true' && env.IS_TAG_RELEASE == 'true'
+        run: |
+          echo "::error::Tag releases must be production-signed: set the macOS signing secrets (DEVELOPER_ID_P12_B64, DEVELOPER_ID_P12_PASSWORD, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8_B64) on this repository before tagging."
+          exit 1
       - name: Human installer (DMG, drag to Applications)
         run: |
           volname=Autarx
@@ -204,8 +266,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
+      # rivet's own composite action. Keep the action ref in lockstep with
+      # RIVET_PIN above (and with ci.yml's copy of this step) — it ships
+      # the runtime the pinned rivet expects.
       - name: Set up embeddable Racket CS
-        uses: turlamai/rivet/.github/actions/setup-embed-racket@v0.13.0
+        uses: turlamai/rivet/.github/actions/setup-embed-racket@v0.14.0
       # Installed after the embeddable runtime so the catalog dependency
       # closure (cext-lib, crypto-lib, keel) resolves against the minimal
       # build — it ships no packages of its own. crypto backs the updater.
@@ -241,6 +306,45 @@ jobs:
           mv "autarx-${VERSION}-linux-${ARCH}.tar.gz" \
              "autarx-${VERSION}-linux-${ARCH}-app.tar.gz"
           rm -f "autarx-${VERSION}-linux-${ARCH}.zip"
+      # Wraps the -app.tar.gz workbench payload into a Flatpak bundle from
+      # the flatpak/ manifest template (family contract:
+      # deb+rpm+AppImage+Flatpak+tar.gz). The manifest's module closure
+      # covers the two NEEDED entries outside the GNOME Platform runtime
+      # (liblz4.so.1, libtinfo.so.6). Like deb/rpm/AppImage, the flatpak
+      # install shape is manual-by-design and stays out of the signed
+      # update feed.
+      - name: Flatpak bundle
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          ARCH="${{ matrix.arch }}"
+          case "$ARCH" in x64) FPARCH=x86_64 ;; arm64) FPARCH=aarch64 ;; esac
+          sudo apt-get install --yes flatpak flatpak-builder
+          # User-level everything: runner accounts install runtimes and
+          # build without root. GNOME 50 is the oldest supported platform
+          # runtime (48 went EOL 2026-03-24); its glibc 2.42 covers the
+          # ubuntu-built payload.
+          flatpak --user remote-add --if-not-exists flathub \
+            https://flathub.org/repo/flathub.flatpakrepo
+          flatpak --user install -y --noninteractive flathub \
+            "org.gnome.Platform/${FPARCH}/50" "org.gnome.Sdk/${FPARCH}/50"
+          # The manifest template carries version/arch/sha placeholders so
+          # the archive source's checksum is exact per release. The payload
+          # is the renamed -app.tar.gz workbench bundle.
+          cp "dist/autarx-${VERSION}-linux-${ARCH}-app.tar.gz" .
+          SHA="$(sha256sum "autarx-${VERSION}-linux-${ARCH}-app.tar.gz" | cut -d' ' -f1)"
+          sed -e "s/__VERSION__/${VERSION}/" -e "s/__ARCH__/${ARCH}/" \
+              -e "s/__SHA256__/${SHA}/" \
+              flatpak/site.jrtx.autarx.Autarx.yml > site.jrtx.autarx.Autarx.gen.yml
+          # --disable-rofiles-fuse: runners have no /dev/fuse.
+          flatpak-builder --user --force-clean --disable-rofiles-fuse \
+            --repo=flatpak-repo flatpak-build site.jrtx.autarx.Autarx.gen.yml
+          flatpak build-bundle flatpak-repo \
+            "autarx-${VERSION}-linux-${ARCH}.flatpak" site.jrtx.autarx.Autarx stable
+          mv "autarx-${VERSION}-linux-${ARCH}.flatpak" dist/
+          rm -rf flatpak-build flatpak-repo \
+            "autarx-${VERSION}-linux-${ARCH}-app.tar.gz" site.jrtx.autarx.Autarx.gen.yml
+          test -f "dist/autarx-${VERSION}-linux-${ARCH}.flatpak"
       - uses: actions/upload-artifact@v7
         with:
           name: linux-${{ matrix.arch }}
@@ -320,7 +424,8 @@ jobs:
             linux-arm64.zip linux-arm64-app.tar.gz \
             linux-x64.zip linux-x64-app.tar.gz \
             linux-amd64.deb linux-arm64.deb \
-            linux-aarch64.AppImage linux-x86_64.AppImage; do
+            linux-aarch64.AppImage linux-x86_64.AppImage \
+            linux-arm64.flatpak linux-x64.flatpak; do
             name="autarx-$VERSION-$suffix"
             test -s "dist/$name" || { echo "::error::Missing or empty $name"; exit 1; }
             cp "dist/$name" "public/$name"
@@ -335,7 +440,8 @@ jobs:
           cd public
           shasum -a 256 autarx-* | LC_ALL=C sort -k2 > SHA256SUMS
           shasum -a 256 --check SHA256SUMS
-          test "$(grep -c '^' SHA256SUMS)" -eq 19
+          # 17 versioned installers/archives + 2 RPMs + 2 Flatpak bundles.
+          test "$(grep -c '^' SHA256SUMS)" -eq 21
       - name: Release notes from this version's changelog
         run: |
           set -euo pipefail

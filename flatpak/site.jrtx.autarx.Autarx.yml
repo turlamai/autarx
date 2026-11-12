@@ -1,0 +1,110 @@
+# Flatpak bundle manifest for the release payload (issue: the Linux
+# distribution contract — deb+rpm+AppImage+Flatpak+tar.gz).
+#
+# CI renders the __VERSION__ / __ARCH__ / __SHA256__ placeholders from the
+# -app.tar.gz workbench payload it just built and writes the generated
+# manifest to the repo root (see .github/workflows/release.yml, the Linux
+# job's Flatpak bundle step):
+#
+#   sed -e "s/__VERSION__/.../" -e "s/__ARCH__/.../" -e "s/__SHA256__/.../" \
+#     flatpak/site.jrtx.autarx.Autarx.yml > site.jrtx.autarx.Autarx.gen.yml
+#   flatpak-builder --user --force-clean --repo=repo build-dir \
+#     site.jrtx.autarx.Autarx.gen.yml
+#   flatpak build-bundle repo autarx-<v>-linux-<arch>.flatpak \
+#     site.jrtx.autarx.Autarx stable
+#
+# The payload is self-contained (embedded Racket CS runtime, res/, app/).
+# readelf on the release binary shows exactly two NEEDED entries outside
+# the GNOME Platform runtime — liblz4.so.1 and libtinfo.so.6 — provided by
+# the two small modules below (the same closure as every family product).
+app-id: site.jrtx.autarx.Autarx
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+command: RivetHost
+# The release contract bundles from branch `stable` (build-bundle arg);
+# builder otherwise commits to master.
+branch: stable
+separate-locales: false
+finish-args:
+  # prefer_xwayland_backend() picks X11 exactly when DISPLAY is set and
+  # WAYLAND_DISPLAY is not; granting only the X11 socket keeps that
+  # decision deterministic.
+  - --socket=x11
+  - --device=dri
+  - --share=ipc
+  # open_workspace picks OEM delivery directories through the native GTK
+  # chooser, and the backend reads the ARXML tree in place and writes the
+  # .autarx/ index, patches and exports inside the chosen workspace
+  # (SECURITY.md: "the workspace `.autarx/` directory"). Workspaces are
+  # arbitrary directories under the user's home, and a portal grant would
+  # expire with the session while the index it created stays — home is the
+  # narrow grant that keeps both sides working. Nothing outside home:
+  # the throttle stamp lands in XDG_STATE_HOME and crash logs under TMPDIR,
+  # both inside the sandbox's own HOME/tmp.
+  - --filesystem=home
+  # No --share=network, deliberately: the only outbound traffic autarx
+  # has is the update check against GitHub Releases, and the family
+  # contract keeps flatpak installs off the signed update feed (updates
+  # are the flatpak remote's business — see the movebit manifest).
+modules:
+  - name: lz4
+    # Upstream keeps meson under build/ (flatpak-builder needs it at the
+    # module root), so use the primary Makefile build — library only.
+    buildsystem: simple
+    build-commands:
+      - make lib-release PREFIX=/app
+      - make -C lib install PREFIX=/app
+    sources:
+      - type: git
+        url: https://github.com/lz4/lz4.git
+        tag: v1.9.4
+        commit: 5ff839680134437dbf4678f3d0c7b371d84f4964
+  - name: ncurses
+    # libtinfo.so.6 only (the payload's NEEDED entry); no programs, no
+    # terminfo database install — the host system's entries stay put.
+    config-opts:
+      - --prefix=/app
+      - --with-shared
+      - --with-termlib
+      - --without-progs
+      - --without-tack
+      - --without-tests
+      # We only need libtinfo; the C++ binding does not survive the
+      # GNOME 50 SDK's GCC 15 libstdc++ (cstddef redefinition).
+      - --without-cxx-binding
+      - --without-cxx
+      - --disable-db-install
+    sources:
+      - type: archive
+        url: https://ftp.gnu.org/pub/gnu/ncurses/ncurses-6.5.tar.gz
+        sha256: 136d91bc269a9a5785e5f9e980bc76ab57428f604ce3e5a5a90cebc767971cc6
+  - name: autarx
+    buildsystem: simple
+    sources:
+      - type: archive
+        # The workbench payload renamed by release.yml's Family naming
+        # step (the plain tar.gz name belongs to the CLI zip family).
+        path: autarx-__VERSION__-linux-__ARCH__-app.tar.gz
+        sha256: __SHA256__
+      - type: file
+        # 512px derivative of assets/branding/icon_512.png (the branded
+        # file is 1024x1024 despite the name; flatpak's export check caps
+        # hicolor/512x512 icons at 512x512).
+        path: flatpak/icon-512.png
+      - type: file
+        path: flatpak/site.jrtx.autarx.Autarx.desktop
+    build-commands:
+      # flatpak-builder strips the archive's leading directory: the payload
+      # (RivetHost, runtime/, res/, app/) lands flat in the build dir.
+      - mkdir -p /app/autarx
+      - cp -a RivetHost runtime res app /app/autarx/
+      # The bundle's `command` resolves on the sandbox PATH (/app/bin); the
+      # payload lives outside it. A symlink keeps /proc/self/exe pointing
+      # at the real binary so the runtime layout discovery works.
+      - mkdir -p /app/bin
+      - ln -s /app/autarx/RivetHost /app/bin/RivetHost
+      - install -Dm644 icon-512.png
+                    /app/share/icons/hicolor/512x512/apps/site.jrtx.autarx.Autarx.png
+      - install -Dm644 site.jrtx.autarx.Autarx.desktop
+                    /app/share/applications/site.jrtx.autarx.Autarx.desktop
