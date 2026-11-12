@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 env:
-  RIVET_PIN: v0.12.0
+  RIVET_PIN: d6e98896fffa3f484e9ea0162d807ad2518c1538
 
 concurrency:
   # Keep each main commit's packaged product-acceptance proof independent.
@@ -104,7 +104,7 @@ jobs:
       # Keep the action ref in lockstep with RIVET_PIN above — it ships the
       # runtime the pinned rivet expects.
       - name: Set up embeddable Racket CS
-        uses: turlamai/rivet/.github/actions/setup-embed-racket@v0.14.0
+        uses: turlamai/rivet/.github/actions/setup-embed-racket@d6e98896fffa3f484e9ea0162d807ad2518c1538
       - name: Run executable product acceptance
         run: PATH="$FULL_RACKET_BIN:$PATH" dbus-run-session -- raco rivet acceptance --json
       - uses: actions/upload-artifact@v7
