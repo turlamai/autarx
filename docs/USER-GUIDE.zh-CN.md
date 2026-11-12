@@ -42,7 +42,7 @@
 
 ## 深入阅读
 
-- [工作台手册](../docs/guide.html)
+- [工作台手册](../site/guide.html)
 - [产品支持范围](../docs/PRODUCT.md)
 - [项目说明与开发入口](../README.zh-CN.md)
 - [现行许可证](../LICENSE)

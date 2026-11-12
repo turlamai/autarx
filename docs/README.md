@@ -3,7 +3,7 @@
 ## Use the product
 
 - [English user guide](USER-GUIDE.md) · [简体中文](USER-GUIDE.zh-CN.md): availability, installation, first use, data/recovery, network/privacy and support.
-- [Workbench manual](../docs/guide.html)
+- [Workbench manual](../site/guide.html)
 - [Supported product scope](../docs/PRODUCT.md)
 
 ## Maintain the product

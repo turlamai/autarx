@@ -3,13 +3,13 @@ name: Site content parity
 on:
   pull_request:
     paths:
-      - "docs/index.html"
+      - "site/index.html"
       - "scripts/check_site_copy.py"
       - ".github/workflows/site-content-parity.yml"
   push:
     branches: [main]
     paths:
-      - "docs/index.html"
+      - "site/index.html"
       - "scripts/check_site_copy.py"
       - ".github/workflows/site-content-parity.yml"
 

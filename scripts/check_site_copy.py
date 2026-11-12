@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Guard high-risk public claims against stale no-JS HTML fallbacks.
 
-The website embeds its translated dictionaries in docs/index.html. The HTML is
+The website embeds its translated dictionaries in site/index.html. The HTML is
 Chinese by default, and must state the same platform/maturity facts that JS
 writes after load. This verifies copy equality only, never native readiness.
 """
@@ -10,7 +10,7 @@ from pathlib import Path
 import re
 import sys
 
-PAGE = Path(__file__).resolve().parents[1] / "docs" / "index.html"
+PAGE = Path(__file__).resolve().parents[1] / "site" / "index.html"
 KEYS = (
     "pf.desktop-v",
     "pf.platforms-v",

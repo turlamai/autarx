@@ -88,7 +88,7 @@ modules:
         path: autarx-__VERSION__-linux-__ARCH__-app.tar.gz
         sha256: __SHA256__
       - type: file
-        # 512px derivative of assets/branding/icon_512.png (the branded
+        # 512px derivative of assets/branding/icon-512.png (the branded
         # file is 1024x1024 despite the name; flatpak's export check caps
         # hicolor/512x512 icons at 512x512).
         path: flatpak/icon-512.png

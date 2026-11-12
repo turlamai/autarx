@@ -42,7 +42,7 @@ Report problems in [GitHub Issues](https://github.com/turlamai/autarx/issues), i
 
 ## Further reading
 
-- [Workbench manual](../docs/guide.html)
+- [Workbench manual](../site/guide.html)
 - [Supported product scope](../docs/PRODUCT.md)
 - [Project overview and development](../README.md)
 - [Current licence](../LICENSE)
