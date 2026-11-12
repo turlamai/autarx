@@ -1,4 +1,121 @@
 <!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autarx — AUTOSAR 集成工作台</title>
+  <meta name="description" content="AUTOSAR 集成工作台：直接打开 OEM 交付物，在进入 vendor 工具链之前完成检查、检索、引用追踪与 ARXML 校验。">
+  <script>
+    // no-flash theme: from localStorage when the user picked manually,
+    // otherwise from the system preference (payback family pattern).
+    (function () {
+      var t;
+      try { t = localStorage.getItem('autarx-theme'); } catch (e) {}
+      if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = t;
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .status-pill { display:inline-flex; gap:8px; align-items:center; padding:7px 12px; border-radius:999px; border:1px solid var(--border); font-family:var(--font-mono); font-size:12px; background:var(--bg-card); }
+    .status-dot { width:8px; height:8px; border-radius:50%; background:#22c55e; }
+    .hero-copy { max-width:850px; }
+    .support-table { width:100%; border-collapse:collapse; margin-top:24px; }
+    .support-table th,.support-table td { text-align:left; padding:13px 14px; border-bottom:1px solid var(--border); vertical-align:top; }
+    .support-table th { color:var(--text-2); white-space:nowrap; width:110px; }
+    .platforms-grid.four { grid-template-columns: repeat(3, 1fr); }
+    .dev-note { display:inline-block; margin-top:8px; font-size:12px; color:var(--text-3); border:1px dashed var(--border-strong); border-radius:999px; padding:3px 10px; }
+  </style>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?8e2445912635226bcba0c400bfb6079d";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+<style>
+  #product-support { display:flex; flex-wrap:wrap; justify-content:center; gap:12px 24px; padding:24px; font:inherit; border-top:1px solid var(--border, #a8a29e); }
+  #product-support a:focus-visible { outline:2px solid currentColor; outline-offset:4px; }
+  html:lang(en) #product-support .support-zh, html:lang(zh) #product-support .support-en { display:none; }
+</style>
+<style id="product-start-style">
+.product-availability{font-size:.95rem;line-height:1.65;max-width:72ch;margin:18px 0;opacity:.85} .hero .product-availability{margin-left:auto;margin-right:auto}
+.product-start{max-width:1120px;margin:64px auto;padding:32px 24px;border-top:1px solid var(--border,#aaa);font:inherit;line-height:1.65}
+.product-start h2{font-size:clamp(1.7rem,3vw,2.4rem);letter-spacing:-.025em;margin:0 0 16px}.product-start h3{font-size:1.05rem;margin:0 0 10px}.product-start p{margin:0 0 16px;max-width:74ch}.product-start-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin:28px 0}.product-start a{text-decoration:underline;text-underline-offset:4px;overflow-wrap:anywhere}.product-start a:focus-visible{outline:2px solid currentColor;outline-offset:5px}.product-start .start-links{display:flex;gap:16px 24px;flex-wrap:wrap}.product-start .start-status{font-weight:600}.product-start .start-limits{font-size:.95em}
+html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(max-width:700px){.product-start{margin:40px auto;padding:24px 20px}.product-start-grid{grid-template-columns:1fr;gap:18px}}
+</style>
+<style>.lang-menu li.lang-choice{padding:0}.lang-menu .lang-choice button{display:block;width:100%;padding:8px 12px;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}.lang-menu .lang-choice button:focus-visible{outline:2px solid currentColor;outline-offset:-2px;border-radius:4px}</style>
+<style id="visual-showcase-css">
+/* Visual Showcase: process illustration, intentionally not an app screenshot. */
+.vs-showcase{padding:clamp(48px,7vw,88px) 24px;background:var(--bg,var(--surface,#faf7f2));color:var(--text,var(--ink,#24211d))}
+.vs-showcase *{box-sizing:border-box}
+.vs-showcase .vs-wrap{max-width:1080px;margin:0 auto}
+.vs-showcase .vs-intro{text-align:center;max-width:680px;margin:0 auto 28px}
+.vs-showcase .vs-label{text-transform:uppercase;letter-spacing:.14em;font-size:.7rem;font-weight:700;color:var(--accent,#b85d3f)}
+.vs-showcase h2{font:inherit;font-size:clamp(1.65rem,3.3vw,2.5rem);font-weight:700;line-height:1.2;letter-spacing:-.04em;margin:12px 0}
+.vs-showcase .vs-lead,.vs-showcase .vs-caption{color:var(--text-2,var(--muted,#6b6660));line-height:1.7}
+.vs-showcase .vs-frame{padding:clamp(18px,3vw,34px);border:1px solid var(--border,var(--line,#e8e2d9));background:var(--bg-card,var(--surface,#fff));border-radius:24px;box-shadow:0 20px 60px rgba(36,29,18,.07);overflow:hidden}
+.vs-showcase .vs-stage{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.vs-showcase .vs-step{position:relative;min-height:170px;padding:22px 18px;border-radius:16px;background:var(--bg,var(--surface,#faf7f2));border:1px solid var(--border,var(--line,#e8e2d9))}
+.vs-showcase .vs-step:not(:last-child):after{content:"→";position:absolute;z-index:1;right:-15px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:var(--bg-card,var(--surface,#fff));color:var(--accent,#b85d3f);border:1px solid var(--border,var(--line,#e8e2d9))}
+.vs-showcase .vs-glyph{font-size:1.75rem;display:block;margin-bottom:24px;color:var(--accent,#b85d3f)}
+.vs-showcase .vs-step b{display:block;font-size:1.03rem;margin-bottom:7px}
+.vs-showcase .vs-step small{display:block;color:var(--text-2,var(--muted,#6b6660));font-size:.84rem;line-height:1.5}
+.vs-showcase .vs-caption{font-size:.79rem;text-align:center;margin:16px 0 0}
+.vs-showcase .vs-art{margin-bottom:22px;background:var(--bg,var(--surface,#f6f3ed));border:1px solid var(--border,var(--line,#e8e2d9));border-radius:18px;padding:22px;overflow:hidden;min-height:185px}
+.vs-showcase .vs-task-art{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.vs-showcase .vs-mini-board{background:var(--bg-card,var(--surface,#fff));border-radius:14px;border:1px solid var(--border,var(--line,#e8e2d9));padding:15px;box-shadow:0 6px 24px rgba(10,10,10,.04)}
+.vs-showcase .vs-mini-title{font-size:.76rem;color:var(--text-2,var(--muted,#6b6660));font-weight:700;margin-bottom:12px}
+.vs-showcase .vs-mini-task{display:flex;align-items:center;gap:10px;padding:9px 3px;border-top:1px solid var(--border,var(--line,#e8e2d9));font-size:.9rem}
+.vs-showcase .vs-ring{flex:none;height:17px;width:17px;border:2px solid var(--accent,#b85d3f);border-radius:50%}
+.vs-showcase .vs-ring.done{background:var(--accent,#b85d3f);position:relative}.vs-showcase .vs-ring.done:after{content:"✓";color:#fff;font-size:12px;position:absolute;left:2px;top:-3px}
+.vs-showcase .vs-mini-tag{margin-left:auto;color:var(--accent,#b85d3f);background:var(--accent-soft,#f7e5dd);font-size:.7rem;padding:3px 6px;border-radius:6px}
+.vs-showcase .vs-reader-art{display:grid;grid-template-columns:1.5fr 1fr;gap:18px}
+.vs-showcase .vs-paper,.vs-showcase .vs-annotation{border-radius:14px;background:var(--bg-card,var(--surface,#fff));border:1px solid var(--border,var(--line,#e8e2d9));padding:18px}
+.vs-showcase .vs-paper-title{font-size:.75rem;letter-spacing:.1em;color:var(--text-2,var(--muted,#6b6660));margin-bottom:22px}
+.vs-showcase .vs-line{height:9px;background:var(--border,var(--line,#e8e2d9));border-radius:8px;margin:12px 0;max-width:100%}
+.vs-showcase .vs-line.short{width:57%}.vs-showcase .vs-line.mid{width:82%}
+.vs-showcase .vs-highlight{height:15px;border-radius:3px;width:72%;background:color-mix(in srgb,var(--accent,#d97757) 32%,transparent)}
+.vs-showcase .vs-note-label{font-size:.72rem;letter-spacing:.09em;color:var(--accent,#b85d3f);font-weight:800}
+.vs-showcase .vs-note-body{font-size:.93rem;line-height:1.7;margin:18px 0}
+.vs-showcase .vs-note-foot{font-size:.75rem;color:var(--text-2,var(--muted,#6b6660))}
+html:lang(en) .vs-zh,html:lang(zh) .vs-en{display:none!important}
+@media(max-width:700px){.vs-showcase .vs-stage{grid-template-columns:1fr}.vs-showcase .vs-step{min-height:120px}.vs-showcase .vs-step:not(:last-child):after{right:calc(50% - 14px);top:auto;bottom:-15px;transform:rotate(90deg)}.vs-showcase .vs-glyph{margin-bottom:12px}.vs-showcase .vs-reader-art{grid-template-columns:1fr 1fr}.vs-showcase .vs-art{padding:14px}}
+@media(prefers-reduced-motion:reduce){.vs-showcase *, .vs-showcase *:before,.vs-showcase *:after{animation:none!important;transition:none!important}}
+
+/* The architecture comparison must show both panels on narrow phones. */
+@media (max-width: 600px) {
+  .vs-showcase .vs-task-art { grid-template-columns: minmax(0, 1fr); }
+  .vs-showcase .vs-mini-board { min-width: 0; overflow-wrap: anywhere; }
+  .platforms-grid.four { grid-template-columns: minmax(0, 1fr); }
+}
+</style></head>
+<body>
+  <nav class="nav-container">
+    <div class="nav-wrapper">
+      <div class="nav-brand">Autarx</div>
+      <ul class="nav-menu">
+        <li><a href="#features" data-i18n="nav.features">功能</a></li>
+        <li><a href="#platform" data-i18n="nav.platform">平台</a></li>
+        <li><a href="#download" data-i18n="nav.download">下载</a></li>
+        <li><a href="guide.html" data-i18n="nav.guide">用户手册</a></li>
+        <li><a href="https://github.com/turlamai/autarx">GitHub</a></li>
+        <li class="lang-dropdown-wrapper">
+          <button class="lang-btn" type="button" aria-label="Switch language">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            <span id="current-lang-label">简体中文</span>
+          </button>
+          <ul class="lang-menu">
+            <li class="lang-choice"><button type="button" onclick="setLanguage('zh')">简体中文</button></li>
+            <li class="lang-choice"><button type="button" onclick="setLanguage('en')">English</button></li>
+          </ul>
+        </li>
+        <li><button class="theme-btn" id="theme-btn" type="button" aria-label="Toggle theme">◐</button></li>
+      </ul>
+    </div>
+  </nav>
 <html lang="zh-CN" data-kit-id="autarx">
 
 <head>
