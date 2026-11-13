@@ -287,7 +287,7 @@
                     (feed-manifest
                      (format "http://127.0.0.1:~a/autarx-9.9.9-linux-x86_64.AppImage"
                              port-number)
-                     sha (bytes-length payload) '(appimage))
+                     sha (bytes-length payload) '(appimage)))
                    'status)
          "available")
         (a:start-download!)
@@ -305,7 +305,7 @@
         (putenv "APPIMAGE" (or old-appimage ""))
         (when (file-exists? image-path) (delete-file image-path))
         (delete-directory/files image-dir #:must-exist? #f)
-        (stop-server!))))))
+        (stop-server!)))))
 
 ;; The feed must keep offering the signed msi installer for Program Files
 ;; installs (the Windows host hands off to msiexec).
