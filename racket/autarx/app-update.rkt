@@ -367,9 +367,15 @@
                  "APPIMAGE is not set; not running as an AppImage"))
         (define self (string->path self-string))
         (set-box! appimage-self-box self)
-        (make-temporary-file "autarx-update-~a.AppImage"
-                             #f
-                             (path-only self))]
+        ;; Reserve a unique name, then remove the file: a failed
+        ;; verification must not strand an empty staging file beside the
+        ;; running image (rivet's managed download cleans only its .partial).
+        (define staged
+          (make-temporary-file "autarx-update-~a.AppImage"
+                               #f
+                               (path-only self)))
+        (delete-file staged)
+        staged]
        [else (destination-path candidate)]))
    #:after-download
    (lambda (verified candidate)
