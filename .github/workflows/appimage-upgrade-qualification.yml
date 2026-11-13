@@ -15,10 +15,10 @@ name: Published upgrade qualification (N -> N+1)
 # macOS entries only). The Linux workbench path and its updater first
 # shipped in v0.5.0. The workflow therefore installs v0.4.3 from its
 # published Linux zip (the only Linux asset), overlays the workbench
-# updater from main (which is exactly what the next release will ship, and
-# which is version-correct on either rivet pin through the #f-component
-# shim), and drives it against the live feed: v0.4.3 -> v0.5.0 across the
-# feed's first Linux workbench entry. Once v0.6.0 ships, the same workflow
+# updater from main (which is exactly what the next release will ship; it
+# runs on the managed updater and needs main's rivet pin, below), and
+# drives it against the live feed: v0.4.3 -> v0.5.0 across
+# the feed's first Linux workbench entry. Once v0.6.0 ships, the same workflow
 # qualifies a true v0.5.0 -> v0.6.0 pair with no overlay at all.
 #
 # Throttle note: the 4-hour silent-check throttle lives in the hosts; the
@@ -71,15 +71,25 @@ jobs:
           git checkout FETCH_HEAD -- racket/autarx/app-update.rkt scripts/acceptance/upgrade-qualification.rkt
           echo "OVERLAY_SHA=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_ENV"
 
-      - name: Read the rivet pin the N release was built against
+      - name: Read the rivet pin the updater under test was built against
         run: |
           set -euo pipefail
-          spec="$(grep -ohE "https://[^']+rivet\.git#[^']+" .github/workflows/ci.yml | head -1)"
+          # The overlay runs main's updater against the N tag; that updater
+          # needs the pin from its own revision, not the N release's pin
+          # (which predates the managed-updater hooks it calls). Without an
+          # overlay (a future release that ships this updater), the checked
+          # out tag's pin is the right one.
+          if [ -n "${OVERLAY_SHA:-}" ]; then
+            ci="$(git show "$OVERLAY_SHA:.github/workflows/ci.yml")"
+          else
+            ci="$(cat .github/workflows/ci.yml)"
+          fi
+          spec="$(printf '%s\n' "$ci" | grep -ohE "https://[^']+rivet\.git#[^']+" | head -1)"
           test -n "$spec"
-          # the N workflows may pin through the env indirection (a
-          # "RIVET_PIN:" env block at the top) rather than a literal ref
+          # workflows may pin through the env indirection (a "RIVET_PIN:"
+          # env block at the top) rather than a literal ref
           if echo "$spec" | grep -qF 'env.RIVET_PIN'; then
-            pin="$(grep -m1 -E '^ *RIVET_PIN:' .github/workflows/ci.yml | sed -E 's/.*RIVET_PIN:[[:space:]]*//')"
+            pin="$(printf '%s\n' "$ci" | grep -m1 -E '^ *RIVET_PIN:' | sed -E 's/.*RIVET_PIN:[[:space:]]*//')"
             test -n "$pin"
             spec="$(echo "$spec" | cut -d'#' -f1)#$pin"
           fi

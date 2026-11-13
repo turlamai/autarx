@@ -41,21 +41,21 @@
 (require crypto
          net/url
          (only-in rivet/distribution
-                  fetch-update-manifest
-                  select-update
+                  make-updater
+                  updater-check!
+                  updater-download!
+                  updater-state
+                  updater-cancel!
+                  updater-wait
+                  updater-candidate
+                  base64-string->bytes
                   update-artifact-installer
                   update-artifact-size
-                  update-artifact-url
                   update-candidate-artifact
                   update-candidate-manifest
                   update-manifest-build
                   update-manifest-published-at
-                  update-manifest-version
-                  updater-config
-                  updater-config-maximum-download-bytes
-                  verify-update-artifact!
-                  base64-string->bytes
-                  sha256-file/hex)
+                  update-manifest-version)
          racket/file
          racket/list
          racket/path
@@ -76,13 +76,10 @@
          architecture-symbol
          install-flavor
          flavor-for-exe-path
-         appimage-asset-name
-         msi-artifact-urls
          destination-directory
          update-state-snapshot
          reset-update-state!
          set-update-error!
-         make-updater-config
          perform-check!
          start-download!)
 
@@ -244,44 +241,6 @@
                        (executable-directory-string)
                        (getenv "APPIMAGE")))
 
-;; The AppImage release asset name for a feed tar.gz: feed files carry the
-;; -app suffix and the feed arch spelling (x64|arm64) while AppImage builds
-;; use the platform arch spelling (x86_64|aarch64):
-;;   autarx-0.5.0-linux-x64-app.tar.gz → autarx-0.5.0-linux-x86_64.AppImage
-(define (appimage-asset-name tar-gz-filename architecture)
-  (unless (string-suffix? tar-gz-filename "-app.tar.gz")
-    (error 'appimage-asset-name "not an autarx app tar.gz filename: ~a"
-           tar-gz-filename))
-  (define stem
-    (substring tar-gz-filename 0
-               (- (string-length tar-gz-filename)
-                  (string-length "-app.tar.gz"))))
-  (define feed-arch (string-append "-" (symbol->string architecture)))
-  (unless (string-suffix? stem feed-arch)
-    (error 'appimage-asset-name
-           "feed filename does not end in ~a: ~a" feed-arch stem))
-  (define appimage-arch
-    (case architecture [(arm64) "aarch64"] [else "x86_64"]))
-  (string-append (substring stem 0 (- (string-length stem)
-                                      (string-length feed-arch)))
-                 "-"
-                 appimage-arch
-                 ".AppImage"))
-
-;; The MSI release asset + checksum sidecar for a feed zip URL. The feed
-;; entry carries the -app suffix (update-payload internals); the human
-;; installer keeps the plain family name:
-;;   …/autarx-0.5.0-windows-x64-app.zip → …/autarx-0.5.0-windows-x64.msi
-(define (msi-artifact-urls zip-url)
-  (unless (string-suffix? zip-url "-app.zip")
-    (error 'msi-artifact-urls
-           "cannot derive an msi url from a non-app zip feed entry"))
-  (define stem
-    (substring zip-url 0 (- (string-length zip-url)
-                            (string-length "-app.zip"))))
-  (values (string-append stem ".msi")
-          (string-append stem ".msi.sha256")))
-
 ;; Downloads land under <temp>/autarx/updates — the CLI updater's state
 ;; directory (writable on every desktop target; portable installs under
 ;; Program Files are not).
@@ -291,30 +250,60 @@
 ;; ------------------------------------------------------------ update state
 
 ;; phase: idle | checking | downloading | downloaded | error
-(define update-state
-  (box (hasheq 'phase "idle"
-               'percent 0
-               'message #f
-               'downloadedPath #f
-               'availableVersion #f)))
+(define (idle-snapshot)
+  (hasheq 'phase "idle"
+          'percent 0
+          'message #f
+          'downloadedPath #f
+          'availableVersion #f))
 
-(define candidate-box (box #f))
-(define worker-thread-box (box #f))
+(define update-state (box (idle-snapshot)))
+(define updater-box (box #f))
 
 (define (state-set! key value)
   (set-box! update-state (hash-set (unbox update-state) key value)))
 
+;; The managed phases include transport/selection outcomes the UI treats as
+;; idle: `available` carries its signal in availableVersion, `up-to-date`
+;; means there is nothing to do, and `cancelled` returns the controls to
+;; idle. Anything else passes through unchanged.
+(define (managed-state->product state)
+  (define phase (hash-ref state 'phase "idle"))
+  (define mapped-phase
+    (case phase
+      [("available" "up-to-date" "cancelled") "idle"]
+      [else phase]))
+  (define idle? (string=? mapped-phase "idle"))
+  (hasheq 'phase mapped-phase
+          'percent (if idle? 0 (hash-ref state 'percent 0))
+          'message (let ([message (and (not idle?)
+                                       (hash-ref state 'message #f))])
+                     (if message message #f))
+          'downloadedPath (let ([path (hash-ref state 'downloadedPath #f)])
+                            (if path path #f))
+          'availableVersion (let ([version (hash-ref state 'availableVersion #f)])
+                              (if version version #f))))
+
 (define (update-state-snapshot)
-  (unbox update-state))
+  (define product (unbox update-state))
+  (define instance (unbox updater-box))
+  (cond
+    [(not instance) product]
+    ;; A backend-side start failure (already running, no candidate)
+    ;; outranks the managed snapshot until the next check clears it.
+    [(equal? (hash-ref product 'phase "idle") "error") product]
+    [else (managed-state->product (updater-state instance))]))
 
 (define (reset-update-state!)
-  (set-box! candidate-box #f)
-  (set-box! update-state
-            (hasheq 'phase "idle"
-                    'percent 0
-                    'message #f
-                    'downloadedPath #f
-                    'availableVersion #f)))
+  ;; Dropping an instance while its worker runs would orphan the download;
+  ;; land it on the terminal cancelled phase first.
+  (define instance (unbox updater-box))
+  (when (and instance (equal? (hash-ref (updater-state instance) 'phase)
+                              "downloading"))
+    (updater-cancel! instance)
+    (updater-wait instance 5.0))
+  (set-box! updater-box #f)
+  (set-box! update-state (idle-snapshot)))
 
 ;; Pre-spawn download failures (already running, no candidate) surface
 ;; through the state instead of an RPC error, so host UIs have a single
@@ -323,80 +312,100 @@
   (state-set! 'phase "error")
   (state-set! 'message message))
 
-;; Download watchdog bounds: no byte progress for the stall limit, or wall
-;; clock past the total limit, breaks the worker (it cleans up the .partial
-;; and reports phase=error itself) so the host always reaches a terminal
-;; state instead of resting on a frozen percent.
-(define download-stall-limit-seconds 120)
-(define download-total-limit-seconds (* 30 60))
-(define last-progress-seconds (box 0))
+;; ---------- install kind ----------
+
+;; The installed flavor selects which manifest artifact this install may
+;; apply. MSI installs under Program Files take the signed .msi and hand off
+;; to the host; AppImage processes take the signed .AppImage. Everything
+;; else (portable zip, tarball, package-managed prefixes) keeps the
+;; historical portable payload; package-managed installs never download.
+(define (update-install-kind)
+  (case (install-flavor)
+    [("msi") 'msi]
+    [("appimage") 'appimage]
+    [else #f]))
+
+;; ---------- managed updater ----------
+
+;; The verified AppImage installs in place: chmod, then atomically rename
+;; over the running image. The host re-execs it on consent.
+(define (install-appimage! verified self)
+  ;; The replaced image must stay executable: rename carries the temp file's
+  ;; modes, so set them explicitly before the swap. The setter takes integer
+  ;; bits (the vector form is a contract violation on Windows, where POSIX
+  ;; modes do not exist) — the swap is only ever reached under APPIMAGE.
+  (unless (eq? (system-type 'os) 'windows)
+    (file-or-directory-permissions verified #o755))
+  (rename-file-or-directory verified self #t)
+  self)
+
+(define (make-autarx-updater)
+  ;; Set by the destination callback for an AppImage install and consumed
+  ;; by the after-download hook in the same instance.
+  (define appimage-self-box (box #f))
+  (make-updater
+   #:application-id app-identifier
+   #:current-version (workbench-version)
+   #:channel app-channel
+   #:platform (platform-symbol)
+   #:architecture (architecture-symbol)
+   #:install-kind (update-install-kind)
+   ;; The feed's artifacts carry no component discriminator (rivet #271).
+   #:component #f
+   ;; DER bytes: the managed updater decodes them lazily during the check.
+   #:public-key (base64-string->bytes update-public-key-b64)
+   #:key-id update-key-id
+   #:manifest-url (manifest-url)
+   #:data-directory (destination-directory)
+   #:destination
+   (lambda (candidate)
+     (cond
+       [(equal? (install-flavor) "appimage")
+        (define self-string (getenv "APPIMAGE"))
+        (unless (and self-string (non-empty-string? self-string))
+          (error 'start-download
+                 "APPIMAGE is not set; not running as an AppImage"))
+        (define self (string->path self-string))
+        (set-box! appimage-self-box self)
+        (make-temporary-file "autarx-update-~a.AppImage"
+                             #f
+                             (path-only self))]
+       [else (destination-path candidate)]))
+   #:after-download
+   (lambda (verified candidate)
+     (define self (unbox appimage-self-box))
+     (if self
+         (install-appimage! verified self)
+         verified))
+   #:rollout-bucket (rollout-bucket)
+   #:maximum-download-bytes maximum-download-bytes))
 
 ;; ---------- check ----------
 
-;; rivet moved updater-config to 10 fields (component) after the v0.11.0
-;; pin; the feed's artifacts carry no component at all (#f) and
-;; select-update matches config component against artifact component, so
-;; construct through this shim: plain on old rivets, #f component on new —
-;; never 'app (racket/tests/app-update-test.rkt pins it against a
-;; feed-shaped manifest).
-(define (make-updater-config)
-  (define args
-    (list app-identifier
-          (workbench-version)
-          app-channel
-          (platform-symbol)
-          (architecture-symbol)
-          (embedded-public-key)
-          update-key-id
-          (rollout-bucket)
-          maximum-download-bytes))
-  (with-handlers
-      ([exn:fail:contract:arity?
-        (lambda (_)
-          (apply updater-config (append args (list #f))))])
-    (apply updater-config args)))
+(define (download-running?)
+  (define instance (unbox updater-box))
+  (and instance
+       (equal? (hash-ref (updater-state instance) 'phase) "downloading")))
 
 ;; Returns a plain hasheq describing the outcome; backend.rkt maps it onto
 ;; the typed UpdateCheck record. Throttling is the host's job. Never raises.
 (define (perform-check!)
-  (reset-update-state!)
-  (state-set! 'phase "checking")
-  (with-handlers
-      ([exn:fail?
-        (lambda (e)
-          (state-set! 'phase "error")
-          (state-set! 'message (exn-message e))
-          (hasheq 'status "error" 'message (exn-message e)))])
-    (define manifest
-      (fetch-update-manifest (manifest-url)
-                             (embedded-public-key)
-                             #:key-id update-key-id))
-    (define config (make-updater-config))
-    (define candidate (select-update config manifest))
-    (cond
-      [candidate
-       (set-box! candidate-box candidate)
-       (define artifact (update-candidate-artifact candidate))
-       (state-set! 'phase "idle")
-       (state-set! 'availableVersion
-                   (update-manifest-version
-                    (update-candidate-manifest candidate)))
-       (hasheq 'status "available"
-               'currentVersion (workbench-version)
-               'availableVersion
-               (update-manifest-version
-                (update-candidate-manifest candidate))
-               'build (update-manifest-build
-                       (update-candidate-manifest candidate))
-               'publishedAt
-               (update-manifest-published-at
-                (update-candidate-manifest candidate))
-               'installer (symbol->string (update-artifact-installer artifact))
-               'sizeBytes (update-artifact-size artifact))]
-      [else
-       (state-set! 'phase "idle")
-       (state-set! 'availableVersion #f)
-       (hasheq 'status "up-to-date" 'currentVersion (workbench-version))])))
+  (cond
+    ;; Keep the running transfer (and its instance) instead of orphaning
+    ;; the worker; the UI retries the check once the download ends.
+    [(download-running?)
+     (hasheq 'status "error" 'message "an update download is already running")]
+    [else
+     (reset-update-state!)
+     (with-handlers
+         ([exn:fail?
+           (lambda (e)
+             (state-set! 'phase "error")
+             (state-set! 'message (exn-message e))
+             (hasheq 'status "error" 'message (exn-message e)))])
+       (define instance (make-autarx-updater))
+       (set-box! updater-box instance)
+       (updater-check! instance))]))
 
 ;; ---------- download ----------
 
@@ -411,217 +420,10 @@
   (build-path (destination-directory)
               (string-append app-display-name "-" version extension)))
 
-;; Copy with progress; same limits as rivet's download-update but publishes
-;; integer percent changes to the state box while streaming. Release asset
-;; URLs redirect to the CDN, so follow redirections like rivet's own
-;; downloader does (the 302-into-an-empty-body trap, rivet#153).
-(define (copy-with-progress! in out total)
-  (define buffer (make-bytes 65536))
-  (let loop ([done 0] [last-percent -1])
-    (define count (read-bytes-avail! buffer in))
-    (cond
-      [(eof-object? count) done]
-      [else
-       ;; Every successful read feeds the watchdog's stall clock (not just
-       ;; integer percent changes, so a slow link never false-trips it).
-       (set-box! last-progress-seconds (current-seconds))
-       (write-bytes buffer out 0 count)
-       (define next (+ done count))
-       (define percent
-         (if (> total 0)
-             (min 100 (quotient (* next 100) total))
-             0))
-       (when (> percent last-percent)
-         (state-set! 'percent percent))
-       (loop next percent)])))
-
-;; Manifest-verified flow (zip / tar.gz): rivet's download-update enforces
-;; the signed size and SHA-256 before the file is trusted and follows the
-;; release-CDN redirections; this wrapper adds the progress states the UI
-;; polls. Runs on the worker thread.
-(define (download-with-progress! config candidate destination)
-  (define artifact (update-candidate-artifact candidate))
-  (define total (update-artifact-size artifact))
-  (when (> total (updater-config-maximum-download-bytes config))
-    (error 'download-update "signed artifact size exceeds the download limit"))
-  (make-parent-directory* destination)
-  (define temporary (path-add-extension destination #".partial"))
-  (when (file-exists? temporary) (delete-file temporary))
-  (with-handlers ([exn:fail?
-                   (lambda (e)
-                     (when (file-exists? temporary) (delete-file temporary))
-                     (raise e))])
-    (define in
-      (get-pure-port (string->url (update-artifact-url artifact))
-                     '("User-Agent: Autarx-Updater/1")
-                     #:redirections 10))
-    (dynamic-wind
-      void
-      (lambda ()
-        (call-with-output-file temporary
-          #:exists 'truncate/replace
-          #:mode 'binary
-          (lambda (out) (copy-with-progress! in out total))))
-      (lambda () (close-input-port in)))
-    ;; size + SHA-256 against the signed manifest before the file is trusted
-    (verify-update-artifact! candidate temporary)
-    (rename-file-or-directory temporary destination #t)
-    destination))
-
-;; Sidecar downloads (.msi / .AppImage) come from the same CDN without a
-;; signed manifest, so the response head is the only total available: parse
-;; Content-Length for the progress percent (0 → indeterminate) and hand the
-;; body port to the copy loop. Connection: close keeps the copy ending at
-;; EOF, exactly like the manifest-verified flow.
-(define (open-download-with-total! url)
-  (define in (get-impure-port (string->url url)
-                              '("User-Agent: Autarx-Updater/1"
-                                "Connection: close")))
-  (let loop ([total 0])
-    (define line (read-line in 'return-linefeed))
-    (cond
-      [(eof-object? line) (values in 0)]
-      [(non-empty-string? (string-trim line))
-       (define match
-         (regexp-match #px"(?i:^content-length:\\s*(\\d+))" line))
-       (loop (if match (string->number (second match)) total))]
-      [else (values in total)])))
-
-;; sha256sum format: "<hex>  <filename>"; the first token is the digest.
-(define (fetch-sidecar-sha256! url)
-  (define in (get-pure-port (string->url url)
-                            '("User-Agent: Autarx-Updater/1")
-                            #:redirections 10))
-  (dynamic-wind
-    void
-    (lambda ()
-      (define digest
-        (let ([body (string-trim (port->string in))])
-          (if (string=? body "") "" (first (string-split body)))))
-      (unless (regexp-match? #px"^[0-9a-fA-F]{64}$" digest)
-        (error 'start-download "checksum sidecar has an unexpected shape"))
-      (string-downcase digest))
-    (lambda () (close-input-port in))))
-
-(define (download-with-sidecar! url destination)
-  (define sidecar-url (string-append url ".sha256"))
-  (define expected (fetch-sidecar-sha256! sidecar-url))
-  (make-parent-directory* destination)
-  (define temporary (path-add-extension destination #".partial"))
-  (when (file-exists? temporary) (delete-file temporary))
-  (with-handlers ([exn:fail?
-                   (lambda (e)
-                     (when (file-exists? temporary) (delete-file temporary))
-                     (raise e))])
-    (define-values (in total) (open-download-with-total! url))
-    (dynamic-wind
-      void
-      (lambda ()
-        (call-with-output-file temporary
-          #:exists 'truncate/replace
-          #:mode 'binary
-          (lambda (out) (copy-with-progress! in out total))))
-      (lambda () (close-input-port in)))
-    (define actual (string-downcase (sha256-file/hex temporary)))
-    (unless (string=? actual expected)
-      (raise-arguments-error 'start-download
-                             "downloaded artifact does not match its checksum sidecar"
-                             "expected" expected
-                             "actual" actual))
-    destination))
-
-(define (download-msi-with-progress! candidate)
-  (define-values (msi-url _sidecar-url)
-    (msi-artifact-urls (update-artifact-url
-                        (update-candidate-artifact candidate))))
-  (download-with-sidecar! msi-url (destination-path candidate)))
-
-;; AppImage: the download lands NEXT TO the running image ($APPIMAGE, set by
-;; the AppImage runtime) so the final rename stays on one device, then
-;; replaces it after the sidecar checksum verifies; the host re-execs the
-;; replaced image on consent.
-(define (download-appimage-with-progress! candidate)
-  (define self (getenv "APPIMAGE"))
-  (unless (and self (non-empty-string? self))
-    (error 'start-download "APPIMAGE is not set; not running as an AppImage"))
-  (define url (update-artifact-url (update-candidate-artifact candidate)))
-  (define filename
-    (last (string-split (car (string-split url "?")) "/")))
-  (define appimage-name
-    (appimage-asset-name filename (architecture-symbol)))
-  (define appimage-url (string-replace url filename appimage-name))
-  (define temporary
-    (make-temporary-file "autarx-update-~a.AppImage" #f (path-only self)))
-  (define destination (download-with-sidecar! appimage-url temporary))
-  ;; The replaced image must stay executable: rename carries the temp file's
-  ;; modes, so set them explicitly before the swap. The setter takes integer
-  ;; bits (the vector form is a contract violation on Windows, where POSIX
-  ;; modes do not exist) — the swap itself is only ever reached under
-  ;; APPIMAGE, i.e. never on Windows.
-  (unless (eq? (system-type 'os) 'windows)
-    (file-or-directory-permissions destination #o755))
-  (rename-file-or-directory destination self #t)
-  self)
-
 ;; Runs on a backend worker thread; the host follows progress via the
-;; update_state RPC. Never raises: failures surface through the phase.
+;; update_state RPC. Failures surface through the phase.
 (define (start-download!)
-  (define worker (unbox worker-thread-box))
-  (when (and worker (thread-running? worker))
-    (error 'start-download! "an update download is already running"))
-  (define candidate (unbox candidate-box))
-  (unless candidate
+  (define instance (unbox updater-box))
+  (unless (and instance (updater-candidate instance))
     (error 'start-download! "no update is available; run a check first"))
-  (state-set! 'phase "downloading")
-  (state-set! 'percent 0)
-  (state-set! 'message #f)
-  (define config (make-updater-config))
-  (set-box! last-progress-seconds (current-seconds))
-  (define worker-thread
-    (thread
-     (lambda ()
-       (define destination (destination-path candidate))
-       ;; The watchdog breaks a stalled worker; exn:break is not an
-       ;; exn:fail, so it needs its own arm — either way the .partial
-       ;; file is removed and the phase lands on error (never
-       ;; mid-flight).
-       (with-handlers
-           ([(lambda (e) (or (exn:fail? e) (exn:break? e)))
-             (lambda (e)
-               (define temporary
-                 (path-add-extension destination #".partial"))
-               (when (file-exists? temporary) (delete-file temporary))
-               (state-set! 'phase "error")
-               (state-set! 'message
-                           (if (exn:break? e)
-                               "update download stalled or timed out"
-                               (exn-message e))))])
-         (define path
-           (case (install-flavor)
-             [(msi) (download-msi-with-progress! candidate)]
-             [(appimage) (download-appimage-with-progress! candidate)]
-             [else (download-with-progress! config candidate destination)]))
-         (state-set! 'phase "downloaded")
-         (state-set! 'percent 100)
-         (state-set! 'downloadedPath
-                     (if (path? path) (path->string path) path))))))
-  (set-box! worker-thread-box worker-thread)
-  ;; Watchdog: exits once the worker finishes on its own; otherwise a stall
-  ;; (no byte progress) or the total wall-clock limit breaks the worker so
-  ;; phase never rests on "downloading" indefinitely.
-  (define download-started (current-seconds))
-  (thread
-   (lambda ()
-     (let loop ()
-       (cond
-         [(sync/timeout download-stall-limit-seconds
-                        (thread-dead-evt worker-thread))
-          (void)]
-         [(> (- (current-seconds) (unbox last-progress-seconds))
-             download-stall-limit-seconds)
-          (break-thread worker-thread)]
-         [(> (- (current-seconds) download-started)
-             download-total-limit-seconds)
-          (break-thread worker-thread)]
-         [else (loop)]))))
-  (void))
+  (updater-download! instance))

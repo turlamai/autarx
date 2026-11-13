@@ -94,8 +94,11 @@ raco rivet sign-manifest \
   --artifact "macos:arm64:zip:$DIST/autarx-$VERSION-macos-arm64-app.zip" \
   --artifact "macos:x64:zip:$DIST/autarx-$VERSION-macos-x64-app.zip" \
   --artifact "windows:x64:zip:$DIST/autarx-$VERSION-windows-x64-app.zip" \
+  --artifact "windows:x64:msi:$DIST/autarx-$VERSION-windows-x64.msi" \
   --artifact "linux:x64:targz:$DIST/autarx-$VERSION-linux-x64-app.tar.gz" \
   --artifact "linux:arm64:targz:$DIST/autarx-$VERSION-linux-arm64-app.tar.gz" \
+  --artifact "linux:x64:appimage:$DIST/autarx-$VERSION-linux-x86_64.AppImage" \
+  --artifact "linux:arm64:appimage:$DIST/autarx-$VERSION-linux-aarch64.AppImage" \
   --rollback-allowed
 
-echo "manifest: $DIST/update-app-manifest.json (5 artifacts, application $APP_ID, key-id autarx-2026-10)"
+echo "manifest: $DIST/update-app-manifest.json (8 artifacts, application $APP_ID, key-id autarx-2026-10)"
