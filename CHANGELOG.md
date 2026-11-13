@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- The workbench updater now runs on `rivet/distribution`'s managed
+  `make-updater` state machine: candidate selection, the download worker,
+  the stall/total watchdog, cancellation and the terminal state are shared
+  family code. The `update_state` wire shape is unchanged.
+- Windows MSI and Linux AppImage updates now select **signed** manifest
+  artifacts (`windows:x64:msi`, `linux:*:appimage`) instead of deriving a
+  sibling `.msi`/`.AppImage` release asset and trusting its detached
+  `.sha256` sidecar. The app feed gains those entries; sidecars stay
+  published for manual verification.
 - Keep each `main` commit's CI run independent, including while GitHub-hosted
   runners are queued; cancel only superseded PR attempts. Test matrix and
   release trust-root checks remain unchanged.

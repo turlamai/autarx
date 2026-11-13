@@ -2,19 +2,28 @@
 
 ;; Workbench updater tests (racket/autarx/app-update.rkt): the release
 ;; identity, the pure derivations the host flows depend on (install flavor,
-;; AppImage/MSI asset mapping), and the phase machine's offline behavior —
-;; the signed-manifest trust chain itself is covered in update-test.rkt (the
-;; CLI shares it through rivet/distribution). The network error path runs
-;; against a closed local port, never the live feed.
+;; packaged layouts), and the managed check/download surface — the signed
+;; wrapper machinery lives in rivet/distribution (the CLI shares it) and is
+;; exercised here through an injected verified manifest, so the real
+;; download worker, progress, verification and AppImage swap still run.
 
 (require rackunit
+         net/base64
          racket/file
+         racket/path
          racket/string
+         racket/tcp
          (only-in rivet/distribution
                   select-update
+                  sha256-file/hex
                   update-artifact
+                  update-artifact-installer
                   update-candidate?
-                  update-manifest)
+                  update-candidate-artifact
+                  update-manifest
+                  updater-config)
+         ;; Transport injection for the managed worker: tests only.
+         (submod (lib "rivet/distribution/managed-updater.rkt") test-support)
          (prefix-in a: "../autarx/app-update.rkt"))
 
 ;; The repo manifest, resolved from this file's location (racket/tests/ →
@@ -28,6 +37,25 @@
                     'up 'up 'up "rivet.rktd"))
      read)
    'version))
+
+(define (wait-until ready? who [timeout-ms 15000])
+  (let loop ([deadline (+ (current-inexact-milliseconds) timeout-ms)])
+    (cond
+      [(ready?) (void)]
+      [(> (current-inexact-milliseconds) deadline)
+       (fail (string-append "timed out waiting for " who))]
+      [else (sleep 0.05) (loop deadline)])))
+
+;; sha256 over in-memory bytes through the same file-level function the
+;; verifier uses.
+(define (sha256-of-bytes bytes)
+  (define scratch (make-temporary-file "autarx-sha-~a"))
+  (dynamic-wind
+    (lambda ()
+      (call-with-output-file scratch #:exists 'truncate
+        (lambda (out) (write-bytes bytes out))))
+    (lambda () (sha256-file/hex scratch))
+    (lambda () (delete-file scratch))))
 
 (test-case "release identity is coherent with the repo manifest"
   (check-equal? (a:workbench-version) rktd-version)
@@ -113,35 +141,60 @@
                           "/mounts/Autarx-0.5.0-x86_64.AppImage")
    "appimage"))
 
-(test-case "appimage asset name maps feed arch and drops the -app suffix"
-  (check-equal?
-   (a:appimage-asset-name "autarx-0.5.0-linux-x64-app.tar.gz" 'x64)
-   "autarx-0.5.0-linux-x86_64.AppImage")
-  (check-equal?
-   (a:appimage-asset-name "autarx-0.5.0-linux-arm64-app.tar.gz" 'arm64)
-   "autarx-0.5.0-linux-aarch64.AppImage")
-  (check-exn exn:fail?
-             (lambda ()
-               (a:appimage-asset-name "autarx-0.5.0-linux-x64.tar.gz" 'x64)))
-  (check-exn exn:fail?
-             (lambda ()
-               (a:appimage-asset-name
-                "autarx-0.5.0-linux-x86_64-app.tar.gz" 'x64))))
+;; ---- managed check/download -------------------------------------------------
 
-(test-case "msi asset urls derive from the -app zip feed entry"
-  (define-values (msi sidecar)
-    (a:msi-artifact-urls
-     "https://github.com/turinglambdaai/autarx/releases/download/v0.5.0/autarx-0.5.0-windows-x64-app.zip"))
-  (check-equal?
-   msi
-   "https://github.com/turinglambdaai/autarx/releases/download/v0.5.0/autarx-0.5.0-windows-x64.msi")
-  (check-equal?
-   sidecar
-   "https://github.com/turinglambdaai/autarx/releases/download/v0.5.0/autarx-0.5.0-windows-x64.msi.sha256")
-  (check-exn exn:fail?
-             (lambda ()
-               (a:msi-artifact-urls
-                "https://dl.example/autarx-0.5.0-windows-x64.zip"))))
+;; The shipped updater's install kind follows the running install shape
+;; (msi under Program Files, appimage under $APPIMAGE, portable elsewhere),
+;; so the test feed carries every installer for this platform/arch — the
+;; same bytes under each entry. Real feeds carry one per install shape.
+(define (feed-manifest url sha size [installers '(zip msi targz appimage)])
+  (update-manifest
+   "site.jrtx.autarx.Autarx" "9.9.9" 99 'stable
+   "2026-11-01T00:00:00Z" "0.0.0" #f #t 100
+   (for/list ([installer (in-list installers)])
+     (update-artifact (a:platform-symbol)
+                      (a:architecture-symbol)
+                      url sha size installer '()
+                      ;; rivet #271: component-less feed.
+                      #f))))
+
+(define (check-with-manifest! manifest)
+  (parameterize ([a:current-update-base-url "https://dl.example/autarx"]
+                 [current-managed-fetch-manifest
+                  (lambda (_url _key
+                          #:key-id [_key-id #f]
+                          #:trusted-keys [_trusted-keys '()]
+                          #:maximum-bytes [_maximum-bytes (* 1024 1024)])
+                    manifest)])
+    (a:perform-check!)))
+
+;; A one-shot HTTP server for the artifact bytes.
+(define (serve-bytes! payload)
+  (define listener (tcp-listen 0 8 #f "127.0.0.1"))
+  (define port-number
+    (cadr (call-with-values (lambda () (tcp-addresses listener #t)) list)))
+  (define server
+    (thread
+     (lambda ()
+       (let loop ()
+         (define-values (in out) (tcp-accept listener))
+         (thread
+          (lambda ()
+            (with-handlers ([exn:fail? void])
+              (let drain ()
+                (define line (read-line in 'any))
+                (unless (or (eof-object? line) (equal? line "")
+                            (equal? line "\r"))
+                  (drain)))
+              (fprintf out
+                       "HTTP/1.0 200 OK\r\nContent-Length: ~a\r\n\r\n"
+                       (bytes-length payload))
+              (write-bytes payload out)
+              (close-output-port out)
+              (close-input-port in))))
+         (loop)))))
+  (values port-number
+          (lambda () (kill-thread server) (tcp-close listener))))
 
 (test-case "check against an unreachable feed reports the error phase"
   (a:reset-update-state!)
@@ -166,31 +219,117 @@
   (a:reset-update-state!)
   (check-equal? (hash-ref (a:update-state-snapshot) 'phase) "idle"))
 
-(test-case "make-updater-config selects the feed's component-less artifact"
-  ;; Regression: the two live config sites kept the nine-argument
-  ;; updater-config shape after rivet #271 grew the struct a required
-  ;; component field, while the published feed's artifacts carry no
-  ;; component at all (#f) — on a new rivet the check died with an arity
-  ;; error that the check's own handler masked as a generic error state.
-  ;; The shim must fall back to #f, never 'app, or selection would
-  ;; silently never match the real feed. Build the config exactly the way
-  ;; the live check builds it and select against a manifest shaped like
-  ;; the published feed.
-  (define (feed-shape-artifact platform architecture url sha256 size installer arguments)
-    (with-handlers
-        ([exn:fail:contract:arity?
-          (lambda (_)
-            (apply update-artifact
-                   (append (list platform architecture url sha256 size installer arguments)
-                           (list #f))))])
-      (update-artifact platform architecture url sha256 size installer arguments)))
+(test-case "the shipped updater selects the feed's component-less artifact"
+  ;; Regression from the pre-managed config shim: the feed's artifacts carry
+  ;; no component (#f); selecting with 'app answered up-to-date forever.
+  (a:reset-update-state!)
+  (check-equal? (hash-ref (check-with-manifest!
+                           (feed-manifest
+                            "https://downloads.example.com/autarx-9.9.9-linux-x64-app.tar.gz"
+                            (make-string 64 #\a) 123456))
+                          'status)
+                "available")
+  (a:reset-update-state!))
+
+(test-case "the managed download verifies and publishes the artifact"
+  (define payload (make-bytes 200000 42))
+  (define scratch (make-temporary-file "autarx-payload-~a"))
+  (call-with-output-file scratch #:exists 'truncate
+    (lambda (out) (write-bytes payload out)))
+  (define sha (sha256-file/hex scratch))
+  (delete-file scratch)
+  (define-values (port-number stop-server!) (serve-bytes! payload))
+  (dynamic-wind
+    void
+    (lambda ()
+      (a:reset-update-state!)
+      (check-equal?
+       (hash-ref (check-with-manifest!
+                  (feed-manifest
+                   (format "http://127.0.0.1:~a/autarx-9.9.9-linux-x64-app.tar.gz"
+                           port-number)
+                   sha (bytes-length payload)))
+                 'status)
+       "available")
+      (a:start-download!)
+      (wait-until (lambda ()
+                    (equal? (hash-ref (a:update-state-snapshot) 'phase)
+                            "downloaded"))
+                  "the downloaded phase")
+      (define downloaded (hash-ref (a:update-state-snapshot) 'downloadedPath))
+      (check-true (and downloaded (file-exists? downloaded)))
+      (check-equal? (sha256-file/hex downloaded) sha)
+      (check-equal? (hash-ref (a:update-state-snapshot) 'percent) 100)
+      (check-false (file-exists? (path-add-extension downloaded #".partial")))
+      (when (file-exists? downloaded) (delete-file downloaded))
+      (a:reset-update-state!))
+    stop-server!))
+
+;; The AppImage leg replaces the running image in place (Linux only).
+(when (eq? (a:platform-symbol) 'linux)
+  (test-case "the AppImage artifact replaces the running image"
+    (define payload (make-bytes 65536 7))
+    (define sha (sha256-of-bytes payload))
+    (define-values (port-number stop-server!) (serve-bytes! payload))
+    (define image-dir (make-temporary-file "autarx-appimage-~a" 'directory))
+    (define image-path (build-path image-dir "Autarx.AppImage"))
+    (define original (make-bytes 16 3))
+    (define old-appimage (getenv "APPIMAGE"))
+    (call-with-output-file image-path #:exists 'truncate
+      (lambda (out) (write-bytes original out)))
+    (putenv "APPIMAGE" (path->string image-path))
+    (dynamic-wind
+      void
+      (lambda ()
+        (a:reset-update-state!)
+        (check-equal?
+         (hash-ref (check-with-manifest!
+                    (feed-manifest
+                     (format "http://127.0.0.1:~a/autarx-9.9.9-linux-x86_64.AppImage"
+                             port-number)
+                     sha (bytes-length payload) '(appimage)))
+                   'status)
+         "available")
+        (a:start-download!)
+        (wait-until (lambda ()
+                      (equal? (hash-ref (a:update-state-snapshot) 'phase)
+                              "downloaded"))
+                    "the appimage downloaded phase")
+        (check-equal? (hash-ref (a:update-state-snapshot) 'downloadedPath)
+                      (path->string image-path))
+        (check-equal? (sha256-file/hex image-path) sha)
+        (check-not-false
+         (memq 'execute (file-or-directory-permissions image-path)))
+        (a:reset-update-state!))
+      (lambda ()
+        (putenv "APPIMAGE" (or old-appimage ""))
+        (when (file-exists? image-path) (delete-file image-path))
+        (delete-directory/files image-dir #:must-exist? #f)
+        (stop-server!)))))
+
+;; The feed must keep offering the signed msi installer for Program Files
+;; installs (the Windows host hands off to msiexec).
+(test-case "the windows feed carries both portable and msi artifacts"
   (define manifest
-    (update-manifest "site.jrtx.autarx.Autarx" "9.9.9" 99 'stable
-                     "2026-11-01T00:00:00Z" "0.0.0" #f #t 100
-                     (list (feed-shape-artifact (a:platform-symbol)
-                                                (a:architecture-symbol)
-                                                "https://downloads.example.com/autarx-9.9.9-linux-x64-app.tar.gz"
-                                                (make-string 64 #\a)
-                                                123456 'targz '()))))
-  (check-true (update-candidate? (select-update (a:make-updater-config) manifest))
-              "the shipped config must select the feed's component-less artifact"))
+    (update-manifest
+     "site.jrtx.autarx.Autarx" "9.9.9" 99 'stable
+     "2026-11-01T00:00:00Z" "0.0.0" #f #t 100
+     (list (update-artifact 'windows 'x64
+                            "https://downloads.example.com/autarx-9.9.9-windows-x64-app.zip"
+                            (make-string 64 #\a) 10 'zip '() #f)
+           (update-artifact 'windows 'x64
+                            "https://downloads.example.com/autarx-9.9.9-windows-x64.msi"
+                            (make-string 64 #\b) 20 'msi '() #f))))
+  (define config
+    (updater-config "site.jrtx.autarx.Autarx" "0.5.0" 'stable
+                    'windows 'x64 #f "autarx-2026-10" 0 (* 512 1024 1024) #f))
+  (check-equal?
+   (update-artifact-installer
+    (update-candidate-artifact
+     (select-update config manifest #:install-kind 'msi)))
+   'msi)
+  (check-equal?
+   (update-artifact-installer
+    (update-candidate-artifact
+     (select-update config manifest #:install-kind 'portable)))
+   'zip))
