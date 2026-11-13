@@ -143,14 +143,20 @@
 
 ;; ---- managed check/download -------------------------------------------------
 
-(define (feed-manifest url sha size [installer 'targz])
-  (update-manifest "site.jrtx.autarx.Autarx" "9.9.9" 99 'stable
-                   "2026-11-01T00:00:00Z" "0.0.0" #f #t 100
-                   (list (update-artifact (a:platform-symbol)
-                                          (a:architecture-symbol)
-                                          url sha size installer '()
-                                          ;; rivet #271: component-less feed.
-                                          #f))))
+;; The shipped updater's install kind follows the running install shape
+;; (msi under Program Files, appimage under $APPIMAGE, portable elsewhere),
+;; so the test feed carries every installer for this platform/arch — the
+;; same bytes under each entry. Real feeds carry one per install shape.
+(define (feed-manifest url sha size [installers '(zip msi targz appimage)])
+  (update-manifest
+   "site.jrtx.autarx.Autarx" "9.9.9" 99 'stable
+   "2026-11-01T00:00:00Z" "0.0.0" #f #t 100
+   (for/list ([installer (in-list installers)])
+     (update-artifact (a:platform-symbol)
+                      (a:architecture-symbol)
+                      url sha size installer '()
+                      ;; rivet #271: component-less feed.
+                      #f))))
 
 (define (check-with-manifest! manifest)
   (parameterize ([a:current-update-base-url "https://dl.example/autarx"]
@@ -281,7 +287,7 @@
                     (feed-manifest
                      (format "http://127.0.0.1:~a/autarx-9.9.9-linux-x86_64.AppImage"
                              port-number)
-                     sha (bytes-length payload) 'appimage))
+                     sha (bytes-length payload) '(appimage))
                    'status)
          "available")
         (a:start-download!)
@@ -299,7 +305,7 @@
         (putenv "APPIMAGE" (or old-appimage ""))
         (when (file-exists? image-path) (delete-file image-path))
         (delete-directory/files image-dir #:must-exist? #f)
-        (stop-server!)))))
+        (stop-server!))))))
 
 ;; The feed must keep offering the signed msi installer for Program Files
 ;; installs (the Windows host hands off to msiexec).
