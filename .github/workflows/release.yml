@@ -10,7 +10,7 @@ env:
   # install 'URL#'` silently resolve to rivet main-HEAD, so release
   # artifacts were built from an untested commit while the contract tests
   # ran the pinned version (v0.4.1 / v0.4.2 shipped this way).
-  RIVET_PIN: v0.16.0
+  RIVET_PIN: 8db939999ded6bde9696fbc420730a9f86901c77
 permissions:
   contents: write
   id-token: write
@@ -270,7 +270,7 @@ jobs:
       # RIVET_PIN above (and with ci.yml's copy of this step) — it ships
       # the runtime the pinned rivet expects.
       - name: Set up embeddable Racket CS
-        uses: turlamai/rivet/.github/actions/setup-embed-racket@v0.16.0
+        uses: turlamai/rivet/.github/actions/setup-embed-racket@8db939999ded6bde9696fbc420730a9f86901c77
       # Installed after the embeddable runtime so the catalog dependency
       # closure (cext-lib, crypto-lib, keel) resolves against the minimal
       # build — it ships no packages of its own. crypto backs the updater.
