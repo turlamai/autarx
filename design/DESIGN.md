@@ -63,3 +63,80 @@ Tokens 提取自 `site/family.css`（site-kit v1.0.3，家族设计系统单一�
 
 差异声明纪律：宿主特例必须先写进本节才能实现；未声明的宿主差异按违约处理
 （案例：taskly 漂移台账 D8）。
+
+## 工具层原型修订（2026-11-14，覆盖旧 Brief 的定位与范围）
+
+### 产品边界
+
+Autarx 为外部 agent 提供 AUTOSAR 配置查询、受控变更、供应商能力发现和真实校验的工具接口。循环、任务规划、诊断后的修复决策由外部 agent 控制；产品不内置自主任务编排。供应商保留自身校验与代码生成职责，Autarx 不重建其规则引擎。
+
+本轮主入口为 `prototype/tools.html`，覆盖 Capabilities / Configuration / Validation / Agent access 四个连续工作视图。旧六屏保留为先前设计参考，不代表本轮接口已实现。新增接口均为拟议契约，不沿用旧页面所称“12 个工具已暴露”等实现事实。
+
+### 本轮 Exit 条件
+
+- 能力页区分 Available / Blocked / Unsupported，并给出版本、工程绑定和前置条件。
+- 配置页支持查询示例值、校验输入、差异预览、明确确认、应用和一次撤销；每次写入生成新 revision。
+- 校验页提供显式单次调用、进行态、Passed / Failed / Partial / Execution failed 四种状态、原始输出和历史记录。
+- 校验结果绑定 revision、供应商、范围与失败阈值。配置改动后标记旧证据 Stale，不自动重跑。
+- agent 页呈现拟议接口、请求与响应示例，支持搜索、类型过滤及复制。
+- 用户评审完成后才认定设计冻结；本轮不宣称真实供应商接入、代码生成完成或后端 API 已存在。
+
+### 视觉与交互
+
+延续既有家族暖中性色与 terracotta 品牌，这是现有设计契约的延续，并非新增默认配色。亮态主要操作色使用 `#a94e31`、白字；暗态使用 `#f0a184`、深字，替代旧主按钮的低对比组合。正文 16px / 1.6，标题 32px，节标题 20px，技术元信息 13px；正文与路径按角色分层，完整路径在详情可换行。间距以 4/8 倍数组织，交互反馈 180ms，尊重 reduced-motion。
+
+布局采用桌面侧栏 + 自适应主内容；窄屏改为顶部导航，双栏重排为单栏。四个视图统一复用原型内的 CSS tokens 和组件。单页无外部字体、图像或脚本依赖；不使用真实厂商品牌图像。
+
+英文界面沿用现有契约。中文交付说明。深浅主题通过工作台外观按钮切换；未宣称自动同步系统外观。
+
+### 数据与执行诚实性
+
+- 全部工程值、安装路径、就绪状态、报告和运行记录为明确标注的示例；没有本机扫描、许可证探测或供应商进程。
+- Vector 示例能力依据官方 Configurator Classic 6 文档；EB 示例仅体现其官方声明的校验/生成/导入能力，具体版本参数保持未验证；ETAS 不臆造 CLI，显示适配器未接入。
+- 参数示例为 CanControllerBaudRate。输入范围仅为原型编辑约束，不代表任何硬件或供应商已认可这些值。
+- 诊断为 illustrative fixture，不编造真实 supplier rule ID。原始输出标记 SIMULATED EXECUTION。
+- 没有初始执行记录；必须显式调用才产生记录。通过只描述所选范围，不表示全部配置或系统需求成立。
+- 缺少工程包绑定、执行失败、部分完成不能转换为 Passed。外部 agent 应能获取原始证据；归一化不得丢弃原始结果。
+- 运行数据保存在页面内存，刷新即重置。导出的 JSON 是示例证据。复制受宿主权限限制时给出可手动复制提示。
+
+### 拟议工具接口
+
+`capabilities.list` / `configuration.query` / `configuration.change` / `vendor.validate` / `vendor.generate`。写操作携带预期 revision；实际实现应拒绝过期修改。各适配器保留版本与能力差异，不保证五项能力在所有供应商均可用。本轮未执行真实生成，原型响应诚实返回 not_run。
+
+参考：
+
+- https://help.vector.com/davinci-configurator-classic/en/latest/user-manual/references/cli/dvcfg-b/project.html
+- https://help.vector.com/davinci-configurator-classic/en/latest/user-manual/references/cli/dvcfg-b/project-validate.html
+- https://help.vector.com/davinci-configurator-classic/en/latest/user-manual/base/using-the-tool/command-line-usage.html
+- https://www.elektrobit.com/products/ecu/eb-tresos/studio/
+
+## 供应商覆盖目录增补（2026-11-14）
+
+在当前工作台中增补国产候选：普华 ORIENTAIS、东软睿驰 NeuSAR Configurator、经纬恒润 INTEWORK-EAS-CP 工具链、睿赛德 AUTOSAR CP 配置工具。海外增补 dSPACE SystemDesk、Siemens Capital Embedded Integrator AR Classic（含 VSTAR 产品沿革）、KPIT KSAR C4K。共 10 项覆盖目标，不宣称穷尽市场。
+
+新增项目统一 Planned，实际版本、适配器和自动化契约未确认；不模拟已安装，也不开放校验执行。供应商选择器与 agent 能力清单共用目录。首页统计区分目录目标、国产目标与真实接入数（0）；Vector/EB 的旧可用状态仍仅为示例。
+
+SystemDesk 自动化 API / 官方 MCP 已有公开资料，但面向架构和模型校验，不等同于任意 BSW 工程的供应商校验。国产产品存在不代表公开 CLI 已确认；需要实际版本 SDK/手册与合法可用环境验证。产品证据链接放在各项详情中，不将搜索结果转写成接口承诺。
+
+参考：
+- 普华生态资料：https://www.ti.com.cn/partner/cn/ISOFT
+- NeuSAR：https://www.reachauto.com/neusar/ccore/
+- INTEWORK：https://en.hirain.com/news/341.html
+- 睿赛德：https://www.rt-thread.com/col26/list.html
+- SystemDesk：https://github.com/dspace-group/SystemDeskMCP
+- Siemens：https://www.siemens.com/en-us/products/capital/ee-systems-embedded-software/
+- KPIT：https://www.kpit.com/kpit-autosar-portal/
+
+
+## 2026-11-15 · 原型交互补齐
+
+当前入口为 prototype/tools.html。旧检查界面保留作历史参考，提供返回当前工作台与页面之间的导航；尚无独立界面的分类明确说明范围。
+
+根级 index.html 只负责首次进入主界面；页面切换直接到目标界面，不再保留页面目录。原型运行脚本 prototype-runtime.js / prototype-flow.js 只表达浏览器内的交互合同；正式产品业务仍由既定引擎实现。真实设备、模型和发布服务均未连接。凭据演示不保存密钥，破坏性示例与派发保留确认和取消。
+
+这些是可评审的增量改动，未替用户勾选满意度、HIG 最终验收或设计冻结条件。
+
+
+## Prototype source checkpoint — 2026-11-15
+
+`index.html` opens the primary prototype directly. Screen-directory launchers have been removed. All local scripts, styles and referenced assets needed by this checkpoint are versioned under this directory; OpenDesign metadata is excluded. This is an editable prototype checkpoint, not a claim that the native product or external services implement these interactions.
