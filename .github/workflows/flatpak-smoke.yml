@@ -98,7 +98,7 @@ jobs:
         run: |
           find .flatpak-builder/build -maxdepth 3 | head -40 || true
           find . -maxdepth 2 -name "autarx-linux-*" -o -maxdepth 2 -name "*.tar.gz" | head -10
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: flatpak-smoke-${{ matrix.arch }}
           path: autarx-*.flatpak*
