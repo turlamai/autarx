@@ -7,22 +7,20 @@
 #   <tag>       release tag, e.g. v0.3.0 (must match rivet.rktd's version)
 #   <dist-dir>  directory containing the release artifacts, i.e. the names
 #               the release pipeline produces:
-#                 autarx-<ver>-macos-arm64-app.zip    autarx-<ver>-macos-x64-app.zip
 #                 autarx-<ver>-windows-x64-app.zip
-#                 autarx-<ver>-linux-x64-app.tar.gz   autarx-<ver>-linux-arm64-app.tar.gz
+#                 autarx-<ver>-windows-x64.msi
 #   <key-path>  Ed25519 private key: PEM (update-keys.sh output) or raw DER
 #               (base64-decoded UPDATE_ED25519_PRIVATE_KEY_B64, the format
 #               the release publish job consumes). Env fallbacks:
 #               UPDATE_KEY_PATH, then the keys vault autarx section.
 #
 # Emits <dist-dir>/update-app-manifest.json — a single self-contained signed
-# wrapper carrying the workbench update feed. The portable app zips (macOS,
-# Windows) and the app tarballs (Linux) are the feed; the DMG/MSI/deb/rpm/
-# AppImage are human installers, and the CLI keeps its own signed feed
-# (update-manifest.json, a different file).
+# wrapper carrying the workbench update feed. The portable app zip is the
+# feed; the MSI is the human installer, and the CLI keeps its own signed
+# feed (update-manifest.json, a different file).
 #
 # The signing, artifact hashing, schema validation, and feed format live in
-# `raco rivet sign-manifest`; this wrapper owns only Autarx's five artifacts,
+# `raco rivet sign-manifest`; this wrapper owns only Autarx's two artifacts,
 # identity, and signing-key resolution.
 set -euo pipefail
 
@@ -91,14 +89,8 @@ raco rivet sign-manifest \
   --key-id autarx-2026-10 \
   --private-key "$KEY_DER" \
   --output "$DIST/update-app-manifest.json" \
-  --artifact "macos:arm64:zip:$DIST/autarx-$VERSION-macos-arm64-app.zip" \
-  --artifact "macos:x64:zip:$DIST/autarx-$VERSION-macos-x64-app.zip" \
   --artifact "windows:x64:zip:$DIST/autarx-$VERSION-windows-x64-app.zip" \
   --artifact "windows:x64:msi:$DIST/autarx-$VERSION-windows-x64.msi" \
-  --artifact "linux:x64:targz:$DIST/autarx-$VERSION-linux-x64-app.tar.gz" \
-  --artifact "linux:arm64:targz:$DIST/autarx-$VERSION-linux-arm64-app.tar.gz" \
-  --artifact "linux:x64:appimage:$DIST/autarx-$VERSION-linux-x86_64.AppImage" \
-  --artifact "linux:arm64:appimage:$DIST/autarx-$VERSION-linux-aarch64.AppImage" \
   --rollback-allowed
 
-echo "manifest: $DIST/update-app-manifest.json (8 artifacts, application $APP_ID, key-id autarx-2026-10)"
+echo "manifest: $DIST/update-app-manifest.json (2 artifacts, application $APP_ID, key-id autarx-2026-10)"

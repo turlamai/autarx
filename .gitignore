@@ -23,5 +23,4 @@ compiled/
 dist/
 
 # local rivet artifacts, regenerated on every raco rivet build
-macos-host/.build/
 rivet-schema.json

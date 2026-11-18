@@ -65,10 +65,9 @@
    [orphan-signals : (List String)]))
 
 ;; ------------------------------------------------------------ online update
-;; Consumed only by the Windows/Linux hosts; the macOS workbench updates
-;; through RivetUpdate on the Swift side and never calls these RPCs. Shapes
-;; are the taskly family contract so the host update flows stay ports of the
-;; taskly ones.
+;; Consumed by the Windows host; the backend verifies and downloads, the
+;; host owns installation. Shapes are the taskly family contract so the
+;; host update flows stay ports of the taskly ones.
 
 (define-record UpdateCheck
   ([status : String]

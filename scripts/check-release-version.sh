@@ -3,9 +3,9 @@
 # CHANGELOG must agree before a release goes out.
 #
 # autarx's version single source is rivet.rktd (the Rivet app manifest that
-# feeds both the macOS package and the CLI's rivet-app-info.rktd). There is
-# deliberately no version literal anywhere else — cli.rkt resolves it from
-# the manifest and GeneratedBackend.swift is regenerated from it by
+# feeds both the Windows package and the CLI's rivet-app-info.rktd). There
+# is deliberately no version literal anywhere else — cli.rkt resolves it
+# from the manifest and GeneratedBackend.hpp is regenerated from it by
 # `raco rivet build`; the checks below enforce exactly that.
 #
 # Usage: scripts/check-release-version.sh [tag]
@@ -47,12 +47,12 @@ if grep -Eq '^\(define version ' "$ROOT/racket/info.rkt"; then
   fail "racket/info.rkt carries a package version literal (the product version is single-sourced in rivet.rktd)"
 fi
 
-# The checked-in generated Swift backend must match the manifest.
-SWIFT_VERSION="$(sed -nE 's/.*static let version = "([^"]+)".*/\1/p' \
-  "$ROOT/macos-host/Sources/RivetHost/GeneratedBackend.swift" | head -n1)"
-[[ -n "$SWIFT_VERSION" ]] || \
-  fail "cannot read version from macos-host/Sources/RivetHost/GeneratedBackend.swift"
-[[ "$SWIFT_VERSION" == "$VERSION" ]] || \
-  fail "GeneratedBackend.swift version '$SWIFT_VERSION' does not match rivet.rktd '$VERSION' (run: raco rivet build)"
+# The checked-in generated Windows backend must match the manifest.
+HOST_VERSION="$(sed -nE 's/.*kVersion\[\] = "([^"]+)".*/\1/p' \
+  "$ROOT/windows/GeneratedBackend.hpp" | head -n1)"
+[[ -n "$HOST_VERSION" ]] || \
+  fail "cannot read version from windows/GeneratedBackend.hpp"
+[[ "$HOST_VERSION" == "$VERSION" ]] || \
+  fail "GeneratedBackend.hpp version '$HOST_VERSION' does not match rivet.rktd '$VERSION' (run: raco rivet build)"
 
-echo "release preflight: version $VERSION is aligned (tag $TAG == rivet.rktd == GeneratedBackend.swift, CHANGELOG ok)"
+echo "release preflight: version $VERSION is aligned (tag $TAG == rivet.rktd == GeneratedBackend.hpp, CHANGELOG ok)"

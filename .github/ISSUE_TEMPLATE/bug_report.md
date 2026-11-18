@@ -26,11 +26,11 @@ vendor generator produced it — you can redact contents).
 
 **Environment**
 
-- Surface: GUI (macOS) / CLI / MCP server
+- Surface: GUI (Windows) / CLI / MCP server
 - Autarx version: (Help ▸ About; the CLI prints `autarx <version>` in its
   banner)
-- Install shape: dmg / app zip / CLI zip
-- macOS version
+- Install shape: msi / portable app zip / CLI zip
+- Windows version
 
 **Rule codes / JSON output**
 

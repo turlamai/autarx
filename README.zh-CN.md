@@ -13,7 +13,7 @@
 
 ## 开始使用
 
-工程预览；目前聚焦真实 ARXML 场景与跨平台可靠性，不设收费或试用门禁。 提供 macOS、Windows、Linux Rivet 桌面预览；CLI 和 MCP 共用 Racket 领域核心。AUTOSAR 支持范围由产品契约规定，不代表支持所有 ARXML。
+工程预览；目前聚焦真实 ARXML 场景，不设收费或试用门禁。Autarx 是 **Windows 专用**产品——它伴随只跑在 Windows 上的厂商工具链（达芬奇、tresos、ISOLAR）而存在；CLI 和 MCP 共用 Racket 领域核心。AUTOSAR 支持范围由产品契约规定，不代表支持所有 ARXML。
 
 [安装、首次使用、隐私与备份恢复](docs/USER-GUIDE.zh-CN.md) · [English](docs/USER-GUIDE.md)
 
@@ -24,7 +24,7 @@
 - **没有自动化接口**——CI 无法 diff、追溯或体检交付包，因为没有厂商工具提供稳定的机器接口
 - **Agent 帮不上忙**——LLM agent 依赖文本界面和结构化反馈，厂商工具两者皆无
 
-Autarx 解决这些问题：一个无 UI 的语义引擎直接读取 ARXML，给人在 macOS、Windows、Linux 上的原生工作台，给脚本、CI 和 AI agent 一个 JSON 优先的 CLI。
+Autarx 解决这些问题：一个无 UI 的语义引擎直接读取 ARXML，给 Windows 原生工作台，给脚本、CI 和 AI agent 一个 JSON 优先的 CLI。
 
 ## Autarx 是什么、不是什么
 
@@ -45,10 +45,10 @@ Autarx **不会**：替代达芬奇/tresos/ISOLAR、生成量产 BSW/RTE/MCAL �
 - **厂商交接**——`vendor list` 探测达芬奇/tresos/ISOLAR 安装；`vendor validate` 中继厂商工具自身的运行结果（归一化诊断 + 保留原始输出）——这永远是厂商的结论，不是 Autarx 的
 - **受控编辑**——`patch plan` 把每次修改先转成语义 diff 供审阅，未审阅不落盘；`patch apply` 保留备份和撤销清单；重命名会同步重写全工作区的入向引用
 - **AI Agent 接口**——`autarx mcp` 启动 Model Context Protocol stdio 服务器暴露完整工具 API；不存在裸写文件工具，agent 无法绕过 plan/diff/审阅边界，且每次调用都进审计日志
-- **在线自更新**——三平台宿主都通过 Ed25519 签名 feed 就地更新：macOS 工作台轮询 `update-app-manifest.json`，一次「重启并更新」即下载（带进度）→ 验签 → 换包 → 重启（`检查更新…`，⌘U）；Windows 便携版同样就地处换，MSI 安装走被动升级；Linux 工作台验签下载后以打开文件夹对话框交接（AppImage 原地替换并重启）。CLI 的 `autarx update` 检查自己的签名 feed（随每个版本发布的 Ed25519 签名 `update-manifest.json`），先验签再校验工件 SHA-256，就地替换二进制。未处理崩溃会在 `<TEMP>/autarx/crashes/` 留本地日志——不上传任何数据
+- **在线自更新**——工作台通过 Ed25519 签名 feed 就地更新：便携版下载并就地换装安装目录，MSI 安装走兄弟签名 `.msi` 的被动 `msiexec` 升级（`检查更新…`，Ctrl+U）。CLI 的 `autarx update` 检查自己的签名 feed（随每个版本发布的 Ed25519 签名 `update-manifest.json`），先验签再校验工件 SHA-256，就地替换二进制。未处理崩溃会在 `<TEMP>/autarx/crashes/` 留本地日志——不上传任何数据
 - **Agent 友好 CLI**——camelCase JSON、确定性退出码、歧义显式上报而非猜测；现成的 CI 门禁命令链
-- **三平台原生工作台**——macOS SwiftUI、Windows WinUI 3、Linux GTK4 壳跑在同一个嵌入式 Racket 核心之上，RPC 面与交互模型一致
-- **单一核心二进制**——CLI 与 MCP 同体；每个 GUI 内嵌同一核心
+- **Windows 原生工作台**——WinUI 3 壳跑在同一个嵌入式 Racket 核心之上，RPC 面与交互模型一致（Autarx 只发 Windows；Racket 引擎本身保持平台中立）
+- **单一核心二进制**——CLI 与 MCP 同体；GUI 内嵌同一核心
 
 ## 命令行
 
@@ -128,19 +128,13 @@ autarx validate Mcu.arxml
 
 | 下载 | 平台 | 形态 |
 | --- | --- | --- |
-| `autarx-<version>-macos-arm64.dmg` / `-x64.dmg` | macOS 14+，Apple silicon / Intel | GUI 工作台 |
 | `autarx-<version>-windows-x64.msi` | Windows 10+（x64） | GUI 工作台 |
-| `autarx-<version>-linux-amd64.deb` / `-arm64.deb` | Linux（x64 / arm64） | GUI 工作台 |
-| `autarx-<version>-linux-*.rpm` | Linux（x64 / arm64） | GUI 工作台 |
-| `autarx-<version>-linux-x86_64.AppImage` / `-aarch64.AppImage` | Linux（x64 / arm64） | GUI 工作台 |
-| `autarx-<version>-linux-x64.flatpak` / `-arm64.flatpak` | Linux（x64 / arm64） | GUI 工作台（Flatpak bundle，app id `site.jrtx.autarx.Autarx`；`flatpak --user install ./autarx-<version>-linux-<arch>.flatpak` 安装） |
-| `autarx-<version>-macos-arm64.zip` / `-x64.zip` | macOS（arm64 / x64） | CLI（自包含） |
-| `autarx-<version>-linux-x64.zip` / `-arm64.zip` | Linux（x64 / arm64） | CLI（自包含） |
+| `autarx-<version>-windows-x64-app.zip` | Windows（x64） | GUI 工作台，便携版（也是自更新载荷） |
 | `autarx-<version>-windows-x64.zip` | Windows（x64） | CLI（自包含） |
 
-CLI zip 就是自更新的载荷：装好后 `autarx update` 会从签名验证的更新源拉取新版本。GUI 走签名的工作台 feed（`*-app.zip` / `*-app.tar.gz` 载荷随每个版本发布）就地更新。
+CLI zip 就是 CLI 的自更新载荷：装好后 `autarx update` 会从签名验证的更新源拉取新版本。工作台走签名 feed 就地更新（`*-app.zip` 载荷随每个版本发布；MSI 安装走兄弟签名 `.msi` 升级）。
 
-> 发布二进制不带发行方代码签名：macOS DMG 为 ad-hoc 签名（未公证），Windows MSI 与 Linux deb / rpm / AppImage 未签名，因此 Gatekeeper 可能要求首次启动时显式放行（右键应用选「打开」），Windows SmartScreen 可能在首次运行 MSI 时告警。正式代码签名 / 公证仍是分发路线图上的剩余项（见 [docs/ROADMAP.md](docs/ROADMAP.md)）。
+> 发布二进制不带发行方代码签名，Windows SmartScreen 可能在首次运行 MSI 时告警。Authenticode 代码签名仍是分发路线图上的剩余项（见 [docs/ROADMAP.md](docs/ROADMAP.md)）。
 
 也可以从源码构建：
 
@@ -159,7 +153,7 @@ racket racket/autarx/cli.rkt --version
 
 依赖：Racket CS 9.x，并以 linked 方式装好 [Rivet](https://github.com/turlamai/rivet)
 （在 rivet 检出内执行 `raco pkg install --auto --no-docs --name rivet --link file://$PWD`）。
-macOS 宿主另需 Xcode；Windows 宿主需 Visual Studio 2022 + Windows App SDK；Linux 宿主需 CMake + GTK4（`libgtk-4-dev` 等）。`raco rivet build` 构建当前平台对应的宿主。
+Windows 宿主另需 Visual Studio 2022 + Windows App SDK。`raco rivet build` 在 Windows 上构建宿主；其他平台上引擎、CLI 与测试照常运行（GUI 宿主构建仅限 Windows）。
 
 ```bash
 git clone https://github.com/turlamai/autarx.git
@@ -198,9 +192,7 @@ autarx/
 │   │   ├── mcp.rkt             # MCP stdio 服务器 + 工具注册表
 │   │   └── backend.rkt         # Rivet RPC 面（GUI 宿主）
 │   └── tests/                  # 契约测试 + 更新器测试 + RVT1 冒烟
-├── macos-host/                 # SwiftUI 工作台
-├── windows/                    # WinUI 3 工作台
-├── linux/                      # GTK4 工作台
+├── windows/                    # WinUI 3 工作台（唯一发布的宿主）
 ├── shared/fixtures/            # 合成交付包（ECUC 与非 ECUC）
 ├── docs/RIVET-MIGRATION.md     # R0–R8 重建计划与停止规则记录
 ├── docs/PRODUCT.md             # 定位、边界、非目标
@@ -217,8 +209,8 @@ autarx/
 
 ## 路线图
 
-Rivet 重建（R0–R8）已完成：Racket 语义核心、字节兼容 JSON 的 CLI/MCP、原生 macOS 工作台，以及 R0 性能停止规则记录——见
-[docs/RIVET-MIGRATION.md](docs/RIVET-MIGRATION.md)。工作台现已覆盖三大桌面（macOS / Windows / Linux）。项目处于 0.x 功能验证阶段；M9 剩余为质量与发行验证——大型 OEM 交付上的性能画像、代码签名 / 公证（见 [docs/ROADMAP.md](docs/ROADMAP.md)）。
+Rivet 重建（R0–R8）已完成：Racket 语义核心、字节兼容 JSON 的 CLI/MCP、原生工作台，以及 R0 性能停止规则记录——见
+[docs/RIVET-MIGRATION.md](docs/RIVET-MIGRATION.md)。自 2026-11 平台重置起，工作台**只发 Windows**——它伴随的厂商工具链只在 Windows 上运行。项目处于 0.x 功能验证阶段；M9 剩余为质量与发行验证——大型 OEM 交付上的性能画像、代码签名（见 [docs/ROADMAP.md](docs/ROADMAP.md)）。
 
 ## 许可证
 

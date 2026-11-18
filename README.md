@@ -13,7 +13,7 @@ Point it at an OEM delivery or ECU extract directory and get a semantic workspac
 
 ## Start here
 
-Engineering preview; the complete official workbench is planned as a purchase. No paid checkout is open. Rivet desktop previews for macOS, Windows and Linux; CLI and MCP use the same Racket domain. Supported AUTOSAR scope is defined by the product contract, not every possible ARXML file.
+Engineering preview; the complete official workbench is planned as a purchase. No paid checkout is open. Autarx is a **Windows-only** product — it lives next to the vendor toolchain it serves (DaVinci, tresos, ISOLAR), which only runs on Windows; the CLI and MCP use the same Racket domain. Supported AUTOSAR scope is defined by the product contract, not every possible ARXML file.
 
 [Installation, first use, privacy, backup and recovery](docs/USER-GUIDE.md) · [简体中文](docs/USER-GUIDE.zh-CN.md)
 
@@ -24,7 +24,7 @@ Engineering preview; the complete official workbench is planned as a purchase. N
 - **No automation surface** — CI cannot diff, trace or sanity-check deliveries because no vendor tool exposes a stable machine interface
 - **Agents cannot help** — LLM agents work on text surfaces with structured feedback; vendor tools offer neither
 
-Autarx fixes that: one UI-free semantic engine that reads ARXML directly, native workbenches for macOS, Windows and Linux, and a JSON-first CLI for scripts, CI and AI agents.
+Autarx fixes that: one UI-free semantic engine that reads ARXML directly, a native Windows workbench, and a JSON-first CLI for scripts, CI and AI agents.
 
 ## What Autarx is — and is not
 
@@ -45,10 +45,10 @@ Autarx **does not**: replace DaVinci/tresos/ISOLAR, generate production BSW/RTE/
 - **Vendor hand-off** — `vendor list` detects DaVinci/tresos/ISOLAR installations; `vendor validate` relays the vendor tool's own run with normalized diagnostics and the raw output preserved — never an Autarx verdict
 - **Reviewed editing** — `patch plan` previews every change as a semantic diff before anything is written; `patch apply` keeps backups and an undo manifest; renames rewrite incoming reference targets across the workspace
 - **AI agent surface** — `autarx mcp` runs a Model Context Protocol stdio server exposing the whole tool API; there is no raw-write tool, so an agent cannot bypass the plan/diff/review boundary, and every call is audit-logged
-- **Self-update** — every host updates in place through the Ed25519-signed feed: the macOS workbench polls `update-app-manifest.json` and one `Restart and Update` click downloads (with progress), verifies, swaps the bundle and relaunches (`Check for Updates…`, ⌘U); the Windows workbench does the same for portable installs and runs a passive MSI upgrade for per-installer copies; the Linux workbench verifies and downloads, then hands off with an open-folder dialog (AppImage installs swap in place and re-exec). The CLI's `autarx update` checks its own signed feed (the Ed25519-signed `update-manifest.json` published with every release), verifies the wrapper signature and the artifact SHA-256, and swaps the new binaries in place. Unhandled crashes leave a local log under `<TEMP>/autarx/crashes/` — nothing is sent anywhere
+- **Self-update** — the workbench updates in place through the Ed25519-signed feed: portable installs download and swap the install directory, and MSI installs run a passive `msiexec` upgrade from the sibling signed `.msi` (`Check for Updates…`, Ctrl+U). The CLI's `autarx update` checks its own signed feed (the Ed25519-signed `update-manifest.json` published with every release), verifies the wrapper signature and the artifact SHA-256, and swaps the new binaries in place. Unhandled crashes leave a local log under `<TEMP>/autarx/crashes/` — nothing is sent anywhere
 - **Agent-friendly CLI** — camelCase JSON, deterministic exit codes, ambiguity is reported instead of guessed; a ready-made command chain for CI gates
-- **Native workbenches on all three desktops** — SwiftUI (macOS), WinUI 3 (Windows) and GTK4 (Linux) hosts over the same embedded Racket core, RPC surface and interaction model
-- **Single binary core** — one Racket executable carries CLI + MCP; every GUI embeds it
+- **Native Windows workbench** — a WinUI 3 host over the same embedded Racket core, RPC surface and interaction model (Autarx ships Windows-only; the Racket engine itself stays host-agnostic)
+- **Single binary core** — one Racket executable carries CLI + MCP; the GUI embeds it
 
 ## Command line
 
@@ -128,27 +128,18 @@ Releases follow `autarx-<version>-<os>-<arch>.<ext>` and ship from
 
 | Download | Platform | Kind |
 | --- | --- | --- |
-| `autarx-<version>-macos-arm64.dmg` / `-x64.dmg` | macOS 14+, Apple silicon / Intel | GUI workbench |
 | `autarx-<version>-windows-x64.msi` | Windows 10+ (x64) | GUI workbench |
-| `autarx-<version>-linux-amd64.deb` / `-arm64.deb` | Linux (x64 / arm64) | GUI workbench |
-| `autarx-<version>-linux-*.rpm` | Linux (x64 / arm64) | GUI workbench |
-| `autarx-<version>-linux-x86_64.AppImage` / `-aarch64.AppImage` | Linux (x64 / arm64) | GUI workbench |
-| `autarx-<version>-linux-x64.flatpak` / `-arm64.flatpak` | Linux (x64 / arm64) | GUI workbench (Flatpak bundle, app id `site.jrtx.autarx.Autarx`; install with `flatpak --user install ./autarx-<version>-linux-<arch>.flatpak`) |
-| `autarx-<version>-macos-arm64.zip` / `-x64.zip` | macOS (arm64 / x64) | CLI (self-contained) |
-| `autarx-<version>-linux-x64.zip` / `-arm64.zip` | Linux (x64 / arm64) | CLI (self-contained) |
+| `autarx-<version>-windows-x64-app.zip` | Windows (x64) | GUI workbench, portable (also the self-update payload) |
 | `autarx-<version>-windows-x64.zip` | Windows (x64) | CLI (self-contained) |
 
-The CLI zips are the self-update payload: once installed, `autarx update`
-pulls newer builds from the signature-verified feed. The GUIs update
-in place through the signed workbench feed (`*-app.zip` / `*-app.tar.gz`
-payloads ship with every release).
+The CLI zip is the CLI's self-update payload: once installed, `autarx update`
+pulls newer builds from the signature-verified feed. The workbench updates
+in place through the signed feed (the `*-app.zip` payload ships with every
+release; MSI installs upgrade through the sibling signed `.msi`).
 
-> Release binaries carry no publisher code signature. The macOS DMG is
-> ad-hoc signed (not notarized), and the Windows MSI and the Linux
-> deb / rpm / AppImage artifacts are unsigned, so Gatekeeper may require
-> an explicit first-launch approval (right-click the app, choose Open)
-> and Windows SmartScreen may warn on the first MSI run. Paid code
-> signing / notarization is the remaining distribution roadmap item (see
+> Release binaries carry no publisher code signature, so Windows
+> SmartScreen may warn on the first MSI run. Authenticode signing is the
+> remaining distribution roadmap item (see
 > [docs/ROADMAP.md](docs/ROADMAP.md)).
 
 To build from source instead:
@@ -169,10 +160,10 @@ linked — see [Getting started](#getting-started) below for the full path.
 
 Requirements: Racket CS 9.x with [Rivet](https://github.com/turlamai/rivet)
 linked (inside a rivet checkout: `raco pkg install --auto --no-docs --name rivet --link file://$PWD`);
-the macOS host additionally needs Xcode, the Windows host Visual Studio 2022
-with the Windows App SDK, and the Linux host CMake + GTK4 (`libgtk-4-dev`
-and friends). `raco rivet build` builds whichever host matches the current
-platform.
+the Windows host additionally needs Visual Studio 2022 with the Windows App
+SDK. `raco rivet build` builds the host on Windows; on other platforms the
+engine, CLI and tests still run (`raco rivet build` is Windows-only for the
+GUI host).
 
 ```bash
 git clone https://github.com/turlamai/autarx.git
@@ -219,9 +210,7 @@ autarx/
 │   │   ├── mcp.rkt             # MCP stdio server + tool registry
 │   │   └── backend.rkt         # Rivet RPC surface (GUI hosts)
 │   └── tests/                  # contract tests + updater tests + RVT1 smoke
-├── macos-host/                 # SwiftUI workbench
-├── windows/                    # WinUI 3 workbench
-├── linux/                      # GTK4 workbench
+├── windows/                    # WinUI 3 workbench (the shipped host)
 ├── shared/fixtures/            # synthetic workspaces (ECUC and non-ECUC)
 ├── docs/RIVET-MIGRATION.md     # the R0–R8 rebuild plan and stop-rule record
 ├── docs/PRODUCT.md             # positioning, boundaries, non-goals
@@ -239,12 +228,12 @@ autarx/
 ## Roadmap
 
 The Rivet rebuild (R0–R8) is complete: Racket semantic core, CLI/MCP
-with byte-compatible JSON, native macOS workbench, and the R0 performance
+with byte-compatible JSON, native workbench, and the R0 performance
 stop-rule record — see [docs/RIVET-MIGRATION.md](docs/RIVET-MIGRATION.md).
-The workbench now ships natively on all three desktops (macOS, Windows,
-Linux). The project is in a 0.x functional-validation phase; what remains
-of M9 is product hardening — performance profiling on large
-OEM deliveries, and code signing / notarization (see
+Since the platform reset (2026-11) the workbench ships **Windows-only** —
+the vendor toolchain it accompanies is Windows-only. The project is in a
+0.x functional-validation phase; what remains of M9 is product hardening —
+performance profiling on large OEM deliveries, and code signing (see
 [docs/ROADMAP.md](docs/ROADMAP.md)).
 
 ## License

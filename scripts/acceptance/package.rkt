@@ -2,12 +2,13 @@
 
 (require json racket/file racket/path racket/system)
 
+;; Windows-only product (issue #56): packaged acceptance runs on the
+;; Windows host exclusively.
 (define platform
-  (case (system-type 'os)
-    [(windows) "windows"]
-    [(macosx) "macos"]
-    [(unix) "linux"]
-    [else (error 'autarx-acceptance "unsupported platform")]))
+  (if (eq? (system-type 'os) 'windows)
+      "windows"
+      (error 'autarx-acceptance
+             "unsupported platform: autarx ships Windows-only")))
 (define raco
   (or (find-executable-path "raco")
       (error 'autarx-acceptance "raco was not found")))

@@ -4,33 +4,36 @@
 > check, download, verify and install a new version without hunting for
 > download pages. Autarx ships two deliverables with two update feeds,
 > both Ed25519-signed wrappers in the family's `rivet/distribution`
-> format: the **macOS workbench** updates in place through
-> `update-app-manifest.json` (shared `RivetUpdate` module), and the **CLI**
-> authenticates and applies `update-manifest.json` through
-> `rivet/distribution` (`autarx update`). This is the family contract —
-> taskly's/brainfuel's `shared/spec/UPDATE.md` with the product
-> substituted; the transport and install mechanism is native to each
-> deliverable, like every other part of the autarx architecture.
+> format: the **Windows workbench** updates in place through
+> `update-app-manifest.json` (backend updater, `app-update.rkt`), and the
+> **CLI** authenticates and applies `update-manifest.json` through
+> `rivet/distribution` (`autarx update`). Autarx is a Windows-only
+> product (issue #56): both feeds carry windows-x64 artifacts
+> exclusively. This is the family contract — taskly's/brainfuel's
+> `shared/spec/UPDATE.md` with the product substituted; the transport and
+> install mechanism is native to each deliverable.
 
-## Behavior contract (workbench, all architectures)
+## Behavior contract (workbench, Windows x64)
 
 - **Triggers**: one silent check shortly after launch (throttled: at
-  most once per 4 hours, persisted as the `last-update-check`
-  UserDefaults double, unix epoch seconds — a GUI-only concern, no
-  backend round-trip), plus a manual `Check for Updates…` (⌘U) menu
+  most once per 4 hours, persisted as the `last-update-check` stamp
+  under `%LOCALAPPDATA%\autarx` — a GUI-only concern, no
+  backend round-trip), plus a manual `Check for Updates…` (Ctrl+U) menu
   entry that bypasses the throttle.
 - **Silent mode**: network failure / rate limit → silently ignore
   (never nag). Manual mode reports every outcome.
 - **Newer version found** (numeric per-segment compare, downgrades
   ignored) → panel with the new version: `Restart and Update` (download
   + install) or `Cancel`. Up-to-date → `Autarx is up to date`.
-- **Download**: performed by the host itself — the family macOS
-  exception: the host fetches and verifies the signed wrapper itself so
-  the swap can run entirely in-process, no backend RPC involved. Since
-  0.4.0 the whole download/verify/swap client is rivet's shared
-  `RivetUpdate` Swift module; `UpdateService.swift` is a thin product
-  adapter (feed, key, key id, bundle name, error mapping). Ed25519
-  manifest verify and sha256 artifact verify both live in the library.
+- **Download**: performed by the backend (`app-update.rkt` on rivet's
+  managed updater) on a background thread — the wrapper signature, size
+  and sha256 are enforced before anything is trusted; progress publishes
+  through the `update_state` RPC (RVT1 events are thread-local, so the
+  worker cannot emit them directly).
+- **Install flavor follows the running copy**: an install under the
+  Program Files tree takes the feed's signed `.msi` entry and the host
+  hands off to a passive msiexec upgrade; a portable zip install swaps
+  the install directory.
 - **Install failure** → non-crashing error with the platform message;
   the running version keeps working.
 - Strings are English-only, matching the workbench's single-language UI.
@@ -42,23 +45,18 @@ self-contained signed wrapper, below) for every release.
 
 | Deliverable | Feed | Install | Integrity | Status |
 |---|---|---|---|---|
-| Workbench, Apple silicon | `update-app-manifest.json` `macos`/`arm64` app-zip entry | zip → sha256 → ditto → atomic swap in place (`.old` copy kept until relaunch) — all inside rivet's shared `RivetUpdate` module | Ed25519 wrapper signature + artifact sha256 + unpacked bundle version == manifest version | wired since 0.3.0 (shared module since 0.4.0) |
-| Workbench, Intel | `update-app-manifest.json` `macos`/`x64` app-zip entry | same swap flow on the x64 build (hosts match their compile-time architecture) | same | wired since 0.3.0 (shared module since 0.4.0) |
-| CLI (macOS/Windows/Linux) | `update-manifest.json` (signed wrapper, `rivet/distribution` — live since 0.4.1) | download (size + sha256 enforced by `download-update`) → in-place file swap (`<name>.autarx-update.old`) | Ed25519 wrapper signature (`key_id autarx-2026-10`) + artifact sha256 | checksum feed 0.1.0–0.4.0; signed wrapper since 0.4.1 (`autarx update`) |
-| Windows / Linux workbench | — | — | — | M9 roadmap; feed entries follow the hosts |
-
-Only a workbench copy under `/Applications` (or `~/Applications`) can
-self-update; development builds get the "not an installed app" answer
-and are pointed at the releases page.
+| Workbench, MSI install (Windows x64) | `update-app-manifest.json` `windows`/`x64` msi entry | host hands off to a passive msiexec upgrade from the signed `.msi` | Ed25519 wrapper signature + artifact sha256 | live |
+| Workbench, portable zip (Windows x64) | `update-app-manifest.json` `windows`/`x64` zip entry | host swaps the install directory from the verified payload | same | live |
+| CLI (Windows x64) | `update-manifest.json` (signed wrapper, `rivet/distribution`) | download (size + sha256 enforced by `download-update`) → in-place file swap (`autarx.exe.autarx-update.old`) | Ed25519 wrapper signature (`key_id autarx-2026-10`) + artifact sha256 | live |
 
 ## Feed naming: `update-manifest.json` vs `update-app-manifest.json`
 
 Two feeds, one format, one key. `update-manifest.json` (the family's
 canonical name) is the CLI channel; `update-app-manifest.json` is the
 workbench channel. They stay two files because the manifest schema
-admits exactly one artifact per platform × architecture × installer, and
-macOS carries two zips per architecture: the workbench app zip and the
-portable CLI zip. Both are signed wrappers regenerated every release,
+admits exactly one artifact per platform × architecture × installer,
+and the workbench app payloads and the portable CLI zip are separate
+update targets. Both are signed wrappers regenerated every release,
 signed with the same `autarx-2026-10` key.
 
 History: up to and including 0.2.0, `update-manifest.json` was the CLI's
@@ -66,9 +64,11 @@ plain `{version, assets}` checksum document and `latest.json` was a
 byte-identical alias for pre-0.2.0 builds. The 0.4.1 release replaces
 the checksum document with the signed wrapper and retires the alias —
 the unauthenticated checksum feed was the supply-chain gap the family's
-`勿再手搓` direction closes. CLI builds up to and including 0.4.0 cannot
+勿再手搓 direction closes. CLI builds up to and including 0.4.0 cannot
 parse the signed wrapper and report a failed check; they need a one-off
-manual install to cross over.
+manual install to cross over. (Those builds predate the Windows-only
+reset; the version restart at 0.1.0 deleted the multi-platform releases
+and tags.)
 
 ## Engine-side updater (CLI, `racket/autarx/update.rkt`)
 
@@ -83,7 +83,10 @@ sticky rollout bucket (0–99, `crypto-random-bytes`) persists in
 `updater-state.json` under `<temp>/autarx` — best-effort stickiness, the
 release rollout is 100 today. The version is never embedded in the
 updater module: it stays single-sourced in rivet.rktd /
-rivet-app-info.rktd and is passed in by the CLI.
+rivet-app-info.rktd and is passed in by the CLI. The platform identity
+is a constant pair (`windows`/`x64`) — shipped artifacts exist for
+exactly that one pair, and the constant keeps `raco test racket/` green
+on non-Windows dev machines.
 
 ## `update-app-manifest.json`
 
@@ -93,7 +96,7 @@ signed-wrapper format (`rivet/distribution`): the inner manifest
 travels base64-encoded inside a JSON envelope, so the Ed25519
 signature covers the exact bytes every client verifies. The CLI
 channel's `update-manifest.json` is generated the same way by
-`scripts/make-update-feed.rkt` (CLI zips as artifacts; a missing
+`scripts/make-update-feed.rkt` (CLI zip as the artifact; a missing
 signing key fails the release — no key, no feed).
 
 ```json
@@ -123,11 +126,11 @@ unsigned feed.
 - GitHub secret: `UPDATE_ED25519_PRIVATE_KEY_B64`.
 - Vault: `~/Sync/Keys` section `[autarx]` carries the DER forms and the
   public-key fingerprint (sha256(DER pub), first 16 hex).
-- Embedded: raw-32-byte public key base64 in
-  `UpdateService.swift:publicKeyBase64`; `expectedKeyID` must equal the
-  manifest's `key_id`. The Racket updater embeds the same key in
+- Embedded: the Racket updaters embed the same key in
   SubjectPublicKeyInfo form (`update-public-key-b64` in
-  `racket/autarx/update.rkt`) — one keypair, both channels.
+  `racket/autarx/update.rkt` and `racket/autarx/app-update.rkt`) — one
+  keypair, both channels; `scripts/check-update-signing-key.py` pins the
+  agreement offline.
 - Rotation ships a build that trusts the next key before releases stop
   being signed with the current one (`expectedKeyID` swap in the
   trusting release, then a signing-key flip in the pipeline).

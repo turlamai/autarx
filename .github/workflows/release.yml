@@ -37,171 +37,29 @@ jobs:
           UPDATE_ED25519_PRIVATE_KEY_B64: ${{ secrets.UPDATE_ED25519_PRIVATE_KEY_B64 }}
         run: python3 scripts/check-update-signing-key.py
 
-  macos:
-    name: macOS DMG (${{ matrix.arch }})
-    needs: validate
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # macos-15: decoupled from the macos-latest pool (runner queue lesson).
-          - arch: arm64
-            os: macos-15
-            racket-arch: arm64
-          - arch: x64
-            os: macos-15-intel
-            racket-arch: x64
-    runs-on: ${{ matrix.os }}
-    env:
-      # Production signing lights up as soon as the account-level secrets
-      # exist (Developer ID p12 + App Store Connect API key) and applies to
-      # every workflow run that has them. Credential contract:
-      # DEVELOPER_ID_P12_B64 / DEVELOPER_ID_P12_PASSWORD / ASC_KEY_ID /
-      # ASC_ISSUER_ID / ASC_KEY_P8_B64; see rivet docs/production-signing.md.
-      MACOS_SIGNING_CONFIGURED: ${{ secrets.DEVELOPER_ID_P12_B64 != '' && secrets.ASC_KEY_P8_B64 != '' }}
-      # A tag push is a release: without credentials it must fail closed
-      # instead of silently shipping ad-hoc signed artifacts.
-      IS_TAG_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
-    steps:
-      - uses: actions/checkout@v7
-      - name: Install Racket
-        uses: Bogdanp/setup-racket@v1.16
-        with:
-          # arch-native packaging: without this the runner builds under
-          # Rosetta and ships an x86_64 app (the PodLens release bug).
-          architecture: ${{ matrix.racket-arch }}
-          version: stable
-          distribution: full
-      - name: Install Rivet (catalog)
-        run: raco pkg install --auto --no-docs 'https://github.com/turlamai/rivet.git#${{ env.RIVET_PIN }}'
-      - name: Link autarx core
-        run: raco pkg install --auto --no-docs --name autarx-core --link "file://$GITHUB_WORKSPACE/racket"
-      - name: Provision Developer ID certificate
-        if: env.MACOS_SIGNING_CONFIGURED == 'true'
-        env:
-          DEVELOPER_ID_P12_B64: ${{ secrets.DEVELOPER_ID_P12_B64 }}
-          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
-        run: |
-          set -euo pipefail
-          P12="$RUNNER_TEMP/developer-id.p12"
-          KEYCHAIN="$RUNNER_TEMP/build.keychain-db"
-          KEYCHAIN_PASSWORD="$(openssl rand -hex 24)"
-          printf '%s' "$DEVELOPER_ID_P12_B64" | base64 --decode > "$P12"
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
-          security import "$P12" -k "$KEYCHAIN" -P "$DEVELOPER_ID_P12_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
-          security list-keychains -s "$KEYCHAIN" $(security list-keychains | tr -d '"')
-          rm -f "$P12"
-          IDENTITY_NAME="$(security find-identity -v -p codesigning "$KEYCHAIN" | grep 'Developer ID Application' | head -1 | sed -E 's/^[^"]*"(.*)"$/\1/')"
-          test -n "$IDENTITY_NAME"
-          # rivet reads exactly these two (rivet docs/production-signing.md);
-          # unlike `raco rivet release`, `raco rivet package` stays ad-hoc
-          # until the explicit --production flag below turns them on.
-          {
-            echo "RIVET_MACOS_SIGN_IDENTITY=$IDENTITY_NAME"
-            echo "RIVET_MACOS_NOTARY_PROFILE=ASC_NOTARY"
-          } >> "$GITHUB_ENV"
-      - name: Store notarytool keychain profile
-        if: env.MACOS_SIGNING_CONFIGURED == 'true'
-        env:
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          ASC_KEY_P8_B64: ${{ secrets.ASC_KEY_P8_B64 }}
-        run: |
-          set -euo pipefail
-          P8="$RUNNER_TEMP/asc-api-key.p8"
-          printf '%s' "$ASC_KEY_P8_B64" | base64 --decode > "$P8"
-          xcrun notarytool store-credentials ASC_NOTARY \
-            --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" --key "$P8"
-          rm -f "$P8"
-      # `raco rivet package --production` Developer ID-signs, notarizes,
-      # staples, and re-verifies inside rivet itself using the credentials
-      # exported above; the bare call stays ad-hoc (docs/production-signing.md).
-      - name: Package (app bundle, Developer ID + notarized)
-        if: env.MACOS_SIGNING_CONFIGURED == 'true'
-        run: raco rivet package --production
-      - name: Package (app bundle, ad-hoc dispatch smoke)
-        if: env.MACOS_SIGNING_CONFIGURED != 'true' && env.IS_TAG_RELEASE != 'true'
-        run: raco rivet package
-      - name: Package requires signing credentials
-        if: env.MACOS_SIGNING_CONFIGURED != 'true' && env.IS_TAG_RELEASE == 'true'
-        run: |
-          echo "::error::Tag releases must be production-signed: set the macOS signing secrets (DEVELOPER_ID_P12_B64, DEVELOPER_ID_P12_PASSWORD, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8_B64) on this repository before tagging."
-          exit 1
-      - name: Human installer (DMG, drag to Applications)
-        run: |
-          volname=Autarx
-          # strip the tag's v prefix: the filename carries the bare version
-          dmg="autarx-${GITHUB_REF_NAME#v}-macos-${{ matrix.arch }}.dmg"
-          staging="$(mktemp -d)/dmg-stage"
-          mkdir -p "$staging"
-          cp -R dist/autarx.app "$staging/"
-          ln -s /Applications "$staging/Applications"
-          hdiutil create -volname "$volname" -srcfolder "$staging" -ov -format UDZO "$dmg"
-          hdiutil attach "$dmg" -mountpoint /tmp/autarx-dmg-verify -readonly
-          test -d /tmp/autarx-dmg-verify/Autarx.app
-          hdiutil detach /tmp/autarx-dmg-verify
-      - name: Portable app zip (workbench update payload)
-        run: |
-          # Canonical bundle name inside the archive: the workbench updater
-          # unpacks and swaps Autarx.app by exact path (UpdateService.swift).
-          appstage="$(mktemp -d)/Autarx.app"
-          cp -R dist/autarx.app "$appstage"
-          ditto -c -k --sequesterRsrc --keepParent "$appstage" \
-            "autarx-${GITHUB_REF_NAME#v}-macos-${{ matrix.arch }}-app.zip"
-          unzip -l "autarx-${GITHUB_REF_NAME#v}-macos-${{ matrix.arch }}-app.zip" | head -4
-      - uses: actions/upload-artifact@v7
-        with:
-          name: macos-${{ matrix.arch }}
-          path: |
-            autarx-*-macos-${{ matrix.arch }}.dmg
-            autarx-*-macos-${{ matrix.arch }}-app.zip
-          if-no-files-found: error
-
   cli:
-    name: CLI zip (${{ matrix.platform }})
+    name: CLI zip (windows-x64)
     needs: validate
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: macos-arm64
-            os: macos-latest
-            racket-arch: arm64
-          - platform: macos-x64
-            os: macos-15-intel
-            racket-arch: x64
-          - platform: linux-x64
-            os: ubuntu-latest
-            racket-arch: x64
-          - platform: linux-arm64
-            os: ubuntu-24.04-arm
-            racket-arch: arm64
-          - platform: windows-x64
-            os: windows-latest
-            racket-arch: x64
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
       - name: Install Racket
         uses: Bogdanp/setup-racket@v1.16
         with:
-          architecture: ${{ matrix.racket-arch }}
+          architecture: x64
           version: stable
           distribution: full
       - name: Install Rivet (catalog)
         run: raco pkg install --auto --no-docs 'https://github.com/turlamai/rivet.git#${{ env.RIVET_PIN }}'
         shell: bash
       - name: Link autarx core
-        run: raco pkg install --auto --no-docs --name autarx-core --link "file://$GITHUB_WORKSPACE/racket"
+        run: raco pkg install --auto --no-docs --name autarx-core --link "file://$(cygpath -m "$GITHUB_WORKSPACE/racket")"
         shell: bash
       - name: Build CLI distribution
         run: bash scripts/build-cli.sh dist-cli
       - uses: actions/upload-artifact@v7
         with:
-          name: cli-${{ matrix.platform }}
+          name: cli-windows-x64
           path: dist-cli/autarx-*.zip
           if-no-files-found: error
 
@@ -252,108 +110,9 @@ jobs:
           path: dist/autarx-*
           if-no-files-found: error
 
-  linux:
-    name: Linux workbench (${{ matrix.arch }})
-    needs: validate
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: x64
-            os: ubuntu-latest
-          - arch: arm64
-            os: ubuntu-24.04-arm
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v7
-      # rivet's own composite action. Keep the action ref in lockstep with
-      # RIVET_PIN above (and with ci.yml's copy of this step) — it ships
-      # the runtime the pinned rivet expects.
-      - name: Set up embeddable Racket CS
-        uses: turlamai/rivet/.github/actions/setup-embed-racket@c96673ded75651c94a1d513b122691f85d76ccf5
-      # Installed after the embeddable runtime so the catalog dependency
-      # closure (cext-lib, crypto-lib, keel) resolves against the minimal
-      # build — it ships no packages of its own. crypto backs the updater.
-      - name: Install Rivet (catalog) and backend packages
-        run: |
-          raco pkg install --auto --no-docs 'https://github.com/turlamai/rivet.git#${{ env.RIVET_PIN }}'
-          raco pkg install --auto --no-docs crypto
-      - name: Install GTK4, rpm and packaging tooling
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes \
-            libgtk-4-dev libadwaita-1-dev libglib2.0-dev cmake ninja-build \
-            pkg-config file rpm desktop-file-utils
-      - name: Link autarx core
-        run: raco pkg install --auto --no-docs --name autarx-core --link "file://$PWD/racket"
-      # tar.gz (the workbench update payload) + deb + rpm + AppImage, launch
-      # smoke included. The AppImage carries its own GTK4 dependency
-      # closure; APPIMAGE_EXTRACT_AND_RUN lets appimagetool run on the
-      # runner.
-      - name: Release (tar.gz + deb + rpm + AppImage)
-        env:
-          APPIMAGE_EXTRACT_AND_RUN: '1'
-        run: raco rivet release --without-updates --development
-      - name: Family naming
-        run: |
-          set -euo pipefail
-          VERSION="${GITHUB_REF_NAME#v}"
-          ARCH="${{ matrix.arch }}"
-          cd dist
-          # The tar.gz is the workbench update payload and gets the family
-          # -app suffix. The release's portable zip is dropped: its payload
-          # duplicates the tar.gz and its plain name belongs to the CLI zip.
-          mv "autarx-${VERSION}-linux-${ARCH}.tar.gz" \
-             "autarx-${VERSION}-linux-${ARCH}-app.tar.gz"
-          rm -f "autarx-${VERSION}-linux-${ARCH}.zip"
-      # Wraps the -app.tar.gz workbench payload into a Flatpak bundle from
-      # the flatpak/ manifest template (family contract:
-      # deb+rpm+AppImage+Flatpak+tar.gz). The manifest's module closure
-      # covers the two NEEDED entries outside the GNOME Platform runtime
-      # (liblz4.so.1, libtinfo.so.6). Like deb/rpm/AppImage, the flatpak
-      # install shape is manual-by-design and stays out of the signed
-      # update feed.
-      - name: Flatpak bundle
-        run: |
-          set -euo pipefail
-          VERSION="${GITHUB_REF_NAME#v}"
-          ARCH="${{ matrix.arch }}"
-          case "$ARCH" in x64) FPARCH=x86_64 ;; arm64) FPARCH=aarch64 ;; esac
-          sudo apt-get install --yes flatpak flatpak-builder
-          # User-level everything: runner accounts install runtimes and
-          # build without root. GNOME 50 is the oldest supported platform
-          # runtime (48 went EOL 2026-03-24); its glibc 2.42 covers the
-          # ubuntu-built payload.
-          flatpak --user remote-add --if-not-exists flathub \
-            https://flathub.org/repo/flathub.flatpakrepo
-          flatpak --user install -y --noninteractive flathub \
-            "org.gnome.Platform/${FPARCH}/50" "org.gnome.Sdk/${FPARCH}/50"
-          # The manifest template carries version/arch/sha placeholders so
-          # the archive source's checksum is exact per release. The payload
-          # is the renamed -app.tar.gz workbench bundle.
-          cp "dist/autarx-${VERSION}-linux-${ARCH}-app.tar.gz" .
-          SHA="$(sha256sum "autarx-${VERSION}-linux-${ARCH}-app.tar.gz" | cut -d' ' -f1)"
-          sed -e "s/__VERSION__/${VERSION}/" -e "s/__ARCH__/${ARCH}/" \
-              -e "s/__SHA256__/${SHA}/" \
-              flatpak/site.jrtx.autarx.Autarx.yml > site.jrtx.autarx.Autarx.gen.yml
-          # --disable-rofiles-fuse: runners have no /dev/fuse.
-          flatpak-builder --user --force-clean --disable-rofiles-fuse \
-            --repo=flatpak-repo flatpak-build site.jrtx.autarx.Autarx.gen.yml
-          flatpak build-bundle flatpak-repo \
-            "autarx-${VERSION}-linux-${ARCH}.flatpak" site.jrtx.autarx.Autarx stable
-          mv "autarx-${VERSION}-linux-${ARCH}.flatpak" dist/
-          rm -rf flatpak-build flatpak-repo \
-            "autarx-${VERSION}-linux-${ARCH}-app.tar.gz" site.jrtx.autarx.Autarx.gen.yml
-          test -f "dist/autarx-${VERSION}-linux-${ARCH}.flatpak"
-      - uses: actions/upload-artifact@v7
-        with:
-          name: linux-${{ matrix.arch }}
-          path: dist/autarx-*
-          if-no-files-found: error
-
   release:
     name: Publish
-    needs: [macos, cli, windows, linux]
+    needs: [cli, windows]
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
@@ -397,11 +156,10 @@ jobs:
           UPDATE_ED25519_PRIVATE_KEY_B64: ${{ secrets.UPDATE_ED25519_PRIVATE_KEY_B64 }}
         run: |
           # Fail-closed, same contract as the CLI feed above: no key, no
-          # release. All three hosts verify the wrapper signature before
-          # parsing — the macOS host via RivetUpdate, the Windows and Linux
-          # hosts through the backend updater — so shipping without the
-          # feed would strand every installed copy on "release has no
-          # update manifest".
+          # release. The Windows host verifies the wrapper signature
+          # through the backend updater before parsing — so shipping
+          # without the feed would strand every installed copy on "release
+          # has no update manifest".
           if [ -z "$UPDATE_ED25519_PRIVATE_KEY_B64" ]; then
             echo "::error::UPDATE_ED25519_PRIVATE_KEY_B64 is not set — refusing to publish without the signed workbench feed (shared/spec/UPDATE.md)"
             exit 1
@@ -418,30 +176,18 @@ jobs:
           # CLI archives and native workbench installers have intentionally
           # distinct roles. *-app.* is a signed-feed update payload.
           for suffix in \
-            macos-arm64.dmg macos-arm64.zip macos-arm64-app.zip \
-            macos-x64.dmg macos-x64.zip macos-x64-app.zip \
-            windows-x64.msi windows-x64.zip windows-x64-app.zip \
-            linux-arm64.zip linux-arm64-app.tar.gz \
-            linux-x64.zip linux-x64-app.tar.gz \
-            linux-amd64.deb linux-arm64.deb \
-            linux-aarch64.AppImage linux-x86_64.AppImage \
-            linux-arm64.flatpak linux-x64.flatpak; do
+            windows-x64.msi windows-x64.zip windows-x64-app.zip; do
             name="autarx-$VERSION-$suffix"
             test -s "dist/$name" || { echo "::error::Missing or empty $name"; exit 1; }
             cp "dist/$name" "public/$name"
-          done
-          for arch in aarch64 x86_64; do
-            rpm="$(find dist -maxdepth 1 -type f -name "autarx-$VERSION-*-linux-$arch.rpm" -print -quit)"
-            test -s "$rpm" || { echo "::error::Missing $arch RPM"; exit 1; }
-            cp "$rpm" public/
           done
           cp dist/update-app-manifest.json dist/update-manifest.json public/
           test -s public/update-app-manifest.json && test -s public/update-manifest.json
           cd public
           shasum -a 256 autarx-* | LC_ALL=C sort -k2 > SHA256SUMS
           shasum -a 256 --check SHA256SUMS
-          # 17 versioned installers/archives + 2 RPMs + 2 Flatpak bundles.
-          test "$(grep -c '^' SHA256SUMS)" -eq 21
+          # MSI + portable app zip + CLI zip.
+          test "$(grep -c '^' SHA256SUMS)" -eq 3
       - name: Release notes from this version's changelog
         run: |
           set -euo pipefail
@@ -453,8 +199,8 @@ jobs:
           ' CHANGELOG.md > release-notes.md
           test -s release-notes.md || { echo "::error::Missing changelog section $VERSION"; exit 1; }
           printf '\n### Distribution and trust\n\n' >> release-notes.md
-          printf '%s\n' 'Choose the versioned installer for your OS and architecture. The CLI ZIP and workbench *-app payloads are separate update targets. Verify downloads with SHA256SUMS.' >> release-notes.md
-          printf '%s\n' 'macOS development builds use ad-hoc signing; Windows installers have no publisher signature. Gatekeeper or SmartScreen may warn. Update manifests are independently Ed25519-signed.' >> release-notes.md
+          printf '%s\n' 'Autarx ships Windows-only. The CLI ZIP and workbench *-app payloads are separate update targets. Verify downloads with SHA256SUMS.' >> release-notes.md
+          printf '%s\n' 'Windows installers have no publisher signature; SmartScreen may warn. Update manifests are independently Ed25519-signed.' >> release-notes.md
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}

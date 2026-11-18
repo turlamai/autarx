@@ -73,20 +73,20 @@
 
 (define update-key-id "autarx-2026-10")
 
-;; SubjectPublicKeyInfo DER, base64 — the same keypair the macOS host
-;; embeds in raw form (UpdateService.swift) and the release pipeline signs
-;; BOTH feeds with (the UPDATE_ED25519_PRIVATE_KEY_B64 GitHub secret;
-;; generate: scripts/update-keys.sh). The private half lives outside the
-;; repository and never ships. Rotate by shipping a build that trusts the
-;; next key before releases stop being signed with this one.
+;; SubjectPublicKeyInfo DER, base64 — the same keypair the workbench
+;; updater authenticates with (app-update.rkt) and the release pipeline
+;; signs BOTH feeds with (the UPDATE_ED25519_PRIVATE_KEY_B64 GitHub
+;; secret; generate: scripts/update-keys.sh). The private half lives
+;; outside the repository and never ships. Rotate by shipping a build
+;; that trusts the next key before releases stop being signed with this
+;; one.
 (define update-public-key-b64
   "MCowBQYDK2VwAyEAIjm2Iqrres1BbLnx5DQCvZtbbKb4jBKRpUbGSQ9FWxM=")
 
 ;; Where the updater looks for the signed manifest. The workbench polls the
-;; sibling update-app-manifest.json — two feeds, one format and one key,
-;; because the manifest schema admits one artifact per platform ×
-;; architecture × installer and macOS carries both the app zip (host) and
-;; this portable zip (shared/spec/UPDATE.md). The release pipeline pins
+;; sibling update-app-manifest.json — two feeds, one format and one key:
+;; the workbench app payloads and this portable CLI zip are separate update
+;; targets (shared/spec/UPDATE.md). The release pipeline pins
 ;; artifact URLs to the concrete tag; the manifest itself is always fetched
 ;; from the moving "latest" location. Tests parameterize this at an
 ;; unreachable local URL instead of touching the network.
@@ -107,17 +107,14 @@
 
 ;; ---------- platform identity ----------
 
-;; rivet release tooling emits these exact symbols into update manifests
-(define (platform-symbol)
-  (case (system-type 'os)
-    [(macosx) 'macos]
-    [(windows) 'windows]
-    [else 'linux]))
+;; Autarx ships Windows-only (issue #56): exactly one CLI artifact
+;; (windows-x64 zip) exists, so the identity is a pair of constants —
+;; deterministic on every host OS, which keeps `raco test racket/` green
+;; on non-Windows dev machines. rivet release tooling emits these exact
+;; symbols into update manifests.
+(define (platform-symbol) 'windows)
 
-(define (architecture-symbol)
-  (case (system-type 'arch)
-    [(aarch64 arm64) 'arm64]
-    [else 'x64]))
+(define (architecture-symbol) 'x64)
 
 ;; The CLI-facing "<platform>-<architecture>" spelling of this host (kept
 ;; for --platform parsing and human output; the release feed names its zip
@@ -127,8 +124,8 @@
                  "-"
                  (symbol->string (architecture-symbol))))
 
-;; build-cli.sh ships the portable payload as a zip on every platform, so
-;; the feed's artifacts are all installer 'zip.
+;; build-cli.sh ships the portable payload as a zip, so the feed's
+;; artifacts are all installer 'zip.
 (define (installer-extension) ".zip")
 
 (define (manifest-url)
@@ -403,7 +400,9 @@
 
 ;; Extraction is the one subprocess the installer still needs (Windows
 ;; end-user machines ship PowerShell, not unzip); the download transport
-;; itself is pure Racket now.
+;; itself is pure Racket now. The unzip fallback keeps offline dev/test
+;; green on non-Windows machines — shipped artifacts are Windows-only
+;; (issue #56).
 (define (unzip-archive zip-path dest)
   (case (system-type 'os)
     [(windows)

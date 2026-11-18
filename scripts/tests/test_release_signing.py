@@ -25,9 +25,8 @@ class ReleaseSigningTests(unittest.TestCase):
             input=cls.private_der,
         )
 
-    def make_fixture(self, root, spki=None, swift_raw=None):
+    def make_fixture(self, root, spki=None):
         spki = spki if spki is not None else self.public_der
-        swift_raw = swift_raw if swift_raw is not None else spki[-32:]
         for name in checker.RACKET_CLIENTS:
             target = root / name
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -35,14 +34,8 @@ class ReleaseSigningTests(unittest.TestCase):
                 '(define update-public-key-b64\n  "'
                 + base64.b64encode(spki).decode() + '")', encoding="utf-8"
             )
-        target = root / checker.SWIFT_CLIENT
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(
-            'public static let publicKeyBase64 = "'
-            + base64.b64encode(swift_raw).decode() + '"', encoding="utf-8"
-        )
 
-    def test_matching_private_key_and_all_three_clients(self):
+    def test_matching_private_key_and_both_clients(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             self.make_fixture(root)
@@ -64,12 +57,9 @@ class ReleaseSigningTests(unittest.TestCase):
             with self.subTest(raw=raw), self.assertRaises(ValueError):
                 checker.verify(raw, self.public_der)
 
-    def test_racket_and_swift_key_disagreement_is_rejected(self):
+    def test_racket_key_disagreement_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            self.make_fixture(root, swift_raw=b"0" * 32)
-            with self.assertRaisesRegex(ValueError, "Swift and Racket"):
-                checker.trusted_public_key(root)
             self.make_fixture(root)
             (root / checker.RACKET_CLIENTS[1]).write_text(
                 '(define update-public-key-b64 "Zm9v")', encoding="utf-8"
@@ -79,7 +69,7 @@ class ReleaseSigningTests(unittest.TestCase):
 
     def test_real_embedded_keys_and_canonical_feed_urls(self):
         checker.trusted_public_key(ROOT)
-        for name in (*checker.RACKET_CLIENTS, checker.SWIFT_CLIENT):
+        for name in checker.RACKET_CLIENTS:
             source = (ROOT / name).read_text(encoding="utf-8")
             self.assertNotIn("turinglambdaai/autarx/releases/", source)
             self.assertIn("turlamai/autarx/releases/", source)

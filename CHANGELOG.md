@@ -5,25 +5,34 @@ All notable changes to autarx are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.0] - unreleased
+
+Version numbering restarts here: the multi-platform releases v0.1.0–v0.5.0
+and their tags were deleted per the family reset discipline (engineering
+preview, no paid users, no checkout open).
 
 ### Changed
+
+- **Windows-only platform focus.** Autarx sits above the vendor toolchain
+  (DaVinci, tresos, ISOLAR), which runs only on Windows; the product now
+  ships Windows-only across the board. The macOS and Linux hosts, their
+  CI legs and their release artifacts (DMG, deb, rpm, AppImage, Flatpak,
+  tar.gz) are removed; a release carries the Windows MSI, the portable
+  app zip and the windows-x64 CLI zip. Both updaters select windows-x64
+  artifacts deterministically; `autarx update --platform` accepts
+  `windows-x64` only. The Racket engine itself stays host-agnostic and its
+  tests still run on every dev machine.
 - The workbench updater now runs on `rivet/distribution`'s managed
   `make-updater` state machine: candidate selection, the download worker,
   the stall/total watchdog, cancellation and the terminal state are shared
   family code. The `update_state` wire shape is unchanged.
-- Windows MSI and Linux AppImage updates now select **signed** manifest
-  artifacts (`windows:x64:msi`, `linux:*:appimage`) instead of deriving a
-  sibling `.msi`/`.AppImage` release asset and trusting its detached
-  `.sha256` sidecar. The app feed gains those entries; sidecars stay
-  published for manual verification.
+- Windows MSI updates now select **signed** manifest artifacts
+  (`windows:x64:msi`) instead of deriving a sibling `.msi` release asset
+  and trusting its detached `.sha256` sidecar. The app feed carries the
+  zip and msi entries; sidecars stay published for manual verification.
 - Keep each `main` commit's CI run independent, including while GitHub-hosted
   runners are queued; cancel only superseded PR attempts. Test matrix and
   release trust-root checks remain unchanged.
-- "Check for Updates…" moved into the App menu directly below About on
-  macOS (About itself moves out of the Help menu to join it), per the
-  family menu convention. Windows and Linux already had the Help-menu
-  pair.
 
 ## [0.5.0] - 2026-10-15
 

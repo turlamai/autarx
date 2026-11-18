@@ -24,7 +24,6 @@ In scope:
   CLI channel's `update-manifest.json` and the workbench channel's
   `update-app-manifest.json` — plus key handling and rotation
   (`racket/autarx/update.rkt`, `racket/autarx/app-update.rkt`,
-  `macos-host/Sources/RivetHost/UpdateService.swift`,
   `scripts/update-keys.sh`, `scripts/make-update-manifest.sh`,
   `scripts/make-update-feed.rkt`, `scripts/check-update-signing-key.py`;
   key id `autarx-2026-10`)
@@ -67,15 +66,11 @@ access attacks, and defects in GitHub Releases' own infrastructure.
 - **Crypto lives below the product.** The CLI channel verifies the signed
   manifest and the artifact's size and SHA-256 in the Racket backend
   (Ed25519 over the embedded runtime's FFI, SubjectPublicKeyInfo key form).
-  The macOS workbench's checks run in rivet's `RivetUpdate` module — the
-  Swift `UpdateService` contributes only the product facts (feed URL,
-  embedded public key, key id `autarx-2026-10`, bundle name). The Windows
-  and Linux hosts own UI and hand-off only; the backend verifies and
+  The Windows host owns UI and hand-off only; the backend verifies and
   downloads. Key rotation ships a build that trusts the next key before
   releases stop being signed with the old one.
 - **The signed update feed does not imply a publisher-signed installer.**
-  The DMG is ad-hoc signed (not notarized) and the MSI, deb, rpm and
-  AppImage artifacts carry no publisher code signature. Releases do publish
+  The MSI carries no publisher code signature. Releases do publish
   a checked `SHA256SUMS` covering every versioned artifact plus both signed
   manifests. Do not represent the feed signature as an independently
   trusted publisher identity.

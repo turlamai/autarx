@@ -12,13 +12,13 @@
 ;; feed — a one-off manual install moves them over (shared/spec/UPDATE.md).
 ;;
 ;; The workbench keeps its own feed because the manifest schema admits one
-;; artifact per platform × architecture × installer, and macOS carries both
-;; the app zip (host) and this portable CLI zip.
+;; artifact per platform × architecture × installer, and the workbench app
+;; zip and this portable CLI zip are separate update targets.
 ;;
 ;; Usage: racket scripts/make-update-feed.rkt <tag> <dist-dir> <base-url>
 ;;   <tag>       release tag, e.g. v0.4.0 (must match rivet.rktd's version)
 ;;   <dist-dir>  directory with the CLI release zips
-;;               (autarx-<ver>-macos-arm64.zip … autarx-<ver>-windows-x64.zip)
+;;               (autarx-<ver>-windows-x64.zip — the only shipped platform)
 ;;   <base-url>  artifact URL base, i.e. the concrete release download URL
 ;;
 ;; Signing key — DER OneAsymmetricKey, either of:
@@ -82,14 +82,16 @@
 (call-with-output-file key-path #:exists 'truncate
   (lambda (out) (write-bytes key-bytes out)))
 
-;; feed tokens ("macos-arm64" …) split into the manifest's symbol pair
+;; feed tokens ("windows-x64") split into the manifest's symbol pair
 (define (split-platform token)
   (define parts (string-split token "-"))
   (values (string->symbol (car parts))
           (string->symbol (string-join (cdr parts) "-"))))
 
+;; Windows-only product (issue #56): the CLI feed carries windows-x64
+;; exclusively.
 (define platform-regexp
-  #px"autarx-[0-9][^-]*-(macos-arm64|macos-x64|linux-x64|linux-arm64|windows-x64)\\.zip$")
+  #px"autarx-[0-9][^-]*-(windows-x64)\\.zip$")
 
 (define artifacts
   (for/list ([path (in-directory dist)]

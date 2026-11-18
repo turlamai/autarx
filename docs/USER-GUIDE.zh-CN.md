@@ -10,7 +10,7 @@
 
 ## 平台与安装
 
-提供 macOS、Windows、Linux Rivet 桌面预览；CLI 和 MCP 共用 Racket 领域核心。AUTOSAR 支持范围由产品契约规定，不代表支持所有 ARXML。
+Autarx 是 Windows 专用产品——它伴随只跑在 Windows 上的厂商工具链（达芬奇、tresos、ISOLAR）而存在。CLI 和 MCP 共用 Racket 领域核心。AUTOSAR 支持范围由产品契约规定，不代表支持所有 ARXML。
 
 从[官方 Releases](https://github.com/turlamai/autarx/releases)选择明确标注系统和架构的附件，阅读该版本说明并核对附带校验文件。未列出的附件或平台不视为已交付。预览构建可能没有系统发行者签名或公证；不要为安装而关闭系统安全保护。
 

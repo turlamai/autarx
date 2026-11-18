@@ -33,7 +33,9 @@ CLI · GUI · CI · AI
 ## Stack
 
 Racket CS 9 for the semantic engine and agent surfaces (CLI + MCP), Rivet
-for the GUI transport, SwiftUI for the macOS workbench. One UI-free core,
+for the GUI transport, WinUI 3 for the Windows workbench. Autarx ships
+Windows-only — it sits next to the Windows-only vendor toolchain — while
+the Racket engine stays host-agnostic. One UI-free core,
 two frontends — the .NET/Avalonia implementation (v1.0.3) served as the
 behaviour and JSON oracle for the rebuild; see
 [docs/RIVET-MIGRATION.md](docs/RIVET-MIGRATION.md) for the migration
@@ -165,18 +167,18 @@ semantically equivalent, deliberately not byte-faithful.
 Two deliverables, two update channels (the contract is
 `shared/spec/UPDATE.md`):
 
-**Workbench (macOS).** `UpdateService.swift` fetches the signed workbench
-feed `update-app-manifest.json` — the family wrapper format
-(rivet/distribution): base64 inner manifest + Ed25519 signature over its
-exact bytes, verified with CryptoKit against the embedded raw key. The
-artifact (a portable app zip) is sha256-checked, unpacked, its bundle
-version compared to the manifest, then the running bundle swaps atomically
-(`.old` copy kept until relaunch) and the app relaunches. A silent check
-runs shortly after launch, throttled to one attempt per 4 hours
-(UserDefaults); the menu entry "Check for Updates…" (⌘U) bypasses the
-throttle. Only copies under `/Applications` or `~/Applications` can
-self-update. The release publish job signs the manifest with the
-`UPDATE_ED25519_PRIVATE_KEY_B64` secret.
+**Workbench (Windows).** The backend updater (`app-update.rkt`) fetches
+the signed workbench feed `update-app-manifest.json` — the family wrapper
+format (rivet/distribution): base64 inner manifest + Ed25519 signature
+over its exact bytes, verified against the embedded key. The artifact is
+sha256-checked during download, and the install flavor follows the
+running install: a copy under Program Files takes the sibling signed
+`.msi` and the host hands off to a passive msiexec upgrade; portable
+installs swap the install directory. A silent check runs shortly after
+launch, throttled to one attempt per 4 hours (stamp under
+`%LOCALAPPDATA%\autarx`); the menu entry "Check for Updates…" (Ctrl+U)
+bypasses the throttle. The release publish job signs the manifest with
+the `UPDATE_ED25519_PRIVATE_KEY_B64` secret.
 
 **CLI.** the updater (`update.rkt` + the `update` command in `cli.rkt`)
 rides `rivet/distribution` since 0.4.1: fetch the Ed25519-signed feed

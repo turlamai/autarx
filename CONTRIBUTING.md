@@ -10,17 +10,16 @@ use is a separate written agreement with the copyright holder.
 
 ## Ground rules
 
-1. **The wire contract is cross-platform.** `racket/autarx/backend.rkt`
-   declares the typed RPC surface. Changing any of it is a three-platform
-   release: regenerate the checked-in clients with `raco rivet build`
-   (`linux/GeneratedBackend.hpp`, `windows/GeneratedBackend.hpp`,
-   `macos-host/Sources/RivetHost/GeneratedBackend.swift`) in the same
-   commit — they are build inputs, never hand-edit them.
+1. **The wire contract is host-wide.** `racket/autarx/backend.rkt`
+   declares the typed RPC surface. Changing any of it requires
+   regenerating the checked-in client with `raco rivet build`
+   (`windows/GeneratedBackend.hpp`) in the same
+   commit — it is a build input, never hand-edit it.
 2. **The version has one source: `rivet.rktd`.** There is deliberately no
    version literal anywhere else — the CLI resolves it from the manifest
-   and the Swift backend is regenerated from it by `raco rivet build`.
+   and the host backend is regenerated from it by `raco rivet build`.
    `scripts/check-release-version.sh` enforces tag == `rivet.rktd` ==
-   `GeneratedBackend.swift` == CHANGELOG; do not reintroduce a second
+   `GeneratedBackend.hpp` == CHANGELOG; do not reintroduce a second
    source (a stray package version literal drifted through four releases
    once).
 3. **The acceptance contract is not negotiable.** `rivet-acceptance.rktd`
@@ -48,7 +47,7 @@ use is a separate written agreement with the copyright holder.
 
 ```bash
 raco test racket/                                             # core contract tests
-bash scripts/check-release-version.sh v0.5.0                  # tag must match rivet.rktd; pass the current version
+bash scripts/check-release-version.sh v0.1.0                  # tag must match rivet.rktd; pass the current version
 python3 -m unittest discover -s scripts/tests -p 'test_release_signing.py'
 python3 scripts/check_site_copy.py                            # site/content changes only
 ```
@@ -57,14 +56,14 @@ These mirror the CI `test`, `release-contract` and site-parity jobs. The
 signing contract tests need OpenSSL 3 for Ed25519 — macOS's system
 LibreSSL cannot generate the test keys, so put a real OpenSSL 3 first on
 `PATH` (e.g. `/opt/homebrew/opt/openssl@3/bin`).
-Platform hosts compile in their own CI jobs via `raco rivet build`; if
-you touch `macos-host/`, `windows/` or `linux/`, say whether you were
+The Windows host compiles in its own CI job via `raco rivet build`; if
+you touch `windows/`, say whether you were
 able to build locally.
 
 ## Reporting issues
 
 Include: OS + version, Autarx version (`autarx version`, or the About
-dialog), installation shape (DMG / MSI / deb / rpm / AppImage / CLI zip),
+dialog), installation shape (MSI / portable app zip / CLI zip),
 the delivery fixture or minimal arxml that reproduces the problem, and
 for CLI issues the exact argv plus the JSON error. For update failures,
 include the error text from the update panel or the CLI output. Security

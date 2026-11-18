@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Generate the Ed25519 keypair used to sign the macOS workbench update
-# manifests (contract: shared/spec/UPDATE.md).
+# Generate the Ed25519 keypair used to sign the update manifests
+# (contract: shared/spec/UPDATE.md).
 #
 #   scripts/update-keys.sh [private-key-path]
 #
@@ -11,7 +11,6 @@
 # UPDATE_ED25519_PRIVATE_KEY_B64 so release.yml can sign manifests.
 # The script prints every derived form:
 #   - public SPKI DER, base64     -> vault UPDATE_ED25519_PUBLIC_KEY_B64
-#   - public raw 32 bytes, base64 -> UpdateService.swift publicKeyBase64
 #   - private OneAsymmetricKey DER, base64 -> GitHub secret + vault
 # One-time: rotating requires a public-key rollout release (UPDATE.md).
 set -euo pipefail
@@ -50,7 +49,6 @@ umask 077
 "$OPENSSL_BIN" genpkey -algorithm ed25519 -out "$KEY_PATH"
 
 PUB_SPKI_B64="$("$OPENSSL_BIN" pkey -in "$KEY_PATH" -pubout -outform DER 2>/dev/null | base64)"
-PUB_RAW_B64="$("$OPENSSL_BIN" pkey -in "$KEY_PATH" -pubout -outform DER 2>/dev/null | tail -c 32 | base64)"
 PRIV_DER_B64="$("$OPENSSL_BIN" pkey -in "$KEY_PATH" -outform DER 2>/dev/null | base64 | tr -d '\n')"
 
 echo "Private key (PEM): $KEY_PATH"
@@ -58,9 +56,6 @@ echo "  Back this up; never commit it."
 echo
 echo "Public key, SPKI DER base64 — vault UPDATE_ED25519_PUBLIC_KEY_B64:"
 echo "  $PUB_SPKI_B64"
-echo
-echo "Public key, raw 32 bytes base64 — embed in UpdateService.swift:"
-echo "  $PUB_RAW_B64"
 echo
 echo "Private key, OneAsymmetricKey DER base64 — GitHub secret"
 echo "UPDATE_ED25519_PRIVATE_KEY_B64 (release.yml signing):"

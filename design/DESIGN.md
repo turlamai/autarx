@@ -1,6 +1,6 @@
 # Autarx DESIGN.md — 视觉与交互契约（单一真源）
 
-原型（`design/prototype/`）与三平台原生实现（`macos-host/`、`windows/`、`linux/`）都遵循本文件；改视觉先改这里，再同步实现。
+原型（`design/prototype/`）与 Windows 原生实现（`windows/`）都遵循本文件；改视觉先改这里，再同步实现。
 Tokens 提取自 `site/family.css`（site-kit v1.0.3，家族设计系统单一真源）现行值；三平台宿主当前用系统默认样式，本契约是品牌层首次落进工作台——原型到实现零翻译成本，平台 chrome（窗口/菜单/文件选择器）保持原生。
 
 ## Brief（2026-11-11）
@@ -31,9 +31,9 @@ Tokens 提取自 `site/family.css`（site-kit v1.0.3，家族设计系统单一�
 | `--warn --warn-soft` | unknown / orphan / 计划告警 | 推导：同上 |
 | `--danger --danger-soft` | unresolved / breaking / 破坏性确认 | 推导：同上 |
 
-- **字体**：界面 `system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei"`（三平台宿主直接映射系统字体）；路径/引用/diff/JSON 一律 `ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace`。正文 14px/1.55，节标题 16px/700，行标题 600，次级 12.5px，辅助 11.5px。
+- **字体**：界面 `system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei"`（宿主直接映射系统字体）；路径/引用/diff/JSON 一律 `ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace`。正文 14px/1.55，节标题 16px/700，行标题 600，次级 12.5px，辅助 11.5px。
 - **圆角**：窗口 16px · 卡片 12px · 控件 8px（= kit radius l/m/s）。**间距节奏**：4/8/12/16/24。**动效**：140ms cubic-bezier(0.2,0.8,0.2,1)，不过度。
-- **语言**：界面文案英文（跟随现有三端 UI 语言）；文档与契约中文。数字/计数用 tabular-nums 对齐。
+- **语言**：界面文案英文（跟随现有 UI 语言）；文档与契约中文。数字/计数用 tabular-nums 对齐。
 
 ## 组件词汇
 
@@ -45,21 +45,22 @@ Tokens 提取自 `site/family.css`（site-kit v1.0.3，家族设计系统单一�
 2. 身份永远是 AUTOSAR 绝对路径，等宽呈现；XML 行号、字节偏移不出现在任何视图中。
 3. 校验/校验措辞：结构检查结果用「unresolved / duplicate / inconsistent」陈述；「vendor 校验」永远指 vendor 工具自己的运行，Autarx 只中继与归一化。
 4. 亮暗主题成对设计，不存在只有暗态的界面；状态色（ok/warn/danger）两态都必须达 AA 对比。
-5. 键盘可达：1–7 切节、/ 聚焦检索、⌘O 打开交付、⌘U 检查更新、R 重建/重校验；所有提示用统一 `kbd` 样式（raised 底、mute 字、6px 圆角）。
+5. 键盘可达：1–7 切节、/ 聚焦检索、Ctrl+O 打开交付、Ctrl+U 检查更新、R 重建/重校验；所有提示用统一 `kbd` 样式（raised 底、mute 字、6px 圆角）。
 6. 破坏性操作（patch apply、close workspace）三件套同屏：明说改什么 + 自动备份位置 + Undo 入口；确认按钮一律 danger 色。
 
 
 ## 平台映射与差异声明（预钉 · 宿主实现时升级为落点表）
 
-统一层（三平台必须一致，`design/prototype/` 原型已锁定）：信息架构、核心流程、快捷键语义、
-语义色与层级词汇。因地制宜层（按平台惯例落地，不预画像素）：
+统一层（`design/prototype/` 原型已锁定）：信息架构、核心流程、快捷键语义、
+语义色与层级词汇。Autarx 是 Windows 专用产品（2026-11 平台重置，issue #56），
+宿主层按 Windows 惯例落地（不预画像素）：
 
-| 维度 | macOS | Windows | Linux |
-|---|---|---|---|
-| 修饰键 | ⌘ | Ctrl | Ctrl |
-| 命令入口 | 原生菜单栏 | 菜单栏/命令行内 | 菜单栏 |
-| 字体 | 系统栈 + PingFang SC | 系统栈 + Microsoft YaHei | 系统栈 + Noto Sans CJK |
-| 原生控件 | SwiftUI 控件 | WinUI 3 控件 | GTK4 控件 |
+| 维度 | Windows |
+|---|---|
+| 修饰键 | Ctrl |
+| 命令入口 | 菜单栏/命令行内 |
+| 字体 | 系统栈 + Microsoft YaHei |
+| 原生控件 | WinUI 3 控件 |
 
 差异声明纪律：宿主特例必须先写进本节才能实现；未声明的宿主差异按违约处理
 （案例：taskly 漂移台账 D8）。

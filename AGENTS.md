@@ -4,7 +4,7 @@
 
 - 实现界面以 `design/prototype/` 为准：对照 HTML/CSS/JS 与实物截图验收，不依赖散文复述。
 - Token/几何值真源 = `design/prototype/shared.css`（亮暗成对；无 shared.css 的仓 = design/prototype/ 各页样式）；`design/DESIGN.md` 只记语义名、用途与决策。
-- 行为边界与跨平台一致性以 `design/DESIGN.md` 的不变式与平台差异节为准。
+- 行为边界以 `design/DESIGN.md` 的不变式与平台差异节为准。
 - 改界面先改原型再改实现（tlai-prototype-flow）；动共享层（design/、shared/）先 issue 声明，同 commit 落契约。
 
 ## Current owner decision — 2026-11-18 quality-first
@@ -27,6 +27,25 @@ do not develop against an old migration branch.
 - Migration plan + stop-rule record: `docs/RIVET-MIGRATION.md`
 - Product boundaries: `docs/PRODUCT.md`
 
+## Platform scope (2026-11 reset — issue #56)
+
+Autarx ships **Windows-only** across the board: workbench host, CLI
+artifacts, CI matrix and release artifacts. Rationale: the vendor
+toolchain Autarx accompanies (DaVinci, tresos, ISOLAR) runs only on
+Windows, so macOS/Linux shipped to an audience that does not exist.
+Version numbering restarted at 0.1.0; the multi-platform releases
+v0.1.0–v0.5.0 and their tags were deleted. Consequences:
+
+- The Racket engine stays host-agnostic: `raco test racket/` runs (and
+  must stay green) on every dev machine; only `raco rivet build` (GUI
+  host) is Windows. The updater's platform identity is a constant
+  `windows`/`x64` pair.
+- CI is windows-latest for tests/host/acceptance (plus the offline
+  release-contract check); a release carries the Windows MSI, the
+  portable app zip and the windows-x64 CLI zip.
+- `windows/` remains the Windows machine's exclusive leg per family leg
+  rules; macOS/Linux machines write the shared layer only.
+
 ## Quick commands
 
 ```bash
@@ -39,7 +58,8 @@ raco test racket/
 # 2) CLI against a fixture
 racket racket/autarx/cli.rkt inspect shared/fixtures/OemDelivery --json
 
-# 3) Build the staged app (embedded backend + macOS SwiftUI host)
+# 3) Build the staged app (embedded backend + Windows WinUI host;
+#    GUI host build is Windows-only — the engine/CLI/tests run anywhere)
 raco rivet build
 raco rivet dev
 
@@ -50,7 +70,7 @@ racket racket/autarx/backend.rkt   # RVT1 transport (GUI/dev)
 # 5) Large-file benchmark (R0 stop-rule reproduction)
 racket scripts/gen-bench-ecuc.rkt -o "$TMPDIR/autarx-bench" -n 50000
 
-# 6) Current-platform product acceptance (contract → RVT1 → native → package → UI)
+# 6) Product acceptance on Windows (contract → RVT1 → native → package → UI)
 raco rivet acceptance --json
 ```
 
@@ -83,7 +103,7 @@ autarx/
 ├── rivet.rktd              Rivet manifest (backend/module/entry/protocol)
 ├── racket/autarx/          domain core + cli.rkt + mcp.rkt + backend.rkt
 ├── racket/tests/           101 contract tests + RVT1 smoke
-├── macos-host/             SwiftUI workbench (SwiftPM; builds via rivet)
+├── windows/                WinUI 3 workbench (the shipped host; Windows machine's leg)
 ├── shared/fixtures/        synthetic deliveries (ECUC + System/Comm)
 ├── scripts/                bench generator
 └── docs/                   RIVET-MIGRATION / PRODUCT / site
@@ -97,7 +117,7 @@ autarx/
 - Rivet framework gaps go upstream (issue/PR to turinglambdaai/rivet);
   this repo pins the reviewed `v0.12.0` release across CI, acceptance, and release.
 - Agent 不得以单元测试、编译或截图单独宣称产品完成；涉及 GUI 的改动必须让
-  `raco rivet acceptance --json` 在声明支持的平台通过，并保留原生控件交互与
+  `raco rivet acceptance --json` 在 Windows 通过，并保留原生控件交互与
   后端结果证据。
 - `raco test racket/` must stay green on every change.
 

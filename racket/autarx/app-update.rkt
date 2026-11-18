@@ -3,30 +3,24 @@
 ;; Online update support for the Autarx workbench backend, built on
 ;; rivet/distribution — the taskly updater pattern: the backend verifies and
 ;; downloads the signed update artifact, the native host owns installation.
-;; A check fetches the workbench feed (update-app-manifest.json — the same
-;; signed wrapper the macOS host's RivetUpdate client reads); the download
-;; runs on a background thread with progress published to a state box the
-;; hosts poll through the `update_state` RPC (RVT1 events are thread-local,
-;; so a background thread cannot emit them directly).
+;; A check fetches the workbench feed (update-app-manifest.json); the
+;; download runs on a background thread with progress published to a state
+;; box the host polls through the `update_state` RPC (RVT1 events are
+;; thread-local, so a background thread cannot emit them directly). Autarx
+;; is a Windows-only product (issue #56): the feed carries windows-x64
+;; artifacts exclusively.
 ;;
-;; Feed artifacts per platform (scripts/make-update-manifest.sh): macos
-;; app.zip (consumed by the Swift host, not this module), windows
-;; autarx-<v>-windows-x64-app.zip (the host swaps the install directory),
-;; linux autarx-<v>-linux-<arch>-app.tar.gz (hand-off install). The CLI
-;; keeps its own feed (update.rkt / update-manifest.json) — two feeds, one
-;; format and one key, because the manifest schema admits one artifact per
-;; platform × architecture × installer and the CLI zips are separate
-;; payloads.
+;; Feed artifacts (scripts/make-update-manifest.sh): the portable
+;; autarx-<v>-windows-x64-app.zip and the sibling
+;; autarx-<v>-windows-x64.msi. The CLI keeps its own feed (update.rkt /
+;; update-manifest.json) — two feeds, one format and one key, because the
+;; manifest schema admits one artifact per platform × architecture ×
+;; installer and the CLI zip is a separate payload.
 ;;
-;; Install flavors mirror the taskly split. Windows: a copy under the
-;; Program Files tree is an MSI install — the updater downloads the sibling
-;; .msi release asset (checksummed against its .sha256 sidecar) and the host
-;; hands off to a passive msiexec upgrade; portable zip installs swap in
-;; place. Linux: $APPIMAGE selects the AppImage leg (the sibling .AppImage
-;; asset replaces the running image, checksummed against its sidecar);
-;; deb/rpm prefixes never download (the host shows the package-manager
-;; guidance); everything else is the portable tarball, downloaded for the
-;; host's open-folder hand-off.
+;; Install flavors mirror the taskly split: a copy under the Program Files
+;; tree is an MSI install — the updater downloads the sibling .msi release
+;; asset (checksummed against its .sha256 sidecar) and the host hands off
+;; to a passive msiexec upgrade; portable zip installs swap in place.
 ;;
 ;; The 4-hour silent-check throttle lives in the hosts (no backend setting
 ;; store); this module only persists the sticky rollout bucket, shared with
@@ -91,9 +85,9 @@
 
 (define update-key-id "autarx-2026-10")
 
-;; SubjectPublicKeyInfo DER, base64 — the same keypair the macOS host
-;; embeds in raw form (UpdateService.swift) and the CLI updater authenticates
-;; with (update.rkt). The private half lives outside the repository and never
+;; SubjectPublicKeyInfo DER, base64 — the same keypair the CLI updater
+;; authenticates with (update.rkt) and the release pipeline signs both
+;; feeds with. The private half lives outside the repository and never
 ;; ships (UPDATE_ED25519_PRIVATE_KEY_B64 CI secret; scripts/update-keys.sh).
 (define update-public-key-b64
   "MCowBQYDK2VwAyEAIjm2Iqrres1BbLnx5DQCvZtbbKb4jBKRpUbGSQ9FWxM=")
@@ -127,15 +121,13 @@
 ;; packaging bug and must fail loudly (scripts/check-release-version.sh
 ;; guards the source).
 ;; Candidate directories that carry rivet-app-info.rktd, relative to the
-;; running executable's directory: stage-root layouts (exe beside app/),
-;; CLI-style launcher layouts (beside the exe or its parent, bin/-style),
-;; and the macOS bundle (Contents/MacOS → Contents/Resources/app). Pure so
-;; the packaged-layout resolution is testable without a bundle.
+;; running executable's directory: stage-root layouts (exe beside app/)
+;; and CLI-style launcher layouts (beside the exe or its parent, bin/-style).
+;; Pure so the packaged-layout resolution is testable without an install.
 (define (app-info-candidate-dirs exe-dir)
   (list exe-dir
         (simplify-path (build-path exe-dir 'up))
-        (build-path exe-dir "app")
-        (simplify-path (build-path exe-dir 'up "Resources" "app"))))
+        (build-path exe-dir "app")))
 
 (define (app-info-version-in dir)
   (define info (build-path dir "rivet-app-info.rktd"))
@@ -184,51 +176,39 @@
 
 ;; ------------------------------------------------------------ platform identity
 
-;; rivet release tooling emits these exact symbols into update manifests.
-(define (platform-symbol)
-  (case (system-type 'os)
-    [(macosx) 'macos]
-    [(windows) 'windows]
-    [else 'linux]))
+;; Autarx ships Windows-only (issue #56): the release pipeline emits exactly
+;; one artifact pair (windows-x64 msi + app.zip), so the identity is a pair
+;; of constants — deterministic on every host OS, which also keeps `raco
+;; test racket/` green on non-Windows dev machines. rivet release tooling
+;; emits these exact symbols into update manifests.
+(define (platform-symbol) 'windows)
 
-(define (architecture-symbol)
-  (case (system-type 'arch)
-    [(aarch64 arm64) 'arm64]
-    [else 'x64]))
+(define (architecture-symbol) 'x64)
 
 ;; Pure so tests can pin the derivation: `exe` is the running executable's
-;; directory string, `appimage-env` the $APPIMAGE value (or #f). The flavor
-;; decides which download leg start-download! runs — the host independently
-;; computes the same shape for its UX copy, and the two must agree. Windows
-;; paths stay raw strings (no filesystem normalization) so the derivation is
-;; testable on every OS; the separator-aware prefix check keeps Program
-;; Files (x86) from matching the Program Files prefix.
+;; directory string. The flavor decides which download leg start-download!
+;; runs — the host independently computes the same shape for its UX copy,
+;; and the two must agree. Windows paths stay raw strings (no filesystem
+;; normalization) so the derivation is testable on every OS; the
+;; separator-aware prefix check keeps Program Files (x86) from matching the
+;; Program Files prefix.
 (define (normalize-dir s)
   (string-downcase (string-trim s #px"[/\\\\]" #:right? #t)))
 
-(define (flavor-for-exe-path os exe appimage-env)
-  (case os
-    [(windows)
-     (define (under-program-files variable)
-       (define prefix (normalize-dir (or (getenv variable) "")))
-       (cond
-         [(string=? prefix "") #f]
-         [else
-          (define directory (normalize-dir exe))
-          (or (string=? directory prefix)
-              (string-prefix? directory (string-append prefix "\\")))]))
-     (if (or (under-program-files "ProgramFiles")
-             (under-program-files "ProgramFiles(x86)")
-             (under-program-files "ProgramW6432"))
-         "msi"
-         "zip")]
-    [else
-     (cond
-       [(and appimage-env (not (string=? appimage-env ""))) "appimage"]
-       [(or (string-prefix? exe "/opt/autarx/")
-            (string-prefix? exe "/usr/"))
-        "package"]
-       [else "tarball"])]))
+(define (flavor-for-exe-path exe)
+  (define (under-program-files variable)
+    (define prefix (normalize-dir (or (getenv variable) "")))
+    (cond
+      [(string=? prefix "") #f]
+      [else
+       (define directory (normalize-dir exe))
+       (or (string=? directory prefix)
+           (string-prefix? directory (string-append prefix "\\")))]))
+  (if (or (under-program-files "ProgramFiles")
+          (under-program-files "ProgramFiles(x86)")
+          (under-program-files "ProgramW6432"))
+      "msi"
+      "zip"))
 
 (define (executable-directory-string)
   (define run-file (find-system-path 'run-file))
@@ -237,9 +217,7 @@
       (path->string (current-directory))))
 
 (define (install-flavor)
-  (flavor-for-exe-path (system-type 'os)
-                       (executable-directory-string)
-                       (getenv "APPIMAGE")))
+  (flavor-for-exe-path (executable-directory-string)))
 
 ;; Downloads land under <temp>/autarx/updates — the CLI updater's state
 ;; directory (writable on every desktop target; portable installs under
@@ -316,33 +294,15 @@
 
 ;; The installed flavor selects which manifest artifact this install may
 ;; apply. MSI installs under Program Files take the signed .msi and hand off
-;; to the host; AppImage processes take the signed .AppImage. Everything
-;; else (portable zip, tarball, package-managed prefixes) keeps the
-;; historical portable payload; package-managed installs never download.
+;; to the host; everything else keeps the portable zip payload.
 (define (update-install-kind)
   (case (install-flavor)
     [("msi") 'msi]
-    [("appimage") 'appimage]
     [else #f]))
 
 ;; ---------- managed updater ----------
 
-;; The verified AppImage installs in place: chmod, then atomically rename
-;; over the running image. The host re-execs it on consent.
-(define (install-appimage! verified self)
-  ;; The replaced image must stay executable: rename carries the temp file's
-  ;; modes, so set them explicitly before the swap. The setter takes integer
-  ;; bits (the vector form is a contract violation on Windows, where POSIX
-  ;; modes do not exist) — the swap is only ever reached under APPIMAGE.
-  (unless (eq? (system-type 'os) 'windows)
-    (file-or-directory-permissions verified #o755))
-  (rename-file-or-directory verified self #t)
-  self)
-
 (define (make-autarx-updater)
-  ;; Set by the destination callback for an AppImage install and consumed
-  ;; by the after-download hook in the same instance.
-  (define appimage-self-box (box #f))
   (make-updater
    #:application-id app-identifier
    #:current-version (workbench-version)
@@ -357,32 +317,7 @@
    #:key-id update-key-id
    #:manifest-url (manifest-url)
    #:data-directory (destination-directory)
-   #:destination
-   (lambda (candidate)
-     (cond
-       [(equal? (install-flavor) "appimage")
-        (define self-string (getenv "APPIMAGE"))
-        (unless (and self-string (non-empty-string? self-string))
-          (error 'start-download
-                 "APPIMAGE is not set; not running as an AppImage"))
-        (define self (string->path self-string))
-        (set-box! appimage-self-box self)
-        ;; Reserve a unique name, then remove the file: a failed
-        ;; verification must not strand an empty staging file beside the
-        ;; running image (rivet's managed download cleans only its .partial).
-        (define staged
-          (make-temporary-file "autarx-update-~a.AppImage"
-                               #f
-                               (path-only self)))
-        (delete-file staged)
-        staged]
-       [else (destination-path candidate)]))
-   #:after-download
-   (lambda (verified candidate)
-     (define self (unbox appimage-self-box))
-     (if self
-         (install-appimage! verified self)
-         verified))
+   #:destination destination-path
    #:rollout-bucket (rollout-bucket)
    #:maximum-download-bytes maximum-download-bytes))
 
@@ -421,8 +356,7 @@
   (define extension
     (case (install-flavor)
       [(msi) ".msi"]
-      [(appimage) ".AppImage"]
-      [else (if (eq? (platform-symbol) 'windows) ".zip" ".tar.gz")]))
+      [else ".zip"]))
   (build-path (destination-directory)
               (string-append app-display-name "-" version extension)))
 

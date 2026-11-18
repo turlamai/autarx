@@ -1823,8 +1823,8 @@
       (u:download-candidate! (build-path (find-system-path 'temp-dir)
                                          "autarx"))))
   (unless zip-path 2)
-  ;; the windows payload's launcher carries the .exe suffix
-  (define marker (if (eq? (system-type 'os) 'windows) "autarx.exe" "autarx"))
+  ;; the payload's launcher carries the .exe suffix (Windows-only product)
+  (define marker "autarx.exe")
   (define payload-root
     (with-handlers ([exn:fail?
                      (λ (ex)
@@ -1906,9 +1906,11 @@
          #t
          (reject "autarx: --kind must be cli (the gui ships its own feed)"))]
     [("platform")
-     (if (regexp-match? #rx"^(macos|windows|linux)-(x64|arm64)$" value)
+     ;; Windows-only product (issue #56): the feed carries windows-x64
+     ;; exclusively, so no other spelling can ever select an artifact
+     (if (regexp-match? #rx"^windows-x64$" value)
          #t
-         (reject "autarx: --platform must be <platform>-<arch> (e.g. windows-x64)"))]
+         (reject "autarx: --platform must be windows-x64"))]
     [else #t]))
 
 ;; ---------------------------------------------------------------- info / modules / validate

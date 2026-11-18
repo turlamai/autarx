@@ -1,8 +1,8 @@
 #!/bin/sh
 # Build the distributable autarx CLI: launcher + embedded Racket runtime
 # tree + rivet-app-info.rktd, zipped for the update feed. The zip layout is
-# exactly what `autarx update` swaps over an install directory (marker file:
-# the `autarx` launcher).
+# exactly what `autarx update` swaps over an install directory (marker
+# file: the `autarx.exe` launcher — the product ships Windows-only).
 #
 # Usage: scripts/build-cli.sh <output-dir>
 # Produces <output-dir>/autarx/ (the distributable) and
@@ -46,7 +46,8 @@ mv "$OUT_DIR/collect" "$DIST"
 DIST_LAUNCHER=$(find "$DIST" -name 'launcher-staging*' -print -quit)
 test -n "$DIST_LAUNCHER" || { echo "build-cli: distribute produced no launcher" >&2; exit 1; }
 mv "$DIST_LAUNCHER" "$(dirname "$DIST_LAUNCHER")/autarx$EXE"
-chmod 555 "$(dirname "$DIST_LAUNCHER")/autarx$EXE" 2>/dev/null || true
+APP_BIN="$(dirname "$DIST_LAUNCHER")/autarx$EXE"
+chmod 555 "$APP_BIN" 2>/dev/null || true
 rm -f "$OUT_DIR/launcher-staging$EXE"
 
 echo "build-cli: write rivet-app-info.rktd…"
@@ -54,7 +55,7 @@ racket -e "(begin (require racket/file) (write-to-file (file->value \"rivet.rktd
 mv rivet-app-info.rktd "$DIST/rivet-app-info.rktd"
 
 echo "build-cli: smoke (version must read from the metadata file)…"
-"$DIST/bin/autarx" --help | head -1
+"$APP_BIN" --help | head -1
 
 ZIP="$OUT_DIR/autarx-$VERSION-$OS-$ARCH.zip"
 if command -v zip >/dev/null 2>&1; then

@@ -209,15 +209,13 @@ html:lang(en) .vs-zh,html:lang(zh) .vs-en{display:none!important}
                             <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 5.5L7 9.5l4-4"/></svg>
                         </button>
                         <ul class="kit-dl-menu">
-                            <li><a href="https://github.com/turlamai/autarx/releases/latest" data-kit-dl="mac"><span class="kit-dl-os" data-i18n="dl.mac">下载 macOS 版</span><span class="kit-dl-kind">.dmg</span></a></li>
                             <li><a href="https://github.com/turlamai/autarx/releases/latest" data-kit-dl="win"><span class="kit-dl-os" data-i18n="dl.win">下载 Windows 版</span><span class="kit-dl-kind">.msi</span></a></li>
-                            <li><a href="https://github.com/turlamai/autarx/releases/latest" data-kit-dl="linux"><span class="kit-dl-os" data-i18n="dl.linux">下载 Linux 版</span><span class="kit-dl-kind">.AppImage</span></a></li>
                             <li class="kit-dl-note kit-hidden" data-i18n="dl.note">当前平台请前往 Releases 页面选取对应安装包。</li>
                         </ul>
                     </div>
                     <a class="kit-btn kit-btn--secondary" href="guide.html" data-i18n="hero.cta-guide">用户手册</a>
                 </div>
-                <p class="kit-hero-meta"><span class="kit-badge" data-i18n="hero.availability">工程预览；当前优先验证 ARXML 流程、真实规模性能与跨平台恢复，不设收费门禁。</span></p>
+                <p class="kit-hero-meta"><span class="kit-badge" data-i18n="hero.availability">工程预览；当前优先验证 ARXML 流程、真实规模性能与错误恢复，不设收费门禁。</span></p>
 
                 <div class="hero-visual">
                     <div class="code-window">
@@ -266,7 +264,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
                     </div>
                     <div class="vs-stage">
                         <div class="vs-step"><span class="vs-glyph" aria-hidden="true">▤</span><b data-i18n="vs.s1t">检查包</b><small data-i18n="vs.s1b">清点交付文件</small></div>
-                        <div class="vs-step"><span class="vs-glyph" aria-hidden="true">⌘</span><b data-i18n="vs.s2t">追踪关联</b><small data-i18n="vs.s2b">发现引用问题</small></div>
+                        <div class="vs-step"><span class="vs-glyph" aria-hidden="true">⤳</span><b data-i18n="vs.s2t">追踪关联</b><small data-i18n="vs.s2b">发现引用问题</small></div>
                         <div class="vs-step"><span class="vs-glyph" aria-hidden="true">✓</span><b data-i18n="vs.s3t">评估变更</b><small data-i18n="vs.s3b">查看变化和证据</small></div>
                     </div>
                     <p class="vs-caption" data-i18n="vs.caption">架构与工作流程概念图，非软件截图；具体能力以已验收版本为准。</p>
@@ -287,7 +285,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
                     <div class="kit-card"><h3 data-i18n="f5.title">语义 diff 与 ECU 影响分析</h3><p data-i18n="f5.body">按路径身份对比两版交付——参数变化以 DEFINITION-REF 表述，绝非行号。影响分析把每个变化归类为「与本 ECU 相关/无关」，并给出可进 CI 的 breaking 发现。</p></div>
                     <div class="kit-card"><h3 data-i18n="f6.title">通信链路投影</h3><p data-i18n="f6.body">从引用图推导 Cluster → Frame → PDU → Signal 链路，并报告未挂接的孤儿对象——只陈述结构，不虚构收发方向。</p></div>
                     <div class="kit-card"><h3 data-i18n="f7.title">厂商交接与受控编辑</h3><p data-i18n="f7.body">校验中继给 DaVinci/tresos/ISOLAR，只归一化 vendor 自己的结论。编辑走 plan → review → apply → undo 步进：diff 未审阅前不落盘；apply 确认同屏说明改动范围、自动备份位置与 Undo 入口。</p></div>
-                    <div class="kit-card"><h3 data-i18n="f8.title">三平台原生工作台</h3><p data-i18n="f8.body">macOS（SwiftUI）、Windows（WinUI 3）与 Linux（GTK4）原生宿主共用同一 Racket 语义引擎，已在三平台发布；界面样式当前为系统默认，品牌化界面已按设计契约定稿，随后续版本落地。</p></div>
+                    <div class="kit-card"><h3 data-i18n="f8.title">Windows 原生工作台</h3><p data-i18n="f8.body">WinUI 3 原生宿主跑在同一 Racket 语义引擎之上——Autarx 伴随的厂商工具链（DaVinci、tresos、ISOLAR）只在 Windows 上运行，产品随之只发 Windows；界面样式当前为系统默认，品牌化界面已按设计契约定稿，随后续版本落地。</p></div>
                     <div class="kit-card"><h3 data-i18n="f9.title">AI 与自动化的同一入口</h3><p data-i18n="f9.body">autarx mcp 通过 Model Context Protocol 暴露完整工具 API——不存在裸写工具，agent 无法绕过审阅边界，每次调用都进审计日志；同一工作流也能在 CLI/CI 以稳定 JSON 运行。</p></div>
                 </div>
             </div>
@@ -300,12 +298,12 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
                 <h2 class="kit-h2"><span data-i18n="platform.t1">不是配置器，</span> <span class="kit-accent-word" data-i18n="platform.t2">是工作台。</span></h2>
                 <p class="kit-lead" data-i18n="platform.lead">Autarx 不替代 DaVinci Configurator、EB tresos 或 ETAS ISOLAR。它补上的是收到 OEM 交付到打开 vendor 工具链之间的工程缺口——vendor 侧的校验与代码生成仍是权威路径。</p>
                 <table class="support-table" style="margin-top: 34px;">
-                    <tr><th data-i18n="pf.desktop">桌面端</th><td data-i18n="pf.desktop-v">三平台原生宿主（macOS SwiftUI / Windows WinUI 3 / Linux GTK4）+ Racket 语义引擎</td></tr>
-                    <tr><th data-i18n="pf.platforms">平台</th><td data-i18n="pf.platforms-v">GUI：macOS 14+（Apple silicon / Intel）· Windows 10+（x64）· Linux（x64 / arm64）· CLI：macOS / Linux / Windows</td></tr>
+                    <tr><th data-i18n="pf.desktop">桌面端</th><td data-i18n="pf.desktop-v">Windows 原生宿主（WinUI 3）+ Racket 语义引擎</td></tr>
+                    <tr><th data-i18n="pf.platforms">平台</th><td data-i18n="pf.platforms-v">Windows 10+（x64）——GUI 与 CLI 同平台；厂商工具链（DaVinci / tresos / ISOLAR）本身只在 Windows 上运行</td></tr>
                     <tr><th data-i18n="pf.input">输入</th><td data-i18n="pf.input-v">ARXML — System Description / System Extract / ECU Extract / ECUC / 通信，多文件交付包</td></tr>
                     <tr><th data-i18n="pf.automation">自动化</th><td data-i18n="pf.automation-v">CLI 稳定 JSON 输出（CI / AI agent 友好）+ MCP 服务器</td></tr>
                     <tr><th data-i18n="pf.license">许可</th><td data-i18n="pf.license-v">源码可见，专有许可（source-available, proprietary）</td></tr>
-                    <tr><th data-i18n="pf.milestone">里程碑</th><td data-i18n="pf.milestone-v">分析栈已交付：语义引擎、语义 diff、ECU 影响分析、通信投影、厂商交接、受控编辑、MCP；三平台 GUI 宿主已上线；M9 质量、性能与签名 / 公证验证进行中</td></tr>
+                    <tr><th data-i18n="pf.milestone">里程碑</th><td data-i18n="pf.milestone-v">分析栈已交付：语义引擎、语义 diff、ECU 影响分析、通信投影、厂商交接、受控编辑、MCP；Windows GUI 宿主已上线（2026-11 平台重置为 Windows 专用）；M9 质量、性能与签名验证进行中</td></tr>
                 </table>
                 <div class="app-window" style="margin-top: 44px;">
                     <p data-i18n="pf.caption">先用合成 OEM 交付件试运行导入和索引；检查未解析引用、诊断与差异，再处理真实项目。遇到歧义结果应继续核查。</p>
@@ -317,19 +315,9 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
         <section class="kit-section" id="download">
             <div class="kit-container">
                 <span class="kit-kicker" data-i18n="dl.eyebrow">下载</span>
-                <h2 class="kit-h2"><span data-i18n="dl.t1">一个工作台，</span> <span class="kit-accent-word" data-i18n="dl.t2">三个桌面。</span></h2>
-                <p class="kit-lead" data-i18n="dl.lead">GUI 与 CLI 同一个引擎：macOS 以 dmg 交付，Windows 以 MSI 交付，Linux 以 deb / rpm / AppImage 交付；CLI 另有全平台自包含 zip。</p>
+                <h2 class="kit-h2"><span data-i18n="dl.t1">一个工作台，</span> <span class="kit-accent-word" data-i18n="dl.t2">专攻 Windows。</span></h2>
+                <p class="kit-lead" data-i18n="dl.lead">GUI 与 CLI 同一个引擎、同一个平台：Windows 以 MSI 与便携 zip 交付工作台，CLI 另有自包含 zip——厂商工具链在哪，Autarx 就在哪。</p>
                 <div class="kit-grid kit-grid--3" style="margin-top: 36px;">
-                    <a class="kit-card platform-card" href="https://github.com/turlamai/autarx/releases/latest">
-                        <div class="platform-icon" aria-hidden="true">🍎</div>
-                        <div class="platform-name">CLI · macOS</div>
-                        <div class="platform-format">.zip · arm64 + x64</div>
-                    </a>
-                    <a class="kit-card platform-card" href="https://github.com/turlamai/autarx/releases/latest">
-                        <div class="platform-icon" aria-hidden="true">🐧</div>
-                        <div class="platform-name">CLI · Linux</div>
-                        <div class="platform-format">.zip · x64 + arm64</div>
-                    </a>
                     <a class="kit-card platform-card" href="https://github.com/turlamai/autarx/releases/latest">
                         <div class="platform-icon" aria-hidden="true">🪟</div>
                         <div class="platform-name">CLI · Windows</div>
@@ -337,23 +325,13 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
                     </a>
                 </div>
                 <div class="kit-grid kit-grid--3" style="margin-top: 18px;">
-                    <a class="kit-card platform-card" data-kit-dl="mac" href="https://github.com/turlamai/autarx/releases/latest">
-                        <div class="platform-icon" aria-hidden="true">🖥️</div>
-                        <div class="platform-name" data-i18n="dl.mac-gui">GUI · macOS</div>
-                        <div class="platform-format">.dmg · arm64 + x64 · app.zip（应用内更新）</div>
-                    </a>
                     <a class="kit-card platform-card" data-kit-dl="win" href="https://github.com/turlamai/autarx/releases/latest">
                         <div class="platform-icon" aria-hidden="true">🪟</div>
                         <div class="platform-name" data-i18n="dl.win-gui">GUI · Windows</div>
-                        <div class="platform-format">.msi · x64</div>
-                    </a>
-                    <a class="kit-card platform-card" data-kit-dl="linux" href="https://github.com/turlamai/autarx/releases/latest">
-                        <div class="platform-icon" aria-hidden="true">🐧</div>
-                        <div class="platform-name" data-i18n="dl.linux-gui">GUI · Linux</div>
-                        <div class="platform-format">.deb / .rpm / .AppImage · x64 + arm64</div>
+                        <div class="platform-format">.msi · x64 · 便携 app.zip（应用内更新）</div>
                     </a>
                 </div>
-                <p class="callout" style="margin-top: 34px;"><span data-i18n="dl.callout">更新机制：CLI 用 autarx update 自更新；三平台 GUI 都内置「检查更新」（macOS ⌘U / Win Ctrl+U / Linux Help 菜单），走同一条 Ed25519 签名的 update feed。Linux 的 deb / rpm / AppImage 副本按安装形态引导更新。每个资产都带 .sha256 校验文件。</span></p>
+                <p class="callout" style="margin-top: 34px;"><span data-i18n="dl.callout">更新机制：CLI 用 autarx update 自更新；GUI 内置「检查更新」（Ctrl+U），走同一条 Ed25519 签名的 update feed——MSI 安装走被动升级，便携版就地换装。每个资产都带 .sha256 校验文件。</span></p>
                 <p style="margin-top: 24px;"><a class="kit-btn kit-btn--secondary" href="https://github.com/turlamai/autarx/releases" data-i18n="dl.all-releases">全部版本</a></p>
             </div>
         </section>
@@ -363,7 +341,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
             <div class="kit-container">
                 <span class="kit-kicker" data-i18n="status.eyebrow">状态</span>
                 <h2 class="kit-h2"><span data-i18n="status.t1">分析优先，</span> <span class="kit-accent-word" data-i18n="status.t2">一个里程碑一个里程碑。</span></h2>
-                <p class="kit-lead" data-i18n="status.lead">当前状态：工作区语义引擎、语义 diff、ECU 影响分析、通信投影、受控编辑与 MCP 已有实现，三平台 GUI 正在持续验证。M9 聚焦真实性能、错误恢复、签名与公证证据，而非商业授权。</p>
+                <p class="kit-lead" data-i18n="status.lead">当前状态：工作区语义引擎、语义 diff、ECU 影响分析、通信投影、受控编辑与 MCP 已有实现，Windows GUI 正在持续验证（2026-11 平台重置为 Windows 专用）。M9 聚焦真实性能、错误恢复与签名证据，而非商业授权。</p>
                 <div class="kit-btn-row" style="margin-top: 30px;">
                     <a class="kit-btn kit-btn--primary" href="https://github.com/turlamai/autarx/releases/latest" data-i18n="status.download">下载</a>
                     <a class="kit-btn kit-btn--secondary" href="guide.html" data-i18n="status.guide">用户手册</a>
@@ -377,8 +355,8 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
             <div class="kit-container">
                 <span class="kit-kicker" data-i18n="start.kicker">开始使用</span>
                 <h2 class="kit-h2" data-i18n="start.title">从一次有效使用开始。</h2>
-                <p class="kit-lead"><span class="kit-badge" data-i18n="hero.availability">工程预览；当前优先验证 ARXML 流程、真实规模性能与跨平台恢复，不设收费门禁。</span></p>
-                <p class="kit-text-2" style="margin-top: 18px; max-width: 72ch;" data-i18n="start.note">提供 macOS、Windows、Linux Rivet 桌面预览；CLI 和 MCP 共用 Racket 领域核心。AUTOSAR 支持范围由产品契约规定，不代表支持所有 ARXML。</p>
+                <p class="kit-lead"><span class="kit-badge" data-i18n="hero.availability">工程预览；当前优先验证 ARXML 流程、真实规模性能与错误恢复，不设收费门禁。</span></p>
+                <p class="kit-text-2" style="margin-top: 18px; max-width: 72ch;" data-i18n="start.note">Autarx 是 Windows 专用产品——它伴随只跑在 Windows 上的厂商工具链（DaVinci、tresos、ISOLAR）而存在；CLI 和 MCP 共用 Racket 领域核心。AUTOSAR 支持范围由产品契约规定，不代表支持所有 ARXML。</p>
                 <div class="kit-steps" style="margin-top: 44px;">
                     <div class="kit-step">
                         <p data-i18n="start.s1">先打开合成 OemDelivery 夹具，再处理机密交付件。</p>
@@ -460,13 +438,11 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     "hero.h1a": "一个工作台，",
     "hero.h1b": "看清整套交付。",
     "hero.lead": "Autarx 是一个 AUTOSAR 集成工作台：直接打开 OEM 交付物——System Description、System Extract、ECU Extract、ECUC 与通信 ARXML——让集成工程师在进入 vendor 工具链之前，先完成检查、检索、引用追踪与结构校验，再用语义 diff 与 ECU 影响分析看清每个变化，每条发现都带证据与修复路径。",
-    "hero.availability": "工程预览；当前优先验证 ARXML 流程、真实规模性能与跨平台恢复，不设收费门禁。",
+    "hero.availability": "工程预览；当前优先验证 ARXML 流程、真实规模性能与错误恢复，不设收费门禁。",
     "hero.cta-guide": "用户手册",
     "hero.term-title": "autarx — 真实命令与输出",
     "dl.generic": "下载最新版",
-    "dl.mac": "下载 macOS 版",
     "dl.win": "下载 Windows 版",
-    "dl.linux": "下载 Linux 版",
     "dl.note": "当前平台请前往 Releases 页面选取对应安装包。",
     "vs.title": "先看清交付物，再开展 AUTOSAR 集成。",
     "vs.lead": "文件、引用、差异与报告如何关联？用工作流程说明，而非陈旧的原生窗口截图。",
@@ -494,8 +470,8 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     "f6.body": "从引用图推导 Cluster → Frame → PDU → Signal 链路，并报告未挂接的孤儿对象——只陈述结构，不虚构收发方向。",
     "f7.title": "厂商交接与受控编辑",
     "f7.body": "校验中继给 DaVinci/tresos/ISOLAR，只归一化 vendor 自己的结论。编辑走 plan → review → apply → undo 步进：diff 未审阅前不落盘；apply 确认同屏说明改动范围、自动备份位置与 Undo 入口。",
-    "f8.title": "三平台原生工作台",
-    "f8.body": "macOS（SwiftUI）、Windows（WinUI 3）与 Linux（GTK4）原生宿主共用同一 Racket 语义引擎，已在三平台发布；界面样式当前为系统默认，品牌化界面已按设计契约定稿，随后续版本落地。",
+    "f8.title": "Windows 原生工作台",
+    "f8.body": "WinUI 3 原生宿主跑在同一 Racket 语义引擎之上——Autarx 伴随的厂商工具链（DaVinci、tresos、ISOLAR）只在 Windows 上运行，产品随之只发 Windows；界面样式当前为系统默认，品牌化界面已按设计契约定稿，随后续版本落地。",
     "f9.title": "AI 与自动化的同一入口",
     "f9.body": "autarx mcp 通过 Model Context Protocol 暴露完整工具 API——不存在裸写工具，agent 无法绕过审阅边界，每次调用都进审计日志；同一工作流也能在 CLI/CI 以稳定 JSON 运行。",
     "platform.eyebrow": "平台契约",
@@ -503,9 +479,9 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     "platform.t2": "是工作台。",
     "platform.lead": "Autarx 不替代 DaVinci Configurator、EB tresos 或 ETAS ISOLAR。它补上的是收到 OEM 交付到打开 vendor 工具链之间的工程缺口——vendor 侧的校验与代码生成仍是权威路径。",
     "pf.desktop": "桌面端",
-    "pf.desktop-v": "三平台原生宿主（macOS SwiftUI / Windows WinUI 3 / Linux GTK4）+ Racket 语义引擎",
+    "pf.desktop-v": "Windows 原生宿主（WinUI 3）+ Racket 语义引擎",
     "pf.platforms": "平台",
-    "pf.platforms-v": "GUI：macOS 14+（Apple silicon / Intel）· Windows 10+（x64）· Linux（x64 / arm64）· CLI：macOS / Linux / Windows",
+    "pf.platforms-v": "Windows 10+（x64）——GUI 与 CLI 同平台；厂商工具链（DaVinci / tresos / ISOLAR）本身只在 Windows 上运行",
     "pf.input": "输入",
     "pf.input-v": "ARXML — System Description / System Extract / ECU Extract / ECUC / 通信，多文件交付包",
     "pf.automation": "自动化",
@@ -513,27 +489,25 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     "pf.license": "许可",
     "pf.license-v": "源码可见，专有许可（source-available, proprietary）",
     "pf.milestone": "里程碑",
-    "pf.milestone-v": "分析栈已交付：语义引擎、语义 diff、ECU 影响分析、通信投影、厂商交接、受控编辑、MCP；三平台 GUI 宿主已上线；M9 商业化加固（授权、签名 / 公证、性能画像）进行中",
+    "pf.milestone-v": "分析栈已交付：语义引擎、语义 diff、ECU 影响分析、通信投影、厂商交接、受控编辑、MCP；Windows GUI 宿主已上线（2026-11 平台重置为 Windows 专用）；M9 商业化加固（授权、签名、性能画像）进行中",
     "pf.caption": "先用合成 OEM 交付件试运行导入和索引；检查未解析引用、诊断与差异，再处理真实项目。遇到歧义结果应继续核查。",
     "dl.eyebrow": "下载",
     "dl.t1": "一个工作台，",
-    "dl.t2": "三个桌面。",
-    "dl.lead": "GUI 与 CLI 同一个引擎：macOS 以 dmg 交付，Windows 以 MSI 交付，Linux 以 deb / rpm / AppImage 交付；CLI 另有全平台自包含 zip。",
-    "dl.mac-gui": "GUI · macOS",
+    "dl.t2": "专攻 Windows。",
+    "dl.lead": "GUI 与 CLI 同一个引擎、同一个平台：Windows 以 MSI 与便携 zip 交付工作台，CLI 另有自包含 zip——厂商工具链在哪，Autarx 就在哪。",
     "dl.win-gui": "GUI · Windows",
-    "dl.linux-gui": "GUI · Linux",
-    "dl.callout": "更新机制：CLI 用 autarx update 自更新；三平台 GUI 都内置「检查更新」（macOS ⌘U / Win Ctrl+U / Linux Help 菜单），走同一条 Ed25519 签名的 update feed。Linux 的 deb / rpm / AppImage 副本按安装形态引导更新。每个资产都带 .sha256 校验文件。",
+    "dl.callout": "更新机制：CLI 用 autarx update 自更新；GUI 内置「检查更新」（Ctrl+U），走同一条 Ed25519 签名的 update feed——MSI 安装走被动升级，便携版就地换装。每个资产都带 .sha256 校验文件。",
     "dl.all-releases": "全部版本",
     "status.eyebrow": "状态",
     "status.t1": "分析优先，",
     "status.t2": "一个里程碑一个里程碑。",
-    "status.lead": "当前状态：工作区语义引擎、语义 diff、ECU 影响分析、通信投影、受控编辑与 MCP 已有实现，三平台 GUI 正在持续验证。M9 聚焦真实性能、错误恢复、签名与公证证据，而非商业授权。",
+    "status.lead": "当前状态：工作区语义引擎、语义 diff、ECU 影响分析、通信投影、受控编辑与 MCP 已有实现，Windows GUI 正在持续验证（2026-11 平台重置为 Windows 专用）。M9 聚焦真实性能、错误恢复与签名证据，而非商业授权。",
     "status.download": "下载",
     "status.guide": "用户手册",
     "status.roadmap": "路线图",
     "start.kicker": "开始使用",
     "start.title": "从一次有效使用开始。",
-    "start.note": "提供 macOS、Windows、Linux Rivet 桌面预览；CLI 和 MCP 共用 Racket 领域核心。AUTOSAR 支持范围由产品契约规定，不代表支持所有 ARXML。",
+    "start.note": "Autarx 是 Windows 专用产品——它伴随只跑在 Windows 上的厂商工具链（DaVinci、tresos、ISOLAR）而存在；CLI 和 MCP 共用 Racket 领域核心。AUTOSAR 支持范围由产品契约规定，不代表支持所有 ARXML。",
     "start.s1": "先打开合成 OemDelivery 夹具，再处理机密交付件。",
     "start.s2": "检查未解析引用，对比两个副本，阅读影响分析；unknown 和歧义结果需要继续核查。",
     "start.s3": "需要修改时，先生成 patch plan 和语义差异，审阅后仅在可丢弃的工作区副本中应用。",
@@ -559,13 +533,11 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     "hero.h1a": "One workspace.",
     "hero.h1b": "Full delivery visibility.",
     "hero.lead": "Autarx is an AUTOSAR Integration Workbench that opens OEM deliveries directly — System Description, System Extract, ECU Extract, ECUC and communication ARXML — so integration engineers can inspect, search, trace references and validate structure before entering the vendor toolchain, then review every change through semantic diff and ECU impact analysis, with evidence and a fix path on each finding.",
-    "hero.availability": "Engineering preview focused on ARXML workflows, real-scale performance and cross-platform recovery; no commercial access gate.",
+    "hero.availability": "Engineering preview focused on ARXML workflows, real-scale performance and error recovery; no commercial access gate.",
     "hero.cta-guide": "User guide",
     "hero.term-title": "autarx — real commands, real output",
     "dl.generic": "Download",
-    "dl.mac": "Download for macOS",
     "dl.win": "Download for Windows",
-    "dl.linux": "Download for Linux",
     "dl.note": "Pick the right package from the Releases page for your platform.",
     "vs.title": "Understand the delivery before AUTOSAR integration.",
     "vs.lead": "Files, references, differences and reports in one workflow — not a dated native window screenshot.",
@@ -593,8 +565,8 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     "f6.body": "Cluster → frame → PDU → signal chains derived from the reference graph, with orphan frames, PDUs and signals reported — structural only, no invented sender/receiver claims.",
     "f7.title": "Vendor hand-off & reviewed patching",
     "f7.body": "Relay validation to DaVinci/tresos/ISOLAR — normalized from the vendor's own verdicts, never Autarx's. Patching follows a plan → review → apply → undo flow: nothing is written before the diff is reviewed, and the apply confirmation states the change scope, the backup location and the Undo entry on one screen.",
-    "f8.title": "The native workbench, on three desktops",
-    "f8.body": "Native hosts on macOS (SwiftUI), Windows (WinUI 3) and Linux (GTK4) share one Racket semantic engine and already ship on all three. The UI currently uses system-default styling; the branded design contract is locked and lands in an upcoming release.",
+    "f8.title": "The native Windows workbench",
+    "f8.body": "A native WinUI 3 host runs on the same Racket semantic engine — the vendor toolchain Autarx accompanies (DaVinci, tresos, ISOLAR) exists only on Windows, so the product ships Windows-only. The UI currently uses system-default styling; the branded design contract is locked and lands in an upcoming release.",
     "f9.title": "One surface for AI and automation",
     "f9.body": "autarx mcp serves the full tool API over Model Context Protocol — no raw-write tool exists, agents cannot bypass the review boundary, and every call is audit-logged. The same workflows also run from CLI and CI with stable JSON output.",
     "platform.eyebrow": "Platform contract",
@@ -602,9 +574,9 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     "platform.t2": "A workbench.",
     "platform.lead": "Autarx does not replace DaVinci Configurator, EB tresos or ETAS ISOLAR. It closes the engineering gap between receiving an OEM delivery and opening the vendor toolchain — vendor validation and code generation remain authoritative.",
     "pf.desktop": "Desktop",
-    "pf.desktop-v": "Native hosts on all three desktops (macOS SwiftUI / Windows WinUI 3 / Linux GTK4) + Racket semantic engine",
+    "pf.desktop-v": "Native Windows host (WinUI 3) + Racket semantic engine",
     "pf.platforms": "Platforms",
-    "pf.platforms-v": "GUI: macOS 14+ (Apple silicon / Intel) · Windows 10+ (x64) · Linux (x64 / arm64) · CLI: macOS / Linux / Windows",
+    "pf.platforms-v": "Windows 10+ (x64) — GUI and CLI on the same platform; the vendor toolchain (DaVinci / tresos / ISOLAR) itself runs only on Windows",
     "pf.input": "Input",
     "pf.input-v": "ARXML — System Description / System Extract / ECU Extract / ECUC / communication, multi-file packages",
     "pf.automation": "Automation",
@@ -612,27 +584,25 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     "pf.license": "License",
     "pf.license-v": "Source-available, proprietary",
     "pf.milestone": "Milestone",
-    "pf.milestone-v": "Analysis stack shipped: semantic engine, semantic diff, ECU impact, communication projection, vendor hand-off, reviewed patching, MCP; native hosts on all three desktops; M9 commercial hardening (licensing, code signing / notarization, performance profiling) in progress",
+    "pf.milestone-v": "Analysis stack shipped: semantic engine, semantic diff, ECU impact, communication projection, vendor hand-off, reviewed patching, MCP; the Windows GUI host is live (2026-11 platform reset to Windows-only); M9 commercial hardening (licensing, code signing, performance profiling) in progress",
     "pf.caption": "Start with a synthetic OEM delivery, review indexing, unresolved references, diagnostics and diffs, then consider real project data. Treat ambiguous results as requiring further review.",
     "dl.eyebrow": "Download",
     "dl.t1": "One workbench,",
-    "dl.t2": "three desktops.",
-    "dl.lead": "GUI and CLI share one engine: the macOS GUI ships as a dmg, the Windows GUI as an MSI, the Linux GUI as .deb / .rpm / .AppImage — plus self-contained CLI zips for every platform.",
-    "dl.mac-gui": "GUI · macOS",
+    "dl.t2": "Windows, on purpose.",
+    "dl.lead": "GUI and CLI share one engine and one platform: the Windows workbench ships as an MSI and a portable zip, the CLI as a self-contained zip — Autarx lives where the vendor toolchain lives.",
     "dl.win-gui": "GUI · Windows",
-    "dl.linux-gui": "GUI · Linux",
-    "dl.callout": "Updates: the CLI updates itself with autarx update; all three GUIs ship a built-in Check for Updates (macOS ⌘U / Win Ctrl+U / Linux Help menu) consuming the same Ed25519-signed update feed. Linux deb / rpm / AppImage installs get shape-aware guidance. Every asset carries a .sha256 sidecar.",
+    "dl.callout": "Updates: the CLI updates itself with autarx update; the GUI ships a built-in Check for Updates (Ctrl+U) consuming the same Ed25519-signed update feed — MSI installs upgrade passively, portable installs swap in place. Every asset carries a .sha256 sidecar.",
     "dl.all-releases": "All releases",
     "status.eyebrow": "Status",
     "status.t1": "Analysis first,",
     "status.t2": "milestone by milestone.",
-    "status.lead": "The workspace semantic engine, semantic diff, ECU impact analysis, communication projection, controlled editing and MCP have implementations; native desktop hosts need continuous real-world verification. M9 focuses on measured performance, recovery, code signing and notarization evidence, not commercial licensing.",
+    "status.lead": "The workspace semantic engine, semantic diff, ECU impact analysis, communication projection, controlled editing and MCP have implementations; the Windows GUI host is under continuous real-world verification (Windows-only since the 2026-11 platform reset). M9 focuses on measured performance, recovery and code-signing evidence, not commercial licensing.",
     "status.download": "Download",
     "status.guide": "User guide",
     "status.roadmap": "Roadmap",
     "start.kicker": "Start here",
     "start.title": "Start with one useful session.",
-    "start.note": "Rivet desktop previews for macOS, Windows and Linux; CLI and MCP use the same Racket domain. Supported AUTOSAR scope is defined by the product contract, not every possible ARXML file.",
+    "start.note": "Autarx is a Windows-only product — it lives next to the vendor toolchain it serves (DaVinci, tresos, ISOLAR), which runs only on Windows. The CLI and MCP use the same Racket domain. Supported AUTOSAR scope is defined by the product contract, not every possible ARXML file.",
     "start.s1": "Open the synthetic OemDelivery fixture before opening a confidential delivery.",
     "start.s2": "Inspect unresolved references, compare two copies and review impact diagnostics. Treat unknown/ambiguous results as unresolved work.",
     "start.s3": "For changes, generate a patch plan and semantic diff, inspect them, and only then apply to a disposable workspace copy.",
@@ -657,35 +627,32 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     <script type="text/plain" id="kit-i18n-parity">
     {
         zh: {
-            'pf.desktop-v': '三平台原生宿主（macOS SwiftUI / Windows WinUI 3 / Linux GTK4）+ Racket 语义引擎',
-            'pf.platforms-v': 'GUI：macOS 14+（Apple silicon / Intel）· Windows 10+（x64）· Linux（x64 / arm64）· CLI：macOS / Linux / Windows',
-            'pf.milestone-v': '分析栈已交付：语义引擎、语义 diff、ECU 影响分析、通信投影、厂商交接、受控编辑、MCP；三平台 GUI 宿主已上线；M9 质量、性能与签名 / 公证验证进行中',
+            'pf.desktop-v': 'Windows 原生宿主（WinUI 3）+ Racket 语义引擎',
+            'pf.platforms-v': 'Windows 10+（x64）——GUI 与 CLI 同平台；厂商工具链（DaVinci / tresos / ISOLAR）本身只在 Windows 上运行',
+            'pf.milestone-v': '分析栈已交付：语义引擎、语义 diff、ECU 影响分析、通信投影、厂商交接、受控编辑、MCP；Windows GUI 宿主已上线（2026-11 平台重置为 Windows 专用）；M9 质量、性能与签名验证进行中',
             'pf.caption': '先用合成 OEM 交付件试运行导入和索引；检查未解析引用、诊断与差异，再处理真实项目。遇到歧义结果应继续核查。',
-            'dl.lead': 'GUI 与 CLI 同一个引擎：macOS 以 dmg 交付，Windows 以 MSI 交付，Linux 以 deb / rpm / AppImage 交付；CLI 另有全平台自包含 zip。',
-            'status.lead': '当前状态：工作区语义引擎、语义 diff、ECU 影响分析、通信投影、受控编辑与 MCP 已有实现，三平台 GUI 正在持续验证。M9 聚焦真实性能、错误恢复、签名与公证证据，而非商业授权。'
+            'dl.lead': 'GUI 与 CLI 同一个引擎、同一个平台：Windows 以 MSI 与便携 zip 交付工作台，CLI 另有自包含 zip——厂商工具链在哪，Autarx 就在哪。',
+            'status.lead': '当前状态：工作区语义引擎、语义 diff、ECU 影响分析、通信投影、受控编辑与 MCP 已有实现，Windows GUI 正在持续验证（2026-11 平台重置为 Windows 专用）。M9 聚焦真实性能、错误恢复与签名证据，而非商业授权。'
         },
         en: {
-            'pf.desktop-v': 'Native hosts on all three desktops (macOS SwiftUI / Windows WinUI 3 / Linux GTK4) + Racket semantic engine',
-            'pf.platforms-v': 'GUI: macOS 14+ (Apple silicon / Intel) · Windows 10+ (x64) · Linux (x64 / arm64) · CLI: macOS / Linux / Windows',
-            'pf.milestone-v': 'Analysis stack shipped: semantic engine, semantic diff, ECU impact, communication projection, vendor hand-off, reviewed patching, MCP; native hosts on all three desktops; M9 commercial hardening (licensing, code signing / notarization, performance profiling) in progress',
+            'pf.desktop-v': 'Native Windows host (WinUI 3) + Racket semantic engine',
+            'pf.platforms-v': 'Windows 10+ (x64) — GUI and CLI on the same platform; the vendor toolchain (DaVinci / tresos / ISOLAR) itself runs only on Windows',
+            'pf.milestone-v': 'Analysis stack shipped: semantic engine, semantic diff, ECU impact, communication projection, vendor hand-off, reviewed patching, MCP; the Windows GUI host is live (2026-11 platform reset to Windows-only); M9 commercial hardening (licensing, code signing, performance profiling) in progress',
             'pf.caption': 'Start with a synthetic OEM delivery, review indexing, unresolved references, diagnostics and diffs, then consider real project data. Treat ambiguous results as requiring further review.',
-            'dl.lead': 'GUI and CLI share one engine: the macOS GUI ships as a dmg, the Windows GUI as an MSI, the Linux GUI as .deb / .rpm / .AppImage — plus self-contained CLI zips for every platform.',
-            'status.lead': 'Where things stand: the full analysis stack is shipped — workspace semantic engine, semantic diff, ECU impact analysis, communication projection, vendor hand-off, reviewed editing and the MCP agent surface — and the native hosts run on all three desktops (macOS / Windows / Linux). What remains of M9 commercial hardening: licensing, performance profiling, code signing / notarization.'
+            'dl.lead': 'GUI and CLI share one engine and one platform: the Windows workbench ships as an MSI and a portable zip, the CLI as a self-contained zip — Autarx lives where the vendor toolchain lives.',
+            'status.lead': 'Where things stand: the full analysis stack is shipped — workspace semantic engine, semantic diff, ECU impact analysis, communication projection, vendor hand-off, reviewed editing and the MCP agent surface — and the GUI host is live (Windows-only since the 2026-11 platform reset). What remains of M9 commercial hardening: licensing, performance profiling, code signing.'
         }
     }
     </script>
 
-    <!-- Download config: stable releases ship GUI dmg/msi/AppImage plus CLI zips.
-         The resolver owns the GUI asset patterns; CLI zips link to the Releases page. -->
+    <!-- Download config: Windows-only product (issue #56) — the GUI ships an MSI.
+         CLI zips link to the Releases page. -->
     <script type="application/json" id="kit-download">
     {
         "repo": "turlamai/autarx",
         "assets": {
-            "mac": "autarx-{v}-macos-{arch}.dmg",
-            "win": "autarx-{v}-windows-x64.msi",
-            "linux": "autarx-{v}-linux-{arch}.AppImage"
-        },
-        "archMap": { "linux": { "x64": "x86_64", "arm64": "aarch64" } }
+            "win": "autarx-{v}-windows-x64.msi"
+        }
     }
     </script>
 </body>

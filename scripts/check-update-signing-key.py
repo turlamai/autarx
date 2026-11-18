@@ -12,7 +12,6 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 SPKI_PREFIX = bytes.fromhex("302a300506032b6570032100")
 RACKET_CLIENTS = ("racket/autarx/update.rkt", "racket/autarx/app-update.rkt")
-SWIFT_CLIENT = "macos-host/Sources/RivetHost/UpdateService.swift"
 
 
 def decode_key(value, label):
@@ -23,7 +22,7 @@ def decode_key(value, label):
 
 
 def trusted_public_key(root=ROOT):
-    """Verify both Racket SPKI keys and the Swift raw key agree."""
+    """Verify both embedded Racket SPKI keys agree."""
     keys = []
     for relative in RACKET_CLIENTS:
         source = (Path(root) / relative).read_text(encoding="utf-8")
@@ -38,13 +37,6 @@ def trusted_public_key(root=ROOT):
         keys.append(der)
     if not hmac.compare_digest(keys[0], keys[1]):
         raise ValueError("CLI and workbench Racket public keys differ")
-    swift = (Path(root) / SWIFT_CLIENT).read_text(encoding="utf-8")
-    match = re.search(r'publicKeyBase64\s*=\s*"([A-Za-z0-9+/=]+)"', swift)
-    if not match:
-        raise ValueError("missing Swift updater public key")
-    raw = decode_key(match.group(1), SWIFT_CLIENT)
-    if len(raw) != 32 or not hmac.compare_digest(raw, keys[0][-32:]):
-        raise ValueError("Swift and Racket updater public keys differ")
     return keys[0]
 
 
@@ -78,7 +70,7 @@ def main():
     except (ValueError, OSError) as exc:
         print(f"::error::{exc}", file=sys.stderr)
         return 1
-    print("Ed25519 release key matches Racket CLI, workbench and Swift trust roots")
+    print("Ed25519 release key matches the Racket CLI and workbench trust roots")
     return 0
 
 

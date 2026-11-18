@@ -1,11 +1,11 @@
 #lang racket/base
 
 ;; Workbench updater tests (racket/autarx/app-update.rkt): the release
-;; identity, the pure derivations the host flows depend on (install flavor,
+;; identity, the pure derivations the host flow depends on (install flavor,
 ;; packaged layouts), and the managed check/download surface — the signed
 ;; wrapper machinery lives in rivet/distribution (the CLI shares it) and is
 ;; exercised here through an injected verified manifest, so the real
-;; download worker, progress, verification and AppImage swap still run.
+;; download worker, progress and verification still run.
 
 (require rackunit
          net/base64
@@ -46,17 +46,6 @@
        (fail (string-append "timed out waiting for " who))]
       [else (sleep 0.05) (loop deadline)])))
 
-;; sha256 over in-memory bytes through the same file-level function the
-;; verifier uses.
-(define (sha256-of-bytes bytes)
-  (define scratch (make-temporary-file "autarx-sha-~a"))
-  (dynamic-wind
-    (lambda ()
-      (call-with-output-file scratch #:exists 'truncate
-        (lambda (out) (write-bytes bytes out))))
-    (lambda () (sha256-file/hex scratch))
-    (lambda () (delete-file scratch))))
-
 (test-case "release identity is coherent with the repo manifest"
   (check-equal? (a:workbench-version) rktd-version)
   (check-equal? (a:manifest-url)
@@ -67,31 +56,28 @@
      (a:manifest-url))
    "https://dl.example/autarx/update-app-manifest.json"))
 
-;; Packaged-layout resolution: the 0.5.0 release runner exited the packaged
-;; app at launch because the load-time version lookup missed the macOS
-;; bundle layout (Contents/Resources/app) — pin the candidates and the
-;; per-directory read so a packaged regression trips here, not in rivet's
-;; launch smoke.
+;; Packaged-layout resolution: pin the candidates and the per-directory
+;; read so a packaged regression trips here, not in rivet's launch smoke.
 (test-case "app-info candidates cover every packaged layout"
   (define base (make-temporary-file "autarx-layout-~a" 'directory))
-  (define exe-dir (build-path base "Autarx.app" "Contents" "MacOS"))
+  (define exe-dir (build-path base "stage"))
   (define dirs (a:app-info-candidate-dirs exe-dir))
-  (check-equal? (length dirs) 4)
-  ;; macOS bundle: Contents/MacOS → Contents/Resources/app
-  (check-not-false
-   (member (simplify-path (build-path base "Autarx.app" "Contents" "Resources" "app"))
-           dirs)
-   "macOS bundle layout missing")
+  (check-equal? (length dirs) 3)
   ;; stage root: exe beside app/
   (check-not-false
    (member (build-path exe-dir "app")
            dirs)
    "stage-root layout missing")
+  ;; CLI-style launcher layouts: beside the exe and its parent
+  (check-not-false (member exe-dir dirs) "exe-dir candidate missing")
+  (check-not-false
+   (member (simplify-path (build-path exe-dir 'up)) dirs)
+   "parent-dir candidate missing")
   (delete-directory/files base))
 
-(test-case "app-info version reads the packaged bundle layout"
+(test-case "app-info version reads the packaged stage layout"
   (define base (make-temporary-file "autarx-bundle-~a" 'directory))
-  (define app-dir (build-path base "Contents" "Resources" "app"))
+  (define app-dir (build-path base "app"))
   (make-directory* app-dir)
   (call-with-output-file (build-path app-dir "rivet-app-info.rktd")
     #:exists 'truncate
@@ -118,36 +104,23 @@
           (with-env "ProgramW6432" #f
             (lambda ()
               (check-equal?
-               (a:flavor-for-exe-path 'windows
-                                      "C:\\Program Files\\Autarx\\" #f)
+               (a:flavor-for-exe-path "C:\\Program Files\\Autarx\\")
                "msi")
               (check-equal?
-               (a:flavor-for-exe-path 'windows
-                                      "C:\\Program Files (x86)\\Autarx\\" #f)
+               (a:flavor-for-exe-path "C:\\Program Files (x86)\\Autarx\\")
                ;; the (x86) tree must not match the Program Files prefix
                "zip")
               (check-equal?
-               (a:flavor-for-exe-path 'windows "C:\\Tools\\Autarx\\" #f)
+               (a:flavor-for-exe-path "C:\\Tools\\Autarx\\")
                "zip"))))))))
-
-(test-case "linux install flavor separates appimage, package and tarball"
-  (check-equal? (a:flavor-for-exe-path 'linux "/opt/autarx/RivetHost" #f)
-                "package")
-  (check-equal? (a:flavor-for-exe-path 'linux "/usr/bin/" #f) "package")
-  (check-equal? (a:flavor-for-exe-path 'linux "/home/u/autarx/RivetHost" #f)
-                "tarball")
-  (check-equal?
-   (a:flavor-for-exe-path 'linux "/home/u/autarx/RivetHost"
-                          "/mounts/Autarx-0.5.0-x86_64.AppImage")
-   "appimage"))
 
 ;; ---- managed check/download -------------------------------------------------
 
 ;; The shipped updater's install kind follows the running install shape
-;; (msi under Program Files, appimage under $APPIMAGE, portable elsewhere),
-;; so the test feed carries every installer for this platform/arch — the
-;; same bytes under each entry. Real feeds carry one per install shape.
-(define (feed-manifest url sha size [installers '(zip msi targz appimage)])
+;; (msi under Program Files, portable elsewhere), so the test feed carries
+;; every installer for this platform/arch — the same bytes under each
+;; entry. Real feeds carry one per install shape.
+(define (feed-manifest url sha size [installers '(zip msi)])
   (update-manifest
    "site.jrtx.autarx.Autarx" "9.9.9" 99 'stable
    "2026-11-01T00:00:00Z" "0.0.0" #f #t 100
@@ -225,7 +198,7 @@
   (a:reset-update-state!)
   (check-equal? (hash-ref (check-with-manifest!
                            (feed-manifest
-                            "https://downloads.example.com/autarx-9.9.9-linux-x64-app.tar.gz"
+                            "https://downloads.example.com/autarx-9.9.9-windows-x64-app.zip"
                             (make-string 64 #\a) 123456))
                           'status)
                 "available")
@@ -246,7 +219,7 @@
       (check-equal?
        (hash-ref (check-with-manifest!
                   (feed-manifest
-                   (format "http://127.0.0.1:~a/autarx-9.9.9-linux-x64-app.tar.gz"
+                   (format "http://127.0.0.1:~a/autarx-9.9.9-windows-x64-app.zip"
                            port-number)
                    sha (bytes-length payload)))
                  'status)
@@ -264,48 +237,6 @@
       (when (file-exists? downloaded) (delete-file downloaded))
       (a:reset-update-state!))
     stop-server!))
-
-;; The AppImage leg replaces the running image in place (Linux only).
-(when (eq? (a:platform-symbol) 'linux)
-  (test-case "the AppImage artifact replaces the running image"
-    (define payload (make-bytes 65536 7))
-    (define sha (sha256-of-bytes payload))
-    (define-values (port-number stop-server!) (serve-bytes! payload))
-    (define image-dir (make-temporary-file "autarx-appimage-~a" 'directory))
-    (define image-path (build-path image-dir "Autarx.AppImage"))
-    (define original (make-bytes 16 3))
-    (define old-appimage (getenv "APPIMAGE"))
-    (call-with-output-file image-path #:exists 'truncate
-      (lambda (out) (write-bytes original out)))
-    (putenv "APPIMAGE" (path->string image-path))
-    (dynamic-wind
-      void
-      (lambda ()
-        (a:reset-update-state!)
-        (check-equal?
-         (hash-ref (check-with-manifest!
-                    (feed-manifest
-                     (format "http://127.0.0.1:~a/autarx-9.9.9-linux-x86_64.AppImage"
-                             port-number)
-                     sha (bytes-length payload) '(appimage)))
-                   'status)
-         "available")
-        (a:start-download!)
-        (wait-until (lambda ()
-                      (equal? (hash-ref (a:update-state-snapshot) 'phase)
-                              "downloaded"))
-                    "the appimage downloaded phase")
-        (check-equal? (hash-ref (a:update-state-snapshot) 'downloadedPath)
-                      (path->string image-path))
-        (check-equal? (sha256-file/hex image-path) sha)
-        (check-not-false
-         (memq 'execute (file-or-directory-permissions image-path)))
-        (a:reset-update-state!))
-      (lambda ()
-        (putenv "APPIMAGE" (or old-appimage ""))
-        (when (file-exists? image-path) (delete-file image-path))
-        (delete-directory/files image-dir #:must-exist? #f)
-        (stop-server!)))))
 
 ;; The feed must keep offering the signed msi installer for Program Files
 ;; installs (the Windows host hands off to msiexec).

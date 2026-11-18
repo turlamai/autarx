@@ -168,9 +168,8 @@
 
 ;; ------------------------------------------------------------ online update
 ;; The taskly family shape: this backend verifies and downloads the signed
-;; workbench artifact (update-app-manifest.json); the Windows/Linux hosts
-;; own installation and the silent 4-hour throttle. The macOS workbench
-;; updates through RivetUpdate on the Swift side and never calls these.
+;; workbench artifact (update-app-manifest.json); the Windows host owns
+;; installation and the silent 4-hour throttle.
 
 (define (update-check->record result)
   (define (opt key) (nullable (hash-ref result key #f)))

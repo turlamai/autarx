@@ -19,19 +19,14 @@
 
 (use-all-factories!)
 
-(test-case "platform symbols match rivet release manifests"
-  (case (system-type 'os)
-    [(macosx) (check-equal? (u:platform-symbol) 'macos)]
-    [(windows) (check-equal? (u:platform-symbol) 'windows)]
-    [else (check-equal? (u:platform-symbol) 'linux)])
-  (check-not-false (memq (u:architecture-symbol) '(arm64 x64)))
-  (check-equal? (u:detect-update-platform)
-                (string-append
-                 (symbol->string (u:platform-symbol))
-                 "-"
-                 (symbol->string (u:architecture-symbol)))))
+(test-case "platform symbols are pinned to the shipped windows-x64 pair"
+  ;; Windows-only product (issue #56): the identity is constant, not
+  ;; host-derived — the feed carries windows-x64 exclusively
+  (check-equal? (u:platform-symbol) 'windows)
+  (check-equal? (u:architecture-symbol) 'x64)
+  (check-equal? (u:detect-update-platform) "windows-x64"))
 
-(test-case "the portable payload is a zip on every platform"
+(test-case "the portable payload is a zip"
   (check-equal? (u:installer-extension) ".zip"))
 
 (test-case "manifest url joins base and file name"
@@ -101,7 +96,7 @@
      u:app-identifier "9.9.9" 7 'stable
      "2026-10-09T00:00:00Z" "0.0.0" #f #t 100
      (list (update-artifact (u:platform-symbol) (u:architecture-symbol)
-                            "https://dl.example/autarx/autarx-9.9.9-macos-arm64.zip"
+                            "https://dl.example/autarx/autarx-9.9.9-windows-x64.zip"
                             (sha256-file/hex artifact-file)
                             (file-size artifact-file)
                             'zip '()
@@ -136,13 +131,14 @@
                 (string-downcase (sha256-file/hex artifact-file)))
   (check-false (select-update (config-for "9.9.9") verified))
   (check-false (select-update (config-for "10.0.0") verified))
-  ;; another platform's artifact is not this host's candidate
+  ;; another platform's artifact is not this host's candidate (the feed
+  ;; never carries one — foreign platforms stopped shipping with issue #56)
   (define other-platform
     (update-manifest
      u:app-identifier "9.9.9" 7 'stable
      "2026-10-09T00:00:00Z" "0.0.0" #f #t 100
      (list (update-artifact
-            (if (eq? (u:platform-symbol) 'windows) 'macos 'windows)
+            'macos
             (u:architecture-symbol)
             "https://dl.example/autarx/autarx-9.9.9-other.zip"
             (sha256-file/hex artifact-file)
@@ -158,8 +154,8 @@
   (check-equal? u:app-channel 'stable)
   (check-equal? u:app-display-name "Autarx")
   (check-equal? u:update-key-id "autarx-2026-10")
-  ;; the embedded SPKI key is the host key: its raw tail is exactly the
-  ;; 32 bytes UpdateService.swift embeds
+  ;; the embedded SPKI key is pinned by its raw 32-byte tail (the family
+  ;; trust root; scripts/update-keys.sh derives every published form)
   (define key
     (datum->pk-key (base64-string->bytes u:update-public-key-b64)
                    'SubjectPublicKeyInfo))
@@ -188,23 +184,23 @@
 (test-case "Extract_verified_accepts_matching_hash_and_locates_payload_root"
   (define base (make-temporary-file "upd-e2e-~a" 'directory))
   (define zip-path (build-path base "update.zip"))
-  (make-zip (list (cons "cli/autarx" #"new-binary")
+  (make-zip (list (cons "cli/autarx.exe" #"new-binary")
                   (cons "cli/config.json" #"{}"))
             zip-path)
   (define sha (sha256-file/hex zip-path))
-  (define root (u:extract-verified zip-path sha "autarx"))
+  (define root (u:extract-verified zip-path sha "autarx.exe"))
   (check-true (string-suffix? root "cli"))
-  (check-equal? (file->bytes (build-path root "autarx")) #"new-binary")
+  (check-equal? (file->bytes (build-path root "autarx.exe")) #"new-binary")
   (delete-directory/files base))
 
 (test-case "Extract_verified_rejects_a_tampered_package_before_touching_anything"
   (define base (make-temporary-file "upd-tamper-~a" 'directory))
   (define zip-path (build-path base "update.zip"))
-  (make-zip (list (cons "cli/autarx" #"new-binary")) zip-path)
+  (make-zip (list (cons "cli/autarx.exe" #"new-binary")) zip-path)
   (define fake-sha (make-string 64 #\0))
   (check-exn
    exn:fail?
-   (λ () (u:extract-verified zip-path fake-sha "autarx")))
+   (λ () (u:extract-verified zip-path fake-sha "autarx.exe")))
   ;; rejection happens before anything is extracted: no leftovers
   (delete-directory/files base))
 
@@ -213,29 +209,29 @@
   (define zip-path (build-path base "update.zip"))
   (make-zip (list (cons "other/readme.txt" #"hi")) zip-path)
   (define sha (sha256-file/hex zip-path))
-  (check-exn exn:fail? (λ () (u:extract-verified zip-path sha "autarx")))
+  (check-exn exn:fail? (λ () (u:extract-verified zip-path sha "autarx.exe")))
   (delete-directory/files base))
 
 (test-case "Apply_swaps_files_keeps_backups_and_cleans_stale_ones"
   (define base (make-temporary-file "upd-apply-~a" 'directory))
   (define zip-path (build-path base "update.zip"))
-  (make-zip (list (cons "cli/autarx" #"new-binary")
+  (make-zip (list (cons "cli/autarx.exe" #"new-binary")
                   (cons "cli/config.json" #"{}"))
             zip-path)
   (define sha (sha256-file/hex zip-path))
-  (define payload-root (u:extract-verified zip-path sha "autarx"))
+  (define payload-root (u:extract-verified zip-path sha "autarx.exe"))
   (define app-dir (build-path base "app"))
   (make-directory app-dir)
-  (call-with-output-file (build-path app-dir "autarx") #:exists 'replace
+  (call-with-output-file (build-path app-dir "autarx.exe") #:exists 'replace
     (λ (out) (display "old-binary" out)))
   (call-with-output-file (build-path app-dir "stale.autarx-update.old")
     #:exists 'replace
     (λ (out) (display "stale" out)))
   (define replaced (u:apply-payload payload-root app-dir))
   (check-equal? replaced 2)
-  (check-equal? (file->bytes (build-path app-dir "autarx")) #"new-binary")
+  (check-equal? (file->bytes (build-path app-dir "autarx.exe")) #"new-binary")
   (check-equal? (file->bytes (build-path app-dir "config.json")) #"{}")
-  (check-equal? (file->bytes (build-path app-dir "autarx.autarx-update.old"))
+  (check-equal? (file->bytes (build-path app-dir "autarx.exe.autarx-update.old"))
                 #"old-binary")
   (check-false (file-exists? (build-path app-dir "stale.autarx-update.old")))
   (delete-directory/files base))

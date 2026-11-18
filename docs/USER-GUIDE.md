@@ -10,7 +10,7 @@ Engineering preview; the complete official workbench is planned as a purchase. N
 
 ## Platforms and installation
 
-Rivet desktop previews for macOS, Windows and Linux; CLI and MCP use the same Racket domain. Supported AUTOSAR scope is defined by the product contract, not every possible ARXML file.
+Autarx is a Windows-only product — it lives next to the vendor toolchain it serves (DaVinci, tresos, ISOLAR), which runs only on Windows. The CLI and MCP use the same Racket domain. Supported AUTOSAR scope is defined by the product contract, not every possible ARXML file.
 
 Use [official Releases](https://github.com/turlamai/autarx/releases), select an explicitly listed OS/architecture asset, read its release notes and check supplied checksums. An absent asset/platform is not a delivery promise. Preview builds may lack publisher signing or notarization; do not disable system-wide security protections to install them.
 
