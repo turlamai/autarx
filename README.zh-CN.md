@@ -11,7 +11,7 @@
 
 ## 开始使用
 
-工程预览；完整官方工作台规划为买断，目前尚未开放付费购买。 提供 macOS、Windows、Linux Rivet 桌面预览；CLI 和 MCP 共用 Racket 领域核心。AUTOSAR 支持范围由产品契约规定，不代表支持所有 ARXML。
+工程预览；目前聚焦真实 ARXML 场景与跨平台可靠性，不设收费或试用门禁。 提供 macOS、Windows、Linux Rivet 桌面预览；CLI 和 MCP 共用 Racket 领域核心。AUTOSAR 支持范围由产品契约规定，不代表支持所有 ARXML。
 
 [安装、首次使用、隐私与备份恢复](docs/USER-GUIDE.zh-CN.md) · [English](docs/USER-GUIDE.md)
 
@@ -138,7 +138,7 @@ autarx validate Mcu.arxml
 
 CLI zip 就是自更新的载荷：装好后 `autarx update` 会从签名验证的更新源拉取新版本。GUI 走签名的工作台 feed（`*-app.zip` / `*-app.tar.gz` 载荷随每个版本发布）就地更新。
 
-> 发布二进制不带发行方代码签名：macOS DMG 为 ad-hoc 签名（未公证），Windows MSI 与 Linux deb / rpm / AppImage 未签名，因此 Gatekeeper 可能要求首次启动时显式放行（右键应用选「打开」），Windows SmartScreen 可能在首次运行 MSI 时告警。付费代码签名 / 公证仍是分发路线图上的剩余项（见 [docs/ROADMAP.md](docs/ROADMAP.md)）。
+> 发布二进制不带发行方代码签名：macOS DMG 为 ad-hoc 签名（未公证），Windows MSI 与 Linux deb / rpm / AppImage 未签名，因此 Gatekeeper 可能要求首次启动时显式放行（右键应用选「打开」），Windows SmartScreen 可能在首次运行 MSI 时告警。正式代码签名 / 公证仍是分发路线图上的剩余项（见 [docs/ROADMAP.md](docs/ROADMAP.md)）。
 
 也可以从源码构建：
 
@@ -216,7 +216,7 @@ autarx/
 ## 路线图
 
 Rivet 重建（R0–R8）已完成：Racket 语义核心、字节兼容 JSON 的 CLI/MCP、原生 macOS 工作台，以及 R0 性能停止规则记录——见
-[docs/RIVET-MIGRATION.md](docs/RIVET-MIGRATION.md)。工作台现已覆盖三大桌面（macOS / Windows / Linux）。项目处于 0.x 功能验证阶段；M9 剩余为商业化加固——授权、大型 OEM 交付上的性能画像、代码签名 / 公证（见 [docs/ROADMAP.md](docs/ROADMAP.md)）。
+[docs/RIVET-MIGRATION.md](docs/RIVET-MIGRATION.md)。工作台现已覆盖三大桌面（macOS / Windows / Linux）。项目处于 0.x 功能验证阶段；M9 剩余为质量与发行验证——大型 OEM 交付上的性能画像、代码签名 / 公证（见 [docs/ROADMAP.md](docs/ROADMAP.md)）。
 
 ## 许可证
 
