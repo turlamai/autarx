@@ -241,7 +241,7 @@ with byte-compatible JSON, native macOS workbench, and the R0 performance
 stop-rule record — see [docs/RIVET-MIGRATION.md](docs/RIVET-MIGRATION.md).
 The workbench now ships natively on all three desktops (macOS, Windows,
 Linux). The project is in a 0.x functional-validation phase; what remains
-of M9 is commercial hardening — licensing, performance profiling on large
+of M9 is product hardening — performance profiling on large
 OEM deliveries, and code signing / notarization (see
 [docs/ROADMAP.md](docs/ROADMAP.md)).
 
