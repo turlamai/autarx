@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 env:
-  RIVET_PIN: c96673ded75651c94a1d513b122691f85d76ccf5
+  RIVET_PIN: 179319936c6a22b2fa676c0fd557bcdb05ee5205
 
 concurrency:
   # Keep each main commit's packaged product-acceptance proof independent.
