@@ -10,7 +10,7 @@ on:
 # Single source of truth for the rivet pin; every install step below
 # references this so a bump is one edit, not a grep-replace across jobs.
 env:
-  RIVET_PIN: c96673ded75651c94a1d513b122691f85d76ccf5
+  RIVET_PIN: 179319936c6a22b2fa676c0fd557bcdb05ee5205
 concurrency:
   # Keep an independent quality gate for every main commit. GitHub coalesces
   # queued runs sharing a group even when cancel-in-progress is disabled.
