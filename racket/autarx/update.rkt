@@ -404,15 +404,24 @@
 ;; green on non-Windows machines — shipped artifacts are Windows-only
 ;; (issue #56).
 (define (unzip-archive zip-path dest)
-  (case (system-type 'os)
-    [(windows)
-     (system*/exit-code (find-executable-path "powershell") "-NoProfile"
-                        "-Command"
-                        (format "Expand-Archive -LiteralPath '~a' -DestinationPath '~a' -Force"
-                                (path->string zip-path) dest))]
-    [else
-     (system*/exit-code (find-executable-path "unzip")
-                        "-q" zip-path "-d" dest)]))
+  (zero?
+   (case (system-type 'os)
+     [(windows)
+      ;; Expand-Archive can fail inside the runner's PowerShell.Archive
+      ;; module when its three-argument ExtractToDirectory overload is
+      ;; unavailable. The two-argument .NET API works in Windows PowerShell
+      ;; and PowerShell 7. Never treat a nonzero subprocess exit as success.
+      (define (ps-quote p)
+        (string-replace (path->string p) "'" "''"))
+      (system*/exit-code
+       (find-executable-path "powershell") "-NoProfile" "-NonInteractive"
+       "-Command"
+       (format
+        "$ErrorActionPreference = 'Stop'; Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory('~a', '~a')"
+        (ps-quote zip-path) (ps-quote dest)))]
+     [else
+      (system*/exit-code (find-executable-path "unzip")
+                         "-q" zip-path "-d" dest)])))
 
 (define (find-marker dir name)
   (for/or ([p (in-list (find-files (lambda (_) #t) dir))])
