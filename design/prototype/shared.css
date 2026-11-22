@@ -57,26 +57,26 @@ body {
 .brand { display: flex; align-items: center; gap: 9px; padding: 4px 8px 12px; }
 .brand .mark {
   width: 22px; height: 22px; border-radius: 8px; background: var(--accent);
-  display: grid; place-items: center; color: var(--on-accent); font-size: 11.5px; font-weight: 700;
+  display: grid; place-items: center; color: var(--on-accent); font-size: 12px; font-weight: 700;
 }
-.brand .name { font-size: 14.5px; font-weight: 700; letter-spacing: .1px; }
-.sect { font-size: 10.5px; font-weight: 700; letter-spacing: .9px; color: var(--faint); padding: 12px 8px 6px; }
+.brand .name { font-size: 14px; font-weight: 700; letter-spacing: .1px; }
+.sect { font-size: 12px; font-weight: 700; letter-spacing: .9px; color: var(--faint); padding: 12px 8px 6px; }
 .nav { display: flex; flex-direction: column; gap: 2px; }
 .item {
   display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px;
-  font-size: 13.5px; color: var(--ink); cursor: default; user-select: none; transition: background .14s cubic-bezier(.2,.8,.2,1);
+  font-size: 14px; color: var(--ink); cursor: default; user-select: none; transition: background .14s cubic-bezier(.2,.8,.2,1);
 }
 .item:hover { background: var(--raised); }
 .item .kb {
   width: 16px; height: 16px; border-radius: 5px; display: grid; place-items: center; flex: none;
-  font-size: 10.5px; color: var(--mute); background: var(--raised); border: 1px solid var(--line);
+  font-size: 12px; color: var(--mute); background: var(--raised); border: 1px solid var(--line);
 }
 .item.active { background: var(--accent-soft); font-weight: 600; color: var(--accent-strong); }
 .dark .item.active { color: var(--accent); }
 .item.active .kb { color: var(--accent-strong); border-color: transparent; background: rgba(217,119,87,.18); }
 .dark .item.active .kb { color: var(--accent); background: rgba(224,138,107,.20); }
 .item .pill {
-  margin-left: auto; font-size: 10.5px; font-weight: 700; color: var(--danger);
+  margin-left: auto; font-size: 12px; font-weight: 700; color: var(--danger);
   background: var(--danger-soft); border-radius: 99px; padding: 1px 7px;
 }
 .item .pill.warn { color: var(--warn); background: var(--warn-soft); }
@@ -88,11 +88,11 @@ body {
 .head { flex: none; display: flex; align-items: center; gap: 12px; padding: 14px 20px 12px; }
 .head h1 { font-size: 17px; font-weight: 700; }
 .head .sub { font-size: 12px; color: var(--mute); margin-top: 2px; }
-.head .sub .path { font-family: var(--mono); font-size: 11.5px; }
+.head .sub .path { font-family: var(--mono); font-size: 12px; }
 .head .sp { flex: 1; }
 .btn {
   height: 30px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 8px;
-  font-size: 12.5px; font-weight: 600; border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  font-size: 13px; font-weight: 600; border: 1px solid var(--line); background: var(--surface); color: var(--ink);
   cursor: default; white-space: nowrap; transition: background .14s cubic-bezier(.2,.8,.2,1);
 }
 .btn:hover { background: var(--raised); }
@@ -109,7 +109,7 @@ body {
 }
 .statusbar .sp { flex: 1; }
 kbd {
-  font-family: inherit; font-size: 10.5px; color: var(--mute);
+  font-family: inherit; font-size: 12px; color: var(--mute);
   background: var(--raised); border: 1px solid var(--line); border-radius: 6px; padding: 1px 5px;
 }
 /* ==== 内容组件：路径 / chip / 卡片 ==== */
@@ -117,7 +117,7 @@ kbd {
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
 .card h2 { font-size: 12px; font-weight: 700; letter-spacing: .5px; color: var(--mute); text-transform: uppercase; margin-bottom: 10px; }
 .chip {
-  display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700;
   padding: 2px 8px; border-radius: 99px; background: var(--raised); color: var(--mute); white-space: nowrap;
 }
 .chip.kind { font-family: var(--mono); font-weight: 600; letter-spacing: 0; }
@@ -128,7 +128,7 @@ kbd {
 .dark .chip.accent { color: var(--accent); }
 .banner {
   flex: none; margin: 0 20px 10px; padding: 8px 14px; border-radius: 10px;
-  font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px;
 }
 .banner .go { margin-left: auto; text-decoration: underline; text-underline-offset: 2px; font-weight: 600; cursor: pointer; }
 .banner.ok { background: var(--ok-soft); color: var(--ok); }
@@ -140,11 +140,11 @@ kbd {
 .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
 .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
 .stat .n { font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
-.stat .n small { font-size: 12.5px; font-weight: 600; color: var(--faint); margin-left: 2px; }
-.stat .l { font-size: 11.5px; color: var(--mute); margin-top: 3px; }
+.stat .n small { font-size: 13px; font-weight: 600; color: var(--faint); margin-left: 2px; }
+.stat .l { font-size: 12px; color: var(--mute); margin-top: 3px; }
 .stat .l b { color: var(--danger); font-weight: 700; }
 /* 语义清单行 */
-.invrow { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+.invrow { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
 .invrow:last-child { border-bottom: none; }
 .invrow .k { width: 170px; flex: none; font-family: var(--mono); font-size: 12px; color: var(--ink); }
 .invrow .bar { flex: 1; height: 6px; border-radius: 99px; background: var(--raised); overflow: hidden; }
@@ -153,7 +153,7 @@ kbd {
 /* 键值摘要行 */
 .kv { display: flex; align-items: baseline; gap: 12px; padding: 5px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
 .kv:last-child { border-bottom: none; }
-.kv .k { width: 150px; flex: none; color: var(--mute); font-size: 12.5px; }
+.kv .k { width: 150px; flex: none; color: var(--mute); font-size: 13px; }
 .kv .v { flex: 1; font-variant-numeric: tabular-nums; }
 .kv .v.path { font-family: var(--mono); font-size: 12px; user-select: text; }
 /* 查找/引用行 */
