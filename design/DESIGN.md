@@ -1,143 +1,151 @@
-# Autarx DESIGN.md — 视觉与交互契约（单一真源）
+# Autarx — 设计与交互契约
 
-原型（`design/prototype/`）与 Windows 原生实现（`windows/`）都遵循本文件；改视觉先改这里，再同步实现。
-Tokens 提取自 `site/family.css`（site-kit v1.0.3，家族设计系统单一真源）现行值；三平台宿主当前用系统默认样式，本契约是品牌层首次落进工作台——原型到实现零翻译成本，平台 chrome（窗口/菜单/文件选择器）保持原生。
+版本：2026-11-20。本文替代此前散落的原型 Brief、追加修订和过时能力声明。
 
-## Brief（2026-11-11）
+## 目标与边界
 
-- **目标**：不是从零重设计——工作台 IA 已成型（Workspace / Objects / ECUs / Unresolved / Communication 五节，SwiftUI/WinUI 3/GTK4 三端一致）。本次把家族品牌 tokens 首次落进工作台，并让「路径、引用、diff、finding」这些工程内容站上主角位：校验结果即时可读、每条 finding 给出修复路径、破坏性编辑（patch apply）防错一致。原型同时覆盖 CLI 已有能力升格为工作台视图的两节：Diff（语义对比 + ECU 影响分析）与 Patch（受控编辑 plan→apply→undo）——引擎能力已存在，无新功能。
-- **原型范围**（6 屏 × 亮/暗）：① Workspace 概览（英雄屏，含索引完成反馈条）② Objects 检索 + 引用 Inspector ③ Diff + ECU 影响分析（内容主角）④ Unresolved findings（失败态 + 修复路径 + 全清空态对照）⑤ Patch 计划预览（破坏性操作确认范式）⑥ 设置（vendor / 更新 / MCP / 外观）。ECUs（Objects 的 ecu 过滤态）与 Communication 两节本次不做独立屏，导航中保留入口。
-- **Exit 条件**：6 屏关键状态齐（空态/进行态/失败态成对）+ 交互逻辑定稿 + HIG 清单全过 + 用户评审通过。
-- **不在范围**：新引擎能力、RPC 契约变更、商业/定价 UI、Linux/Windows 特有 chrome 的像素级还原、i18n（现有 UI 为英文单语）。
+Autarx 为外部 agent 提供可发现、可调用、可追溯的 AUTOSAR 工程工具能力：工程上下文、配置查询、受控变更、供应商工具调用和校验证据。循环、任务规划、错误修复决策及重试由外部 agent 负责。
 
-## 设计原则（HIG 内核）
+供应商负责其原有模型规则、模块校验与代码生成。Autarx 负责接入并归一化结果，保留执行来源、范围、版本与原始输出，不重建供应商规则引擎。结构检查与供应商校验分开呈现，不使用笼统的“生产有效”或“AUTOSAR compliant”承诺。
 
-- **路径即内容**：AUTOSAR 绝对路径是本产品的身份与主角，一律等宽字体、可选中复制；永不显示 XML 行号（引擎红线进 UI）。
-- **校验反馈即时明确**：unresolved / duplicate / breaking 在出现处（行内徽标、健康卡、diff 行）就地标红，不藏在菜单里；每条 finding 附修复路径（Trace / 在 Objects 中打开 / 复制路径）。
-- **措辞诚实**：Autarx 的 validate 只是结构检查，界面绝不出现「AUTOSAR compliant / production valid」；vendor validate 只中继 vendor 自己的结论，Autarx 从不代言。
-- **防错一致**：patch plan 先行、apply 必确认（danger 色确认按钮 + 自动备份 + Undo 承诺同屏可见）；「无 raw-write 通道」的引擎边界在 UI 上等价成立。
-- **层级克制**：bg < surface < 覆层三层足够；accent 只给交互与状态，语义 kinds 全部中性 chip——语义类别不是交互，不抢注意力。
+本次交付仅为可编辑的浏览器交互原型。没有供应商进程、安装探测、许可证探测、MCP 服务或真实代码生成。工程、配置、运行记录和错误输出均为明确标识的示例。
 
-## Tokens（语义与推导依据；值不在此复制）
+## 入口与源文件
 
-值类 token 真源 = `site/family.css`（site-kit v1.0.3 家族 kit）；原型 `design/prototype/shared.css` 与 kit 值一一对应，本表只记语义、来源与推导依据。
+- `index.html` 直接进入 `prototype/tools.html`，无额外目录或产品宣传页。
+- `prototype/tools.html`：Capabilities。
+- `prototype/workspace.html`：Workspace。
+- `prototype/objects.html`：Objects。
+- `prototype/diff.html`、`prototype/patch.html`：统一的 Changes 视图，包含变更预览、应用记录和撤销。
+- `prototype/unresolved.html`：Validation 中的 Structural inspection 入口。
+- `prototype/settings.html`：Settings。
+- `prototype/shared.css`：所有当前入口共用的完整样式及亮暗 tokens。
+- `prototype/workbench.js`：所有当前入口共用的示例状态、数据和交互。
 
-| Token | 语义 | 来源 |
+旧 `prototype-runtime.js`、`prototype-flow.js` 不再由当前入口引用；保留文件不代表继续使用旧信息架构。所有现有 HTML 入口均渲染统一工作台。Communication、Validation、Agent access 从工作台导航进入，无须新建单独入口文件。
+
+## 信息架构
+
+| 视图 | 主要职责 | 关键交互 |
 |---|---|---|
-| `--bg --surface --raised --raised-2 --line --line-strong` | 画布/卡片/悬浮/按下/分隔 中性系 | kit 原值 |
-| `--ink --mute --faint` | 主/次级/辅助文字三档 | kit 原值 |
-| `--accent --accent-strong --accent-soft --on-accent` | 选中/链接/进行态/主按钮 accent 系 | kit 原值 |
-| `--ok --ok-soft` | resolved / 全清 / detected | 推导：kit 无状态色，与 terracotta accent 可区分 + 亮暗两态对白底/深底均达 WCAG AA |
-| `--warn --warn-soft` | unknown / orphan / 计划告警 | 推导：同上 |
-| `--danger --danger-soft` | unresolved / breaking / 破坏性确认 | 推导：同上 |
+| Workspace | 当前工程、绑定、配置版本、证据摘要 | 前往绑定、配置、变更和校验 |
+| Capabilities | 供应商覆盖、产品证据、适配器与环境限制 | 名称搜索、国产/海外过滤、选中详情 |
+| Objects | 对象身份、源文件、定义寻址值、引用 | 搜索、kind 过滤、引用跳转、复制路径 |
+| Changes | 有预期版本的配置变更 | 输入、预览、确认、应用、丢弃、一次撤销 |
+| Validation | 分别显示供应商检查与结构检查 | 显式执行、结果、原始输出、历史选择、导出 |
+| Communication | 信号→PDU→帧→ECU 关系 | 沿依赖链定位对象 |
+| Agent access | 拟议工具接口和当前上下文示例 | 搜索、类型过滤、复制、跳转操作 |
+| Settings | 工程/工具/版本/包绑定及外观 | 表单编辑、缺项反馈、保存、主题切换 |
 
-- **字体**：界面 `system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei"`（宿主直接映射系统字体）；路径/引用/diff/JSON 一律 `ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace`。正文 14px/1.55，节标题 16px/700，行标题 600，次级 12.5px，辅助 11.5px。
-- **圆角**：窗口 16px · 卡片 12px · 控件 8px（= kit radius l/m/s）。**间距节奏**：4/8/12/16/24。**动效**：140ms cubic-bezier(0.2,0.8,0.2,1)，不过度。
-- **语言**：界面文案英文（跟随现有 UI 语言）；文档与契约中文。数字/计数用 tabular-nums 对齐。
+ECU 通过 Objects 的 ecu 类型和 Communication 关系提供，不再保留无法打开的分类入口。所有主要视图使用相同侧栏、工程上下文、版本提示与状态措辞。
 
-## 组件词汇
+## 核心交互与不变式
 
-`Sidebar`（INSPECT：Workspace 1 / Objects 2 / ECUs 3 · CHECK：Diff 4 / Unresolved 5 / Communication 6 · CHANGE：Patch 7；foot：Settings + 引擎状态点）· `StatCard`（概览计数卡）· `InventoryTable`（semantic kind → count）· `ObjectRow`（kind chip + short name + 等宽路径 + unresolved 警示）· `RefInspector`（对象头 + outgoing/incoming + Trace 深度）· `DiffSection`（added/removed/modified 组）· `PropertyDelta`（DEFINITION-REF 级参数值变化，旧→新着色）· `FindingCard`（kind 徽标 + source→target + 文件 + 修复路径按钮组）· `SeverityChip`（breaking=danger / info=中性 / orphan=warn / unknown=warn）· `PlanSteps`（Plan→Review→Apply→Done 步进条）· `ConfirmDialog`（破坏性操作，danger 确认按钮）· `Toast`（后台索引/更新进度浮条）。
+### 工程绑定
 
-## 不变式
+绑定包含工程名、供应商目标、工具版本、BSW/MCAL/module package 标签、工程文件位置。位置仅为示例文本，不打开本机文件。保存工程名和工具版本为必填；允许保存缺失包或工程位置的绑定，但这些状态阻止执行。
 
-1. `accent` 只用于：当前选中、链接、进行态、主按钮；语义类别 chip、diff 上下文、finding 徽标一律中性或状态色——accent 不表达错误/危险（danger 专职）。
-2. 身份永远是 AUTOSAR 绝对路径，等宽呈现；XML 行号、字节偏移不出现在任何视图中。
-3. 校验/校验措辞：结构检查结果用「unresolved / duplicate / inconsistent」陈述；「vendor 校验」永远指 vendor 工具自己的运行，Autarx 只中继与归一化。
-4. 亮暗主题成对设计，不存在只有暗态的界面；状态色（ok/warn/danger）两态都必须达 AA 对比。
-5. 键盘可达：1–7 切节、/ 聚焦检索、Ctrl+O 打开交付、Ctrl+U 检查更新、R 重建/重校验；所有提示用统一 `kbd` 样式（raised 底、mute 字、6px 圆角）。
-6. 破坏性操作（patch apply、close workspace）三件套同屏：明说改什么 + 自动备份位置 + Undo 入口；确认按钮一律 danger 色。
+绑定变化增加 environment 版本，使已有供应商证据过期，并丢弃待应用预览及跨绑定撤销快照。绑定未变时不增加版本。
 
+国产候选与未实现适配器可被绑定以表达目标，但不能因此显示成可执行。Vector 仅有明确标识的示例就绪环境；任何真实集成数恒为 0。
 
-## 平台映射与差异声明（预钉 · 宿主实现时升级为落点表）
+### 对象、引用与通信
 
-统一层（`design/prototype/` 原型已锁定）：信息架构、核心流程、快捷键语义、
-语义色与层级词汇。Autarx 是 Windows 专用产品（2026-11 平台重置，issue #56），
-宿主层按 Windows 惯例落地（不预画像素）：
+AUTOSAR 路径作为完整对象身份，等宽、可选中、在详情自然换行，不使用 XML 行号。示例包含 ECUC 容器、signal、PDU、frame、interface、SWC、unknown 和 ECU 八个对象。
 
-| 维度 | Windows |
-|---|---|
-| 修饰键 | Ctrl |
-| 命令入口 | 菜单栏/命令行内 |
-| 字体 | 系统栈 + Microsoft YaHei |
-| 原生控件 | WinUI 3 控件 |
+引用目标存在时跳转对应对象。缺失的 IF_Calibration 保持 unresolved，不擅自替换成名称相近的接口。unknown 作为诚实类别保留，不视为解析失败。通信关系仅展示模型链接，不声称满足实时性或供应商规则。
 
-差异声明纪律：宿主特例必须先写进本节才能实现；未声明的宿主差异按违约处理
-（案例：taskly 漂移台账 D8）。
+### 变更
 
-## 工具层原型修订（2026-11-14，覆盖旧 Brief 的定位与范围）
+示例参数：`CanControllerBaudRate`，初始值 500 kbit/s；编辑输入允许 1–1000 整数。这是原型输入约束，不是硬件有效范围承诺。
 
-### 产品边界
+准备预览记录 before/after、配置 revision、environment 版本；预览不写入。应用前显式确认，并重新检查两个版本，拒绝过期上下文。应用递增配置 revision 并保存一次可撤销快照，所有既有证据继续归属原配置版本。
 
-Autarx 为外部 agent 提供 AUTOSAR 配置查询、受控变更、供应商能力发现和真实校验的工具接口。循环、任务规划、诊断后的修复决策由外部 agent 控制；产品不内置自主任务编排。供应商保留自身校验与代码生成职责，Autarx 不重建其规则引擎。
+Undo 创建新 revision；不把旧通过结果重新解释为当前通过。应用和撤销更新 Objects、Changes、Workspace 和 Agent access 的同一份状态。输入变化取消旧预览，杜绝显示新值却应用旧预览。应用、撤销和绑定保存不会自动调用校验。
 
-本轮主入口为 `prototype/tools.html`，覆盖 Capabilities / Configuration / Validation / Agent access 四个连续工作视图。旧六屏保留为先前设计参考，不代表本轮接口已实现。新增接口均为拟议契约，不沿用旧页面所称“12 个工具已暴露”等实现事实。
+### 校验
 
-### 本轮 Exit 条件
+供应商示例每次只执行一次，外部 agent 或用户决定后续操作。执行开始捕获工具名、版本、包、配置 revision、environment 版本与范围；完成时保留捕获上下文，禁止把其他版本误标为本次结果。
 
-- 能力页区分 Available / Blocked / Unsupported，并给出版本、工程绑定和前置条件。
-- 配置页支持查询示例值、校验输入、差异预览、明确确认、应用和一次撤销；每次写入生成新 revision。
-- 校验页提供显式单次调用、进行态、Passed / Failed / Partial / Execution failed 四种状态、原始输出和历史记录。
-- 校验结果绑定 revision、供应商、范围与失败阈值。配置改动后标记旧证据 Stale，不自动重跑。
-- agent 页呈现拟议接口、请求与响应示例，支持搜索、类型过滤及复制。
-- 用户评审完成后才认定设计冻结；本轮不宣称真实供应商接入、代码生成完成或后端 API 已存在。
+- Passed：请求范围内的示例检查完成，没有触发失败阈值；不证明范围外的检查或系统需求。
+- Failed：执行产生了配置拒绝诊断。
+- Partial：请求的检查覆盖未完成，不能作完整通过。
+- Execution failed：没有有效校验结果，例如示例许可证失败；配置有效性未知。
+- Stale：配置或环境版本变化。保留原结论及原始输出，但不当作当前证据。
 
-### 视觉与交互
+结果可查看来源、包、版本、范围、阈值、诊断位置、原始输出和 JSON 导出。历史条目可选择查看，导出对应当前选中的记录。无记录时显示 Not run，不使用通过或零错误替代。
 
-延续既有家族暖中性色与 terracotta 品牌，这是现有设计契约的延续，并非新增默认配色。亮态主要操作色使用 `#a94e31`、白字；暗态使用 `#f0a184`、深字，替代旧主按钮的低对比组合。正文 16px / 1.6，标题 32px，节标题 20px，技术元信息 13px；正文与路径按角色分层，完整路径在详情可换行。间距以 4/8 倍数组织，交互反馈 180ms，尊重 reduced-motion。
+供应商配置诊断可定位到 ECUC 对象并进入变更。结构检查从独立 tab 显式执行，返回示例 unresolved finding，可定位 SWC 源对象。两者不合并 verdict；重复路径为 0 也不意味供应商接受。
 
-布局采用桌面侧栏 + 自适应主内容；窄屏改为顶部导航，双栏重排为单栏。四个视图统一复用原型内的 CSS tokens 和组件。单页无外部字体、图像或脚本依赖；不使用真实厂商品牌图像。
+运行和结构检查有进行状态；绑定与配置写入在执行过程中不可用。不同页面仍可以查看，完成后更新同一状态。
 
-英文界面沿用现有契约。中文交付说明。深浅主题通过工作台外观按钮切换；未宣称自动同步系统外观。
+### Agent 接口
 
-### 数据与执行诚实性
+拟议接口：`capabilities.list`、`configuration.query`、`configuration.change`、`vendor.validate`、`vendor.generate`。并非已部署 API。
 
-- 全部工程值、安装路径、就绪状态、报告和运行记录为明确标注的示例；没有本机扫描、许可证探测或供应商进程。
-- Vector 示例能力依据官方 Configurator Classic 6 文档；EB 示例仅体现其官方声明的校验/生成/导入能力，具体版本参数保持未验证；ETAS 不臆造 CLI，显示适配器未接入。
-- 参数示例为 CanControllerBaudRate。输入范围仅为原型编辑约束，不代表任何硬件或供应商已认可这些值。
-- 诊断为 illustrative fixture，不编造真实 supplier rule ID。原始输出标记 SIMULATED EXECUTION。
-- 没有初始执行记录；必须显式调用才产生记录。通过只描述所选范围，不表示全部配置或系统需求成立。
-- 缺少工程包绑定、执行失败、部分完成不能转换为 Passed。外部 agent 应能获取原始证据；归一化不得丢弃原始结果。
-- 运行数据保存在页面内存，刷新即重置。导出的 JSON 是示例证据。复制受宿主权限限制时给出可手动复制提示。
+写操作和执行请求包含预期配置与环境版本，示例响应由当前共享状态推导。未执行生成时明确返回 not_run。不宣称产品已运行 MCP 服务，也不显示虚构工具数量或连接成功。
 
-### 拟议工具接口
+## 供应商目录
 
-`capabilities.list` / `configuration.query` / `configuration.change` / `vendor.validate` / `vendor.generate`。写操作携带预期 revision；实际实现应拒绝过期修改。各适配器保留版本与能力差异，不保证五项能力在所有供应商均可用。本轮未执行真实生成，原型响应诚实返回 not_run。
+| 覆盖目标 | 本轮状态 | 必须保留的限制 |
+|---|---|---|
+| Vector DaVinci Configurator Classic | 示例就绪 | 只有模拟调用，非真实安装验证 |
+| EB tresos Studio | 示例受阻 | 配置包和实际版本接口尚未确认 |
+| ETAS ISOLAR | 未接入 | 不臆造现成 CLI |
+| 普华 ORIENTAIS | Planned | 具体配置器版本、API/CLI 待核实 |
+| 东软睿驰 NeuSAR Configurator | Planned | 具体版本、无人值守和报告格式待核实 |
+| 经纬恒润 INTEWORK-EAS-CP 工具链 | Planned | 先确认实际配置产品及接口 |
+| 睿赛德 AUTOSAR CP 配置工具 | Planned | 产品版本与自动化契约待核实 |
+| dSPACE SystemDesk | Planned | 已有公开自动化 API/MCP；架构校验不等于任意 BSW 校验 |
+| Siemens Capital Embedded Integrator AR Classic | Planned | 含 VSTAR 产品沿革，实际版本接口待核实 |
+| KPIT KSAR C4K | Planned | 自动化接口与诊断导出待核实 |
 
-参考：
+目录共 10 个目标、4 个国产目标，不声称穷尽市场或全部支持。能力列表与可执行校验相互区分，不为候选伪造安装路径或已探测状态。
 
-- https://help.vector.com/davinci-configurator-classic/en/latest/user-manual/references/cli/dvcfg-b/project.html
-- https://help.vector.com/davinci-configurator-classic/en/latest/user-manual/references/cli/dvcfg-b/project-validate.html
-- https://help.vector.com/davinci-configurator-classic/en/latest/user-manual/base/using-the-tool/command-line-usage.html
-- https://www.elektrobit.com/products/ecu/eb-tresos/studio/
+## 视觉契约
 
-## 供应商覆盖目录增补（2026-11-14）
+沿用现有家族中性色与 terracotta 品牌；未新增品牌方向。所有工作台入口共享 `shared.css`，主题通过 `data-theme` 切换，亮暗各有前景、背景、语义色与按钮文字定义。
 
-在当前工作台中增补国产候选：普华 ORIENTAIS、东软睿驰 NeuSAR Configurator、经纬恒润 INTEWORK-EAS-CP 工具链、睿赛德 AUTOSAR CP 配置工具。海外增补 dSPACE SystemDesk、Siemens Capital Embedded Integrator AR Classic（含 VSTAR 产品沿革）、KPIT KSAR C4K。共 10 项覆盖目标，不宣称穷尽市场。
+值类 tokens 以当前 `prototype/shared.css` 为原型真源；对齐产品实现时映射家族 kit `site/family.css`，状态色与可读性修正按角色映射，不在文档复制另一份数值表。
 
-新增项目统一 Planned，实际版本、适配器和自动化契约未确认；不模拟已安装，也不开放校验执行。供应商选择器与 agent 能力清单共用目录。首页统计区分目录目标、国产目标与真实接入数（0）；Vector/EB 的旧可用状态仍仅为示例。
+正文 16px/1.6；页面标题 32px、窄屏 28px；节标题 20px；技术数据与辅助信息 13px。系统 UI 字体延续既有原型；路径与 JSON 使用系统等宽字体，无网络字体。间距 4/8 倍数；控件圆角 8px；动效 180ms，减少动态效果偏好下关闭动画。
 
-SystemDesk 自动化 API / 官方 MCP 已有公开资料，但面向架构和模型校验，不等同于任意 BSW 工程的供应商校验。国产产品存在不代表公开 CLI 已确认；需要实际版本 SDK/手册与合法可用环境验证。产品证据链接放在各项详情中，不将搜索结果转写成接口承诺。
+accent 用于当前选择、链接和主操作；错误用 danger；缺失条件或过期证据用 warn；通过用 ok。颜色始终配文字。展示完整技术数据，不用大片装饰或不可操作的导航。
 
-参考：
+主区域采用 grid/flex 正常流；宽屏侧栏与双栏；窄屏顶部导航选择器，双栏/关系链重排单栏。没有为专业工具添加移动产品 roadmap。可响应窄窗口不表示已提供移动宿主。
+
+## 可访问性与状态纪律
+
+使用真实 button、label、input、select、dialog、details；所有操作有可见焦点。对话框支持取消和 Esc，并恢复触发控件或有效备用焦点。只在输入校验后显示错误，空表单不预先报错。
+
+搜索与筛选由同一数据源计算；无匹配时给出明确空态。引用点击和诊断定位可键盘操作。`/` 聚焦当前搜索，Ctrl/Command + 逗号进入设置。
+
+主题在所有工作台视图共享。状态优先存入浏览器 sessionStorage；宿主禁用时回退内存。同一标签内切换视图无须存储即可保持状态；刷新或跨文件入口能否保留取决于宿主的 storage 隔离策略，不保证跨设备持久化。
+
+更新区域明确表示未连接版本与更新服务，不伪称检查成功或签名校验已发生。
+
+## 平台与实现约束
+
+本次只修改 OpenDesign 浏览器原型及其契约，不决定或改变实际产品技术线、宿主支持范围、仓库发布策略。供应商适配器的运行平台必须按已验证版本实际声明，不根据原型所在机器推导。
+
+原型 JS 仅表达演示交互，不代表正式引擎实现；实际产品业务应依既定家族技术线放在引擎中。后续设计落账、实现对齐及发行另行进行，本轮不声称已 commit/push 或发布。
+
+## 本轮完成边界与 Exit 条件
+
+本轮交付覆盖八个主视图、既有七个 HTML 入口、统一主题/导航、配置变更与撤销、结构与供应商检查分离、证据过期与历史、工程绑定、国产覆盖目录及拟议 agent 契约。
+
+关键界面和交互已写入可编辑源文件；用户评审、实际供应商接口验证和实现验收仍未完成，不代用户标记满意或设计冻结。本轮未执行额外截图、浏览器走查、测试或真实供应商运行，不将这些未发生的动作作为质量证据。
+
+## 资料依据
+
+- Vector 工程命令：https://help.vector.com/davinci-configurator-classic/en/latest/user-manual/references/cli/dvcfg-b/project.html
+- Vector 校验范围与报告：https://help.vector.com/davinci-configurator-classic/en/latest/user-manual/references/cli/dvcfg-b/project-validate.html
+- Vector AutomationInterface：https://help.vector.com/davinci-configurator-classic/en/latest/user-manual/base/using-the-tool/command-line-usage.html
+- EB 功能说明：https://www.elektrobit.com/products/ecu/eb-tresos/studio/
 - 普华生态资料：https://www.ti.com.cn/partner/cn/ISOFT
 - NeuSAR：https://www.reachauto.com/neusar/ccore/
 - INTEWORK：https://en.hirain.com/news/341.html
 - 睿赛德：https://www.rt-thread.com/col26/list.html
-- SystemDesk：https://github.com/dspace-group/SystemDeskMCP
+- SystemDesk 官方仓：https://github.com/dspace-group/SystemDeskMCP
 - Siemens：https://www.siemens.com/en-us/products/capital/ee-systems-embedded-software/
 - KPIT：https://www.kpit.com/kpit-autosar-portal/
-
-
-## 2026-11-15 · 原型交互补齐
-
-当前入口为 prototype/tools.html。旧检查界面保留作历史参考，提供返回当前工作台与页面之间的导航；尚无独立界面的分类明确说明范围。
-
-根级 index.html 只负责首次进入主界面；页面切换直接到目标界面，不再保留页面目录。原型运行脚本 prototype-runtime.js / prototype-flow.js 只表达浏览器内的交互合同；正式产品业务仍由既定引擎实现。真实设备、模型和发布服务均未连接。凭据演示不保存密钥，破坏性示例与派发保留确认和取消。
-
-这些是可评审的增量改动，未替用户勾选满意度、HIG 最终验收或设计冻结条件。
-
-
-## Prototype source checkpoint — 2026-11-15
-
-`index.html` opens the primary prototype directly. Screen-directory launchers have been removed. All local scripts, styles and referenced assets needed by this checkpoint are versioned under this directory; OpenDesign metadata is excluded. This is an editable prototype checkpoint, not a claim that the native product or external services implement these interactions.

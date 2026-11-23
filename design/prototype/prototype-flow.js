@@ -24,5 +24,5 @@
  match('.btn',/^Check now/,()=>status('更新检查入口演示 · 未联网'));
  match('.btn',/^Reveal/,()=>modal('审计日志样例','原型未写入审计日志，也不打开本机文件。'));
  P.choices('.seg');
- document.addEventListener('keydown',e=>{if((e.ctrlKey&&e.key===',')){e.preventDefault();go('settings.html')}if(e.key==='Escape'&&backdrop)backdrop.hidden=true});
+ document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key===','){e.preventDefault();go('settings.html')}if(e.key==='Escape'&&backdrop)backdrop.hidden=true});
 })();
