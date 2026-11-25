@@ -495,7 +495,7 @@ table.compare {
 }
 .callout strong { color: var(--text); }
 
-/* ---------- Loop diagram (benchpilot) ---------- */
+/* ---------- Loop diagram ---------- */
 .loop-diagram {
     display: flex;
     align-items: center;
@@ -522,7 +522,7 @@ table.compare {
 }
 .loop-arrow { color: var(--text-3); font-size: 18px; }
 
-/* ---------- Stacked architecture (benchpilot) ---------- */
+/* ---------- Stacked architecture ---------- */
 .arch-stack {
     margin-top: 44px;
     display: flex;
