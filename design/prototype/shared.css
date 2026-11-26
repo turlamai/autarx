@@ -8,8 +8,8 @@
   --ok: #2a7240; --ok-soft: rgba(46,125,70,.10);
   --warn: #845c07; --warn-soft: rgba(154,107,8,.10);
   --danger: #af362b; --danger-soft: rgba(191,59,48,.10);
-  --sans: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", "Noto Sans Mono CJK SC", "Noto Sans CJK SC", "Microsoft YaHei", monospace;
 }
 /* Same dark token set for both theme mechanisms: the `.dark` class (legacy shell, on #app)
    and the `data-theme` attribute (workbench entry, on the root element). */
@@ -334,3 +334,11 @@ body[data-entry] dialog .actions { justify-content: flex-end; }
   body[data-entry] .toolstatus { width: 100%; padding-left: 56px; }
   body[data-entry] .topbar .mono { font-size: 12px; }
 }
+
+/* ---- temperament profile pass ---- */
+/* typography baseline (family standard 2026-11-26-temperament-profiles): CJK/Latin spacing and kinsoku come from the rendering layer,
+   never from typed spaces (§4, §10). Values stay in the token block above. */
+body { text-autospace: normal; line-break: strict; }
+::selection { background: var(--accent-soft); color: var(--ink); }
+/* Paired neutral scrollbar for both themes; thin and non-distracting. */
+html { scrollbar-color: var(--line) transparent; }
