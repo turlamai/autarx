@@ -15,14 +15,15 @@
   .sel b { font-weight: 600; }
   .sel .car { color: var(--faint); }
   .cmp { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px; align-items: start; }
-  .sumline { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--mute); margin-bottom: 12px; font-variant-numeric: tabular-nums; }
+  .sumline { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 12px; color: var(--mute); margin-bottom: 12px; font-variant-numeric: tabular-nums; }
   .sumline > span { white-space: nowrap; }
+  .sumline > span:last-child { margin-left: auto; }
   .sumline .path { font-family: var(--mono); font-size: 12px; }
   .sumline .sp { flex: 1; }
   .dsec { margin-bottom: 12px; }
   .dsec > h2 { font-size: 12px; font-weight: 700; letter-spacing: .5px; color: var(--mute); text-transform: uppercase; margin: 0 0 6px; }
   .drow {
-    display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px;
     background: var(--surface); border: 1px solid var(--line); margin-bottom: 6px; font-size: 13px;
   }
   .drow .sig { flex: none; width: 14px; text-align: center; font-weight: 700; font-size: 14px; }
@@ -31,10 +32,11 @@
   .drow .sp { flex: 1; }
   .props { margin: 4px 0 10px 24px; display: flex; flex-direction: column; gap: 5px; }
   .prop {
-    display: flex; align-items: baseline; gap: 8px; padding: 6px 10px; border-radius: 8px;
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; padding: 6px 10px; border-radius: 8px;
     background: var(--surface); border: 1px solid var(--line); font-family: var(--mono); font-size: 12px;
   }
-  .prop .def { color: var(--faint); flex: none; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prop .def { color: var(--mute); flex: none; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prop .vals { display: inline-flex; align-items: baseline; gap: 8px; flex: none; min-width: 0; max-width: 100%; }
   .prop .old { color: var(--danger); text-decoration: line-through; text-decoration-thickness: 1px; }
   .prop .arr { color: var(--faint); }
   .prop .new { color: var(--ok); font-weight: 600; }
@@ -42,12 +44,12 @@
   .impact .ecu { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
   .impact .closure { font-size: 12px; color: var(--mute); line-height: 1.6; margin-bottom: 10px; font-variant-numeric: tabular-nums; }
   .impact .closure b { color: var(--ink); }
-  .finding { display: flex; gap: 8px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
+  .finding { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
   .finding:last-child { border-bottom: none; }
-  .finding .code { font-family: var(--mono); font-size: 11px; flex: none; }
-  .finding .obj { font-family: var(--mono); font-size: 11px; color: var(--mute); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .comm-line { font-size: 12px; color: var(--faint); margin-top: 10px; }
-  .exit { font-size: 11px; font-family: var(--mono); }
+  .finding .code { font-family: var(--mono); font-size: 12px; flex: none; }
+  .finding .obj { font-family: var(--mono); font-size: 12px; color: var(--mute); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .comm-line { font-size: 12px; color: var(--mute); margin-top: 10px; }
+  .exit { font-size: 12px; font-family: var(--mono); }
 </style>
 </head>
 <body>
@@ -56,7 +58,7 @@
       <div class="lights"><i></i><i></i><i></i></div>
       <div class="t">Autarx — <span class="path">Diff · DiffBefore → DiffAfter</span></div>
       <div class="sp"></div>
-      <button class="iconbtn" id="themeBtn" title="Toggle light/dark (prototype only)">◐</button>
+      <button class="iconbtn" id="themeBtn" type="button" aria-label="Switch to dark theme" title="Switch to dark theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"></circle><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"></path></svg></button>
     </div>
     <div class="body">
       <aside class="sidebar">
@@ -117,8 +119,8 @@
                 <h2>Modified · 3</h2>
                 <div class="drow mod"><span class="sig">~</span><span class="obj">ECUC-MODULE-CONFIGURATION-VALUES /Config/Diag</span><span class="sp"></span><span class="chip kind">ecuc-module</span></div>
                 <div class="props">
-                  <div class="prop"><span class="def">DiagGeneral / DiagParamA / VALUE</span><span class="old">1</span><span class="arr">→</span><span class="new">2</span></div>
-                  <div class="prop"><span class="def">DiagGeneral / DiagTesterRef / VALUE-REF</span><span class="old">/Vehicle/Ecus/Legacy</span><span class="arr">→</span><span class="new">/Vehicle/Ecus/RadarFL</span></div>
+                  <div class="prop"><span class="def">DiagGeneral / DiagParamA / VALUE</span><span class="vals"><span class="old">1</span><span class="arr">→</span><span class="new">2</span></span></div>
+                  <div class="prop"><span class="def">DiagGeneral / DiagTesterRef / VALUE-REF</span><span class="vals"><span class="old">/Vehicle/Ecus/Legacy</span><span class="arr">→</span><span class="new">/Vehicle/Ecus/RadarFL</span></span></div>
                 </div>
                 <div class="drow mod"><span class="sig">~</span><span class="obj">ECUC-CONTAINER-VALUE /Config/Diag/DiagGeneral</span><span class="sp"></span><span class="chip kind">ecuc-container</span></div>
                 <div class="drow mod"><span class="sig">~</span><span class="obj">/SwCs/AdaptiveApp</span><span class="sp"></span><span class="chip danger">type change</span><span class="obj" style="color:var(--mute)">APPLICATION-SW-COMPONENT-TYPE → COMPOSITION-SW-COMPONENT-TYPE</span></div>

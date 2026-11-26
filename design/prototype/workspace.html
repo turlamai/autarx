@@ -17,11 +17,11 @@
   .finding .sp { flex: 1; }
   .finding .fix { display: flex; gap: 6px; }
   .fixbtn {
-    height: 24px; padding: 0 9px; border-radius: 7px; border: 1px solid var(--line); background: var(--surface);
-    font-size: 11px; font-weight: 600; color: var(--ink); display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+    height: 28px; padding: 0 9px; border-radius: 7px; border: 1px solid var(--line); background: var(--surface);
+    font-size: 12px; font-weight: 600; color: var(--ink); display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
   }
-  .kindnote { font-size: 12px; color: var(--faint); margin-top: 8px; line-height: 1.5; }
-  .theme-note { font-size: 11px; }
+  .kindnote { font-size: 12px; color: var(--mute); margin-top: 8px; line-height: 1.5; }
+  .theme-note { font-size: 12px; }
 </style>
 </head>
 <body>
@@ -30,7 +30,7 @@
       <div class="lights"><i></i><i></i><i></i></div>
       <div class="t">Autarx — <span class="path">OemDelivery</span></div>
       <div class="sp"></div>
-      <button class="iconbtn" id="themeBtn" title="Toggle light/dark (prototype only)">◐</button>
+      <button class="iconbtn" id="themeBtn" type="button" aria-label="Switch to dark theme" title="Switch to dark theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"></circle><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"></path></svg></button>
     </div>
     <div class="body">
       <aside class="sidebar">
@@ -128,7 +128,7 @@
           <span><kbd>/</kbd> find</span>
           <span class="sp"></span>
           <span>Engine ready · backend 0.5.0</span>
-          <span class="theme-note">prototype v0.1 · ◐ toggles dark</span>
+          <span class="theme-note">prototype v0.1 · theme button toggles dark</span>
         </div>
       </section>
     </div>
