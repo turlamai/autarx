@@ -15,16 +15,12 @@ Autarx 为外部 agent 提供可发现、可调用、可追溯的 AUTOSAR 工程
 ## 入口与源文件
 
 - `index.html` 直接进入 `prototype/tools.html`，无额外目录或产品宣传页。
-- `prototype/tools.html`：Capabilities。
-- `prototype/workspace.html`：Workspace。
-- `prototype/objects.html`：Objects。
-- `prototype/diff.html`、`prototype/patch.html`：统一的 Changes 视图，包含变更预览、应用记录和撤销。
-- `prototype/unresolved.html`：Validation 中的 Structural inspection 入口。
-- `prototype/settings.html`：Settings。
-- `prototype/shared.css`：所有当前入口共用的完整样式及亮暗 tokens。
-- `prototype/workbench.js`：所有当前入口共用的示例状态、数据和交互。
+- `prototype/tools.html`：当前入口，渲染统一工作台的八个视图（初始视图 Capabilities）；`data-entry` / `data-tab` 决定初始视图与 tab。
+- `prototype/workspace.html`、`objects.html`、`diff.html`、`patch.html`、`unresolved.html`、`settings.html`：旧版检查流程参考页。它们仍由旧壳层样式和 `prototype-runtime.js`、`prototype-flow.js` 渲染，页顶标注「旧版检查流程参考」并链接回当前工作台，不承载下文信息架构。
+- `prototype/shared.css`：亮暗 tokens 与全部样式——旧壳层组件，以及作用域限定在 `body[data-entry]` 下的统一工作台样式。
+- `prototype/workbench.js`：统一工作台的示例状态、数据和交互。
 
-旧 `prototype-runtime.js`、`prototype-flow.js` 不再由当前入口引用；保留文件不代表继续使用旧信息架构。所有现有 HTML 入口均渲染统一工作台。Communication、Validation、Agent access 从工作台导航进入，无须新建单独入口文件。
+旧 `prototype-runtime.js`、`prototype-flow.js` 只被上述六个参考页引用；保留文件不代表继续使用旧信息架构。统一工作台目前只由 `tools.html` 渲染；其余入口迁入统一壳层还是退役尚未决定（见文末 2026-11-26 记录）。Communication、Validation、Agent access 从工作台导航进入，无须新建单独入口文件。
 
 ## 信息架构
 
@@ -106,7 +102,7 @@ Undo 创建新 revision；不把旧通过结果重新解释为当前通过。应
 
 ## 视觉契约
 
-沿用现有家族中性色与 terracotta 品牌；未新增品牌方向。所有工作台入口共享 `shared.css`，主题通过 `data-theme` 切换，亮暗各有前景、背景、语义色与按钮文字定义。
+沿用现有家族中性色与 terracotta 品牌；未新增品牌方向。所有入口共享 `shared.css`，亮暗各有前景、背景、语义色与按钮文字定义。统一工作台在根元素切换 `data-theme`；旧壳层参考页在 `#app` 切换 `.dark`。两种机制共用同一组暗色 tokens。
 
 值类 tokens 以当前 `prototype/shared.css` 为原型真源；对齐产品实现时映射家族 kit `site/family.css`，状态色与可读性修正按角色映射，不在文档复制另一份数值表。
 
@@ -151,3 +147,25 @@ accent 用于当前选择、链接和主操作；错误用 danger；缺失条件
 - SystemDesk 官方仓：https://github.com/dspace-group/SystemDeskMCP
 - Siemens：https://www.siemens.com/en-us/products/capital/ee-systems-embedded-software/
 - KPIT：https://www.kpit.com/kpit-autosar-portal/
+
+## 对齐记录 — 2026-11-26（家族规范 `2026-11-20-minimal-family`）
+
+起始 SHA `17ecd2f`。只改 `design/`；未改信息架构、强调色、示例数据、文案含义与行为。字号例外记录：无。
+
+| 检查 | 结果 | 依据 / 限制 |
+|---|---|---|
+| R1 主题切换 | 通过 | 六个参考页的 `◐` 字形按钮改为 16px 线性图标（暗色显示 moon、浅色显示 sun）的 28px 安静图标按钮；`aria-label` 与 `title` 同步为目标主题。统一工作台顶栏沿用文字按钮 Dark / Light appearance。 |
+| R2 12px 下限 | 通过 | 源扫描 sub-12px 声明 12 → 0；渲染 `small` 76 → 0（14 行合计）。参考页的 `fixbtn` 与主题分段控件高度提到 28px。 |
+| R3 减少动态效果与焦点 | 通过 | `shared.css` 新增 `:focus-visible`（2px `--accent-strong`，offset 2px）与 `prefers-reduced-motion` 规则。 |
+| R4 原型完整性 | 通过 | 零远程依赖、本地引用全部可达。统一工作台入口 `tools.html` 自 `11e5b90` 起没有样式表（浅色无布局，暗色文字不可见）；本次按其脚本抽取前的内联样式表在 `shared.css` 恢复，作用域 `body[data-entry]`。`index.html` 按上文契约保持直接进入产品，不设目录页。 |
+| R5 可访问名称 | 通过 | 图标按钮有名称，装饰 SVG 带 `aria-hidden`；渲染 `nameless` 0 → 0。 |
+| R6 渲染缺陷 | 通过 | diff 参考页：摘要行溢出、属性行截断并越出边框、类型变更行截断，改为可换行。settings：路径值不再被省略号截断。objects 与统一工作台：AUTOSAR 路径按 `/` 段换行。参考页窗口在 1280×800 下收进一屏（页高 855 → 800）。 |
+| R7 契约同步 | 通过 | 「入口与源文件」改为与仓库一致：统一工作台只由 `tools.html` 渲染，其余六页为旧版参考页。 |
+| R8 仓库门禁 | 通过 | 无 CI 工作流、脚本或测试读取 `design/`。`raco test racket/` 133 项通过；`git diff --check` 干净。`scripts/tests` 单测在本机导入失败（LibreSSL 无 ED25519），与 `design/` 无关。 |
+| 对比度 | 部分 | 用作文字的 `--faint` 改用 `--mute`，渲染 `low` 106 → 39。未改：家族 kit 配对（浅色 `--accent` 底白字 3.12:1，见主按钮与品牌块）和状态色在软底上的 4.1–4.45:1 边缘项；两者都是家族级 token 决策。 |
+
+未决（需产品决策，本次未改）：
+
+- 六个旧版参考页迁入统一工作台还是退役。
+- 统一工作台的尺度比家族默认角色大（页面标题 32/28、分组标题 20、正文 16，家族为 24/18/14）；本次按既有层级恢复，未重新定标。
+- settings 参考页供应商行的状态 chip 使该组数值列比其他行靠右约 60px。

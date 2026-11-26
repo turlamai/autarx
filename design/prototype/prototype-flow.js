@@ -1,7 +1,7 @@
 /* Historical inspection prototypes remain connected and clearly labelled. */
 (() => {
  const P=Prototype,{ $, $$, text, link, match, go, modal, status, copy, download }=P;
- const notice=document.createElement('nav');notice.className='proto-context';notice.innerHTML='旧版检查流程参考 <a href="tools.html">打开当前工具工作台 →</a>';document.body.prepend(notice);
+ const notice=document.createElement('nav');notice.className='proto-context';notice.setAttribute('aria-label','原型导航');notice.innerHTML='旧版检查流程参考 <a href="tools.html">打开当前工具工作台 →</a>';document.body.prepend(notice);
  P.nav('.nav .item',{Workspace:'workspace.html',Objects:'objects.html',Diff:'diff.html',Unresolved:'unresolved.html',Patch:'patch.html'});
  $$('.nav .item').filter(x=>/ECUs|Communication/.test(text(x))).forEach(el=>link(el,()=>modal(text(el),'此分类属于旧版设计范围；当前原型未包含独立页面。',[],()=>go('tools.html'),'打开当前工作台')));
  P.nav('.sidebar .foot .st',{Settings:'settings.html'});
