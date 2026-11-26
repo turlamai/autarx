@@ -4,10 +4,10 @@
   --bg: #faf8f5; --surface: #ffffff; --raised: #f3efe9; --raised-2: #ece6dd;
   --line: rgba(32,27,22,.12); --line-strong: rgba(32,27,22,.24);
   --ink: #201b16; --mute: #5d554c; --faint: #8a8177;
-  --accent: #d97757; --accent-strong: #a94e31; --accent-soft: rgba(217,119,87,.12); --on-accent: #ffffff;
-  --ok: #2e7d46; --ok-soft: rgba(46,125,70,.10);
-  --warn: #9a6b08; --warn-soft: rgba(154,107,8,.10);
-  --danger: #bf3b30; --danger-soft: rgba(191,59,48,.10);
+  --accent: #b34b29; --accent-strong: #9b482d; --accent-soft: rgba(217,119,87,.12); --on-accent: #ffffff;
+  --ok: #2a7240; --ok-soft: rgba(46,125,70,.10);
+  --warn: #845c07; --warn-soft: rgba(154,107,8,.10);
+  --danger: #af362b; --danger-soft: rgba(191,59,48,.10);
   --sans: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace;
 }
@@ -18,10 +18,10 @@
   --bg: #16120f; --surface: #1f1a16; --raised: #262019; --raised-2: #2e2721;
   --line: rgba(241,236,229,.13); --line-strong: rgba(241,236,229,.26);
   --ink: #f1ece5; --mute: #a89f93; --faint: #7a7166;
-  --accent: #e08a6b; --accent-strong: #d97757; --accent-soft: rgba(224,138,107,.14); --on-accent: #1d120c;
+  --accent: #e08a6b; --accent-strong: #e8ab97; --accent-soft: rgba(224,138,107,.14); --on-accent: #1d120c;
   --ok: #7dce9c; --ok-soft: rgba(125,206,156,.14);
   --warn: #e3b25e; --warn-soft: rgba(227,178,94,.13);
-  --danger: #f2857b; --danger-soft: rgba(242,133,123,.14);
+  --danger: #f39087; --danger-soft: rgba(242,133,123,.14);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -81,7 +81,7 @@ body {
 .item.active { background: var(--accent-soft); font-weight: 600; color: var(--accent-strong); }
 .dark .item.active { color: var(--accent); }
 .item.active .kb { color: var(--accent-strong); border-color: transparent; background: rgba(217,119,87,.18); }
-.dark .item.active .kb { color: var(--accent); background: rgba(224,138,107,.20); }
+.dark .item.active .kb { color: var(--accent-strong); background: rgba(224,138,107,.20); }
 .item .pill {
   margin-left: auto; font-size: 12px; font-weight: 700; color: var(--danger);
   background: var(--danger-soft); border-radius: 99px; padding: 1px 7px;
