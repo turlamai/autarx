@@ -10,7 +10,7 @@ env:
   # install 'URL#'` silently resolve to rivet main-HEAD, so release
   # artifacts were built from an untested commit while the contract tests
   # ran the pinned version (v0.4.1 / v0.4.2 shipped this way).
-  RIVET_PIN: c1f0d921e2136c0cfb2c1c1f6d273f2b26222a19
+  RIVET_PIN: 0db8b76396f70dde6d0a9c7935a0bd91d8c066f3
 permissions:
   contents: write
   id-token: write
