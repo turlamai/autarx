@@ -3,6 +3,7 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
 
 env:
   # Single pin source, same value as ci.yml. Release used to reference
@@ -30,7 +31,9 @@ jobs:
           version: stable
           distribution: full
       - name: Check release tag against the version single source
-        run: bash scripts/check-release-version.sh "$GITHUB_REF_NAME"
+        run: |
+          [[ "$GITHUB_REF" == refs/tags/v* ]] || { echo "::error::Release requires a version tag"; exit 1; }
+          bash scripts/check-release-version.sh "$GITHUB_REF_NAME"
       # Fail before native packaging if the secret cannot authenticate both feeds.
       - name: Verify Ed25519 release key matches all updater trust roots
         env:
