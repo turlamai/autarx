@@ -121,8 +121,7 @@ autarx validate Mcu.arxml
 
 ## Install
 
-Releases follow `autarx-<version>-<os>-<arch>.<ext>` and ship from
-[GitHub Releases](https://github.com/turlamai/autarx/releases):
+The planned release artifacts follow `autarx-<version>-<os>-<arch>.<ext>`. Check [GitHub Releases](https://github.com/turlamai/autarx/releases) for actually published assets and their verification status. If no suitable verified asset is available, build from source using the instructions below. The following table describes the intended distribution formats, not a guarantee of availability:
 
 | Download | Platform | Kind |
 | --- | --- | --- |
