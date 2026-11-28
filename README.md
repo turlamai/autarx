@@ -11,7 +11,7 @@ Point it at an OEM delivery or ECU extract directory and get a semantic workspac
 
 ## Start here
 
-Engineering preview; the complete official workbench is planned as a purchase. No paid checkout is open. Autarx is a **Windows-only** product — it lives next to the vendor toolchain it serves (DaVinci, tresos, ISOLAR), which only runs on Windows; the CLI and MCP use the same Racket domain. Supported AUTOSAR scope is defined by the product contract, not every possible ARXML file.
+Engineering preview; current development prioritizes quality, recovery and verified delivery, without paid feature gates. Autarx is a **Windows-only** product — it lives next to the vendor toolchain it serves (DaVinci, tresos, ISOLAR), which only runs on Windows; the CLI and MCP use the same Racket domain. Supported AUTOSAR scope is defined by the product contract, not every possible ARXML file.
 
 [Installation, first use, privacy, backup and recovery](docs/USER-GUIDE.md) · [简体中文](docs/USER-GUIDE.zh-CN.md)
 
@@ -121,8 +121,7 @@ autarx validate Mcu.arxml
 
 ## Install
 
-Releases follow `autarx-<version>-<os>-<arch>.<ext>` and ship from
-[GitHub Releases](https://github.com/turlamai/autarx/releases):
+The planned release artifacts follow `autarx-<version>-<os>-<arch>.<ext>`. Check [GitHub Releases](https://github.com/turlamai/autarx/releases) for actually published assets and their verification status. If no suitable verified asset is available, build from source using the instructions below. The following table describes the intended distribution formats, not a guarantee of availability:
 
 | Download | Platform | Kind |
 | --- | --- | --- |
