@@ -121,8 +121,7 @@ autarx validate Mcu.arxml
 
 ## 安装
 
-发布产物统一按 `autarx-<version>-<os>-<arch>.<ext>` 命名，从
-[GitHub Releases](https://github.com/turlamai/autarx/releases) 下载：
+计划发行产物统一按 `autarx-<version>-<os>-<arch>.<ext>` 命名。请在 [GitHub Releases](https://github.com/turlamai/autarx/releases) 查看实际发布的产物及其验证状态；若无适用且已验证的产物，请按下文从源码构建。下表描述计划分发格式，不代表安装包已发布：
 
 | 下载 | 平台 | 形态 |
 | --- | --- | --- |
