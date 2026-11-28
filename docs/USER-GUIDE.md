@@ -6,7 +6,7 @@ Inspect, compare and trace AUTOSAR delivery data before making a reviewed change
 
 ## Availability
 
-Engineering preview; the complete official workbench is planned as a purchase. No paid checkout is open.
+Engineering preview; current development prioritizes quality, recovery and verified delivery, without paid feature gates.
 
 ## Platforms and installation
 
