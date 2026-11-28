@@ -99,7 +99,7 @@ html:lang(en) .vs-zh,html:lang(zh) .vs-en{display:none!important}
       <ul class="nav-menu">
         <li><a href="#features" data-i18n="nav.features">功能</a></li>
         <li><a href="#platform" data-i18n="nav.platform">平台</a></li>
-        <li><a href="#download" data-i18n="nav.download">下载</a></li>
+        <li><a href="#download" data-i18n="nav.download">获取</a></li>
         <li><a href="guide.html" data-i18n="nav.guide">用户手册</a></li>
         <li><a href="https://github.com/turlamai/autarx">GitHub</a></li>
         <li class="lang-dropdown-wrapper">
@@ -168,7 +168,7 @@ html:lang(en) .vs-zh,html:lang(zh) .vs-en{display:none!important}
             <nav class="kit-nav-links">
                 <a href="#features" data-i18n="nav.features">功能</a>
                 <a href="#platform" data-i18n="nav.platform">平台</a>
-                <a href="#download" data-i18n="nav.download">下载</a>
+                <a href="#download" data-i18n="nav.download">获取</a>
                 <a href="guide.html" data-i18n="nav.guide">用户手册</a>
                 <a href="https://github.com/turlamai/autarx">GitHub</a>
             </nav>
@@ -200,19 +200,7 @@ html:lang(en) .vs-zh,html:lang(zh) .vs-en{display:none!important}
                 <h1><span data-i18n="hero.h1a">一个工作台，</span> <span class="kit-accent-word" data-i18n="hero.h1b">看清整套交付。</span></h1>
                 <p class="kit-lead" data-i18n="hero.lead">Autarx 是一个 AUTOSAR 集成工作台：直接打开 OEM 交付物——System Description、System Extract、ECU Extract、ECUC 与通信 ARXML——让集成工程师在进入 vendor 工具链之前，先完成检查、检索、引用追踪与结构校验，再用语义 diff 与 ECU 影响分析看清每个变化，每条发现都带证据与修复路径。</p>
                 <div class="kit-btn-row">
-                    <div class="kit-dl">
-                        <a class="kit-btn kit-btn--primary" data-kit-dl-primary href="https://github.com/turlamai/autarx/releases/latest">
-                            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M10 2.5v10M6 9l4 4 4-4M3.5 16.5h13"/></svg>
-                            <span class="kit-dl-label" data-i18n="dl.generic">下载最新版</span>
-                        </a>
-                        <button class="kit-dl-caret" type="button" aria-haspopup="true" aria-expanded="false" aria-label="All platforms">
-                            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 5.5L7 9.5l4-4"/></svg>
-                        </button>
-                        <ul class="kit-dl-menu">
-                            <li><a href="https://github.com/turlamai/autarx/releases/latest" data-kit-dl="win"><span class="kit-dl-os" data-i18n="dl.win">下载 Windows 版</span><span class="kit-dl-kind">.msi</span></a></li>
-                            <li class="kit-dl-note kit-hidden" data-i18n="dl.note">当前平台请前往 Releases 页面选取对应安装包。</li>
-                        </ul>
-                    </div>
+                    <a class="kit-btn kit-btn--primary" href="https://github.com/turlamai/autarx" data-i18n="dl.generic">查看源码</a>
                     <a class="kit-btn kit-btn--secondary" href="guide.html" data-i18n="hero.cta-guide">用户手册</a>
                 </div>
                 <p class="kit-hero-meta"><span class="kit-badge" data-i18n="hero.availability">工程预览；当前优先验证 ARXML 流程、真实规模性能与错误恢复，不设收费门禁。</span></p>
@@ -314,24 +302,24 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
         <!-- Download -->
         <section class="kit-section" id="download">
             <div class="kit-container">
-                <span class="kit-kicker" data-i18n="dl.eyebrow">下载</span>
+                <span class="kit-kicker" data-i18n="dl.eyebrow">获取</span>
                 <h2 class="kit-h2"><span data-i18n="dl.t1">一个工作台，</span> <span class="kit-accent-word" data-i18n="dl.t2">专攻 Windows。</span></h2>
-                <p class="kit-lead" data-i18n="dl.lead">GUI 与 CLI 同一个引擎、同一个平台：Windows 以 MSI 与便携 zip 交付工作台，CLI 另有自包含 zip——厂商工具链在哪，Autarx 就在哪。</p>
+                <p class="kit-lead" data-i18n="dl.lead">计划分发 Windows MSI、便携工作台 zip 和 CLI zip。请查看实际发布资产及验证状态；没有适用安装包时，从源码构建。</p>
                 <div class="kit-grid kit-grid--3" style="margin-top: 36px;">
-                    <a class="kit-card platform-card" href="https://github.com/turlamai/autarx/releases/latest">
+                    <a class="kit-card platform-card" href="https://github.com/turlamai/autarx/releases">
                         <div class="platform-icon" aria-hidden="true">🪟</div>
                         <div class="platform-name">CLI · Windows</div>
                         <div class="platform-format">.zip · x64</div>
                     </a>
                 </div>
                 <div class="kit-grid kit-grid--3" style="margin-top: 18px;">
-                    <a class="kit-card platform-card" data-kit-dl="win" href="https://github.com/turlamai/autarx/releases/latest">
+                    <a class="kit-card platform-card" href="https://github.com/turlamai/autarx/releases">
                         <div class="platform-icon" aria-hidden="true">🪟</div>
                         <div class="platform-name" data-i18n="dl.win-gui">GUI · Windows</div>
                         <div class="platform-format">.msi · x64 · 便携 app.zip（应用内更新）</div>
                     </a>
                 </div>
-                <p class="callout" style="margin-top: 34px;"><span data-i18n="dl.callout">更新机制：CLI 用 autarx update 自更新；GUI 内置「检查更新」（Ctrl+U），走同一条 Ed25519 签名的 update feed——MSI 安装走被动升级，便携版就地换装。每个资产都带 .sha256 校验文件。</span></p>
+                <p class="callout" style="margin-top: 34px;"><span data-i18n="dl.callout">更新机制：CLI 用 autarx update 自更新；GUI 内置「检查更新」（Ctrl+U），走同一条 Ed25519 签名的 update feed——MSI 安装走被动升级，便携版就地换装。安装或升级前请核对实际发行资产、版本说明及校验文件。</span></p>
                 <p style="margin-top: 24px;"><a class="kit-btn kit-btn--secondary" href="https://github.com/turlamai/autarx/releases" data-i18n="dl.all-releases">全部版本</a></p>
             </div>
         </section>
@@ -343,7 +331,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
                 <h2 class="kit-h2"><span data-i18n="status.t1">分析优先，</span> <span class="kit-accent-word" data-i18n="status.t2">一个里程碑一个里程碑。</span></h2>
                 <p class="kit-lead" data-i18n="status.lead">当前状态：工作区语义引擎、语义 diff、ECU 影响分析、通信投影、受控编辑与 MCP 已有实现，Windows GUI 正在持续验证（2026-11 平台重置为 Windows 专用）。M9 聚焦真实性能、错误恢复与签名证据，而非商业授权。</p>
                 <div class="kit-btn-row" style="margin-top: 30px;">
-                    <a class="kit-btn kit-btn--primary" href="https://github.com/turlamai/autarx/releases/latest" data-i18n="status.download">下载</a>
+                    <a class="kit-btn kit-btn--primary" href="https://github.com/turlamai/autarx/releases" data-i18n="status.download">查看发行记录</a>
                     <a class="kit-btn kit-btn--secondary" href="guide.html" data-i18n="status.guide">用户手册</a>
                     <a class="kit-btn kit-btn--secondary" href="https://github.com/turlamai/autarx/blob/main/docs/ROADMAP.md" data-i18n="status.roadmap">路线图</a>
                 </div>
@@ -396,7 +384,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
                     <h4 data-i18n="footer.product">产品</h4>
                     <ul>
                         <li><a href="#features" data-i18n="nav.features">功能</a></li>
-                        <li><a href="#download" data-i18n="nav.download">下载</a></li>
+                        <li><a href="#download" data-i18n="nav.download">获取</a></li>
                         <li><a href="guide.html" data-i18n="nav.guide">用户手册</a></li>
                     </ul>
                 </div>
@@ -430,7 +418,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
   "zh": {
     "nav.features": "功能",
     "nav.platform": "平台",
-    "nav.download": "下载",
+    "nav.download": "获取",
     "nav.guide": "用户手册",
     "nav.github": "GitHub",
     "hero.pill": "ARXML 分析栈 · M9 质量与发行验证",
@@ -441,9 +429,9 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     "hero.availability": "工程预览；当前优先验证 ARXML 流程、真实规模性能与错误恢复，不设收费门禁。",
     "hero.cta-guide": "用户手册",
     "hero.term-title": "autarx — 真实命令与输出",
-    "dl.generic": "下载最新版",
-    "dl.win": "下载 Windows 版",
-    "dl.note": "当前平台请前往 Releases 页面选取对应安装包。",
+    "dl.generic": "查看源码",
+    "dl.win": "查看 Windows 发行记录",
+    "dl.note": "请查看实际发布资产及验证状态。",
     "vs.title": "先看清交付物，再开展 AUTOSAR 集成。",
     "vs.lead": "文件、引用、差异与报告如何关联？用工作流程说明，而非陈旧的原生窗口截图。",
     "vs.s1t": "检查包",
@@ -491,18 +479,18 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     "pf.milestone": "里程碑",
     "pf.milestone-v": "分析栈已交付：语义引擎、语义 diff、ECU 影响分析、通信投影、厂商交接、受控编辑、MCP；Windows GUI 宿主已上线（2026-11 平台重置为 Windows 专用）；M9 商业化加固（授权、签名、性能画像）进行中",
     "pf.caption": "先用合成 OEM 交付件试运行导入和索引；检查未解析引用、诊断与差异，再处理真实项目。遇到歧义结果应继续核查。",
-    "dl.eyebrow": "下载",
+    "dl.eyebrow": "获取",
     "dl.t1": "一个工作台，",
     "dl.t2": "专攻 Windows。",
-    "dl.lead": "GUI 与 CLI 同一个引擎、同一个平台：Windows 以 MSI 与便携 zip 交付工作台，CLI 另有自包含 zip——厂商工具链在哪，Autarx 就在哪。",
+    "dl.lead": "计划分发 Windows MSI、便携工作台 zip 和 CLI zip。请查看实际发布资产及验证状态；没有适用安装包时，从源码构建。",
     "dl.win-gui": "GUI · Windows",
-    "dl.callout": "更新机制：CLI 用 autarx update 自更新；GUI 内置「检查更新」（Ctrl+U），走同一条 Ed25519 签名的 update feed——MSI 安装走被动升级，便携版就地换装。每个资产都带 .sha256 校验文件。",
+    "dl.callout": "更新机制：CLI 用 autarx update 自更新；GUI 内置「检查更新」（Ctrl+U），走同一条 Ed25519 签名的 update feed——MSI 安装走被动升级，便携版就地换装。安装或升级前请核对实际发行资产、版本说明及校验文件。",
     "dl.all-releases": "全部版本",
     "status.eyebrow": "状态",
     "status.t1": "分析优先，",
     "status.t2": "一个里程碑一个里程碑。",
     "status.lead": "当前状态：工作区语义引擎、语义 diff、ECU 影响分析、通信投影、受控编辑与 MCP 已有实现，Windows GUI 正在持续验证（2026-11 平台重置为 Windows 专用）。M9 聚焦真实性能、错误恢复与签名证据，而非商业授权。",
-    "status.download": "下载",
+    "status.download": "查看发行记录",
     "status.guide": "用户手册",
     "status.roadmap": "路线图",
     "start.kicker": "开始使用",
@@ -525,7 +513,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
   "en": {
     "nav.features": "Features",
     "nav.platform": "Platform",
-    "nav.download": "Download",
+    "nav.download": "Get started",
     "nav.guide": "User guide",
     "nav.github": "GitHub",
     "hero.pill": "ARXML analysis · M9 quality verification",
@@ -536,9 +524,9 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     "hero.availability": "Engineering preview focused on ARXML workflows, real-scale performance and error recovery; no commercial access gate.",
     "hero.cta-guide": "User guide",
     "hero.term-title": "autarx — real commands, real output",
-    "dl.generic": "Download",
-    "dl.win": "Download for Windows",
-    "dl.note": "Pick the right package from the Releases page for your platform.",
+    "dl.generic": "View source",
+    "dl.win": "View Windows releases",
+    "dl.note": "Check published assets and their verification status.",
     "vs.title": "Understand the delivery before AUTOSAR integration.",
     "vs.lead": "Files, references, differences and reports in one workflow — not a dated native window screenshot.",
     "vs.s1t": "Inspect",
@@ -586,18 +574,18 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
     "pf.milestone": "Milestone",
     "pf.milestone-v": "Analysis stack shipped: semantic engine, semantic diff, ECU impact, communication projection, vendor hand-off, reviewed patching, MCP; the Windows GUI host is live (2026-11 platform reset to Windows-only); M9 commercial hardening (licensing, code signing, performance profiling) in progress",
     "pf.caption": "Start with a synthetic OEM delivery, review indexing, unresolved references, diagnostics and diffs, then consider real project data. Treat ambiguous results as requiring further review.",
-    "dl.eyebrow": "Download",
+    "dl.eyebrow": "Get started",
     "dl.t1": "One workbench,",
     "dl.t2": "Windows, on purpose.",
-    "dl.lead": "GUI and CLI share one engine and one platform: the Windows workbench ships as an MSI and a portable zip, the CLI as a self-contained zip — Autarx lives where the vendor toolchain lives.",
+    "dl.lead": "Planned formats are Windows MSI, portable workbench zip and CLI zip. Check published assets and verification status; build from source if no suitable package is available.",
     "dl.win-gui": "GUI · Windows",
-    "dl.callout": "Updates: the CLI updates itself with autarx update; the GUI ships a built-in Check for Updates (Ctrl+U) consuming the same Ed25519-signed update feed — MSI installs upgrade passively, portable installs swap in place. Every asset carries a .sha256 sidecar.",
+    "dl.callout": "Updates: the CLI updates itself with autarx update; the GUI ships a built-in Check for Updates (Ctrl+U) consuming the same Ed25519-signed update feed — MSI installs upgrade passively, portable installs swap in place. Check the actual release assets, release notes and checksums before installing or upgrading.",
     "dl.all-releases": "All releases",
     "status.eyebrow": "Status",
     "status.t1": "Analysis first,",
     "status.t2": "milestone by milestone.",
     "status.lead": "The workspace semantic engine, semantic diff, ECU impact analysis, communication projection, controlled editing and MCP have implementations; the Windows GUI host is under continuous real-world verification (Windows-only since the 2026-11 platform reset). M9 focuses on measured performance, recovery and code-signing evidence, not commercial licensing.",
-    "status.download": "Download",
+    "status.download": "View releases",
     "status.guide": "User guide",
     "status.roadmap": "Roadmap",
     "start.kicker": "Start here",
@@ -631,7 +619,7 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
             'pf.platforms-v': 'Windows 10+（x64）——GUI 与 CLI 同平台；厂商工具链（DaVinci / tresos / ISOLAR）本身只在 Windows 上运行',
             'pf.milestone-v': '分析栈已交付：语义引擎、语义 diff、ECU 影响分析、通信投影、厂商交接、受控编辑、MCP；Windows GUI 宿主已上线（2026-11 平台重置为 Windows 专用）；M9 质量、性能与签名验证进行中',
             'pf.caption': '先用合成 OEM 交付件试运行导入和索引；检查未解析引用、诊断与差异，再处理真实项目。遇到歧义结果应继续核查。',
-            'dl.lead': 'GUI 与 CLI 同一个引擎、同一个平台：Windows 以 MSI 与便携 zip 交付工作台，CLI 另有自包含 zip——厂商工具链在哪，Autarx 就在哪。',
+            'dl.lead': '计划分发 Windows MSI、便携工作台 zip 和 CLI zip。请查看实际发布资产及验证状态；没有适用安装包时，从源码构建。',
             'status.lead': '当前状态：工作区语义引擎、语义 diff、ECU 影响分析、通信投影、受控编辑与 MCP 已有实现，Windows GUI 正在持续验证（2026-11 平台重置为 Windows 专用）。M9 聚焦真实性能、错误恢复与签名证据，而非商业授权。'
         },
         en: {
@@ -639,22 +627,14 @@ closure: 7 objects in scope, relevant changes: 4, unrelated: 2, <span class="fla
             'pf.platforms-v': 'Windows 10+ (x64) — GUI and CLI on the same platform; the vendor toolchain (DaVinci / tresos / ISOLAR) itself runs only on Windows',
             'pf.milestone-v': 'Analysis stack shipped: semantic engine, semantic diff, ECU impact, communication projection, vendor hand-off, reviewed patching, MCP; the Windows GUI host is live (2026-11 platform reset to Windows-only); M9 commercial hardening (licensing, code signing, performance profiling) in progress',
             'pf.caption': 'Start with a synthetic OEM delivery, review indexing, unresolved references, diagnostics and diffs, then consider real project data. Treat ambiguous results as requiring further review.',
-            'dl.lead': 'GUI and CLI share one engine and one platform: the Windows workbench ships as an MSI and a portable zip, the CLI as a self-contained zip — Autarx lives where the vendor toolchain lives.',
+            'dl.lead': 'Planned formats are Windows MSI, portable workbench zip and CLI zip. Check published assets and verification status; build from source if no suitable package is available.',
             'status.lead': 'Where things stand: the full analysis stack is shipped — workspace semantic engine, semantic diff, ECU impact analysis, communication projection, vendor hand-off, reviewed editing and the MCP agent surface — and the GUI host is live (Windows-only since the 2026-11 platform reset). What remains of M9 commercial hardening: licensing, performance profiling, code signing.'
         }
     }
     </script>
 
-    <!-- Download config: Windows-only product (issue #56) — the GUI ships an MSI.
-         CLI zips link to the Releases page. -->
-    <script type="application/json" id="kit-download">
-    {
-        "repo": "turlamai/autarx",
-        "assets": {
-            "win": "autarx-{v}-windows-x64.msi"
-        }
-    }
-    </script>
+    
+    
 </body>
 
 </html>
